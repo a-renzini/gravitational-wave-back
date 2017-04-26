@@ -142,7 +142,6 @@ def vect_diff_pix(pixm,pixn,nsd): #you give it 2 pixs, it returns the pixel of t
     sinb = m_minus_n[1]/(norm*cosa)
     a = np.arctan2(sina,cosa)
     b = np.arctan2(sinb,cosb)
-    print a, b
     pix_m_minus_n = hp.ang2pix(nsd,a+np.pi*0.5,b) #
     return pix_m_minus_n
     
@@ -159,7 +158,6 @@ def vect_sum_pix(pixn,pixm,nsd): #you give it 2 pixs, it returns the pixel of th
     sinb = m_plus_n[1]/(norm*cosa)
     a = np.arctan2(sina,cosa)
     b = np.arctan2(sinb,cosb)
-    print a, b
     pix_m_plus_n = hp.ang2pix(nsd,a+np.pi*0.5,b)  #
     return pix_m_plus_n
 

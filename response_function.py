@@ -9,9 +9,10 @@ import OverlapFunctsSrc as ofs
 from scipy import integrate
 import quat_rotation as qr
 import quat_2_abg as q2abg
+import matplotlib.pyplot as plt
 
 # initialize, maybe change a few options from their defaults
-nsd=32
+nsd=8
 Q = qp.QMap(nside=nsd, pol=True, accuracy='low',
             fast_math=True, mean_aber=True)
             
@@ -44,8 +45,6 @@ lenmap = len(hplus)
 #np.savetxt('hplus.txt', hplus, delimiter=' ', newline='\n')
 #np.savetxt('hcross.txt', hcross, delimiter=' ', newline='\n')
 
-print lenmap
-print hp.nside2npix(nsd)
 
 ############## CREATE HPMAP OF QUATERNIONS #######################
 #make the map of 0s
@@ -107,6 +106,10 @@ Qstoke = np.vstack(hp.synfast(cls, nside=nsd, pol=True, new=True))
 Ustoke = np.vstack(hp.synfast(cls, nside=nsd, pol=True, new=True))
 Vstoke = np.vstack(hp.synfast(cls, nside=nsd, pol=True, new=True))
 
+map = hp.synfast(cls, nside=nsd, pol=True, new=True)
+hp.mollview(map)
+plt.savefig('Istoke.pdf')
+
 Area_pix = 1.#what's this, recapially?
 
 
@@ -161,7 +164,6 @@ def alpha(pixm,n_diff_vect,f):
     m_vect = ofs.m(m[0]-np.pi*0.5, m[1]) #to fit *my* convention
     return 2.*np.pi*f*R_earth*np.dot(m_vect,n_diff_vect)
 
-
 def HaHb_corr(n,n_p,f,nsd): #input: 2 quats
     
     pixn = Q.quat2pix(n,nsd)[0]    #get the pix from the quat
@@ -170,12 +172,12 @@ def HaHb_corr(n,n_p,f,nsd): #input: 2 quats
     rot_m_array = rotation_pix(m_array,n)
     m_p_array = rotation_pix(rot_m_array,qr.quat_inv(n_p))
     
+    print "+++ pixn, pixn_p +++"
+    print pixn, pixn_p
+    print "++++++"
+    
     n_minus_n_p = hp.pix2ang(nsd,ofs.vect_diff_pix(pixn,pixn_p,nsd))
     n_diff_vect = ofs.m(n_minus_n_p[0]-np.pi*0.5, n_minus_n_p[1])
-    
-    print '++ pixn,pixn_p ++'
-    print pixn, pixn_p
-    print '++++'
     
     Istoke_rot = Istoke[rot_m_array]    #remember: check interpolation
     Qstoke_rot = Qstoke[rot_m_array]
@@ -186,15 +188,30 @@ def HaHb_corr(n,n_p,f,nsd): #input: 2 quats
     a = np.zeros_like(Istoke)
     b = np.zeros_like(Istoke)
     
+    #imaginary part
+    c = np.zeros_like(Istoke)
+    d = np.zeros_like(Istoke)
+    
     i = 0
     while i < lenmap:
         if m_array[i]<pixn or m_array[i]>pixn:
-            a[i] = (Istoke_rot[i]*gammaI(m_array[i],pixn,m_p_array[i],pixn_p))*np.cos(alpha(m_array[i],n_diff_vect,f))
+            a[i] = (Istoke_rot[i]*gammaI(m_array[i],pixn,m_p_array[i],pixn_p)+
+            Qstoke_rot[i]*gammaQ(m_array[i],pixn,m_p_array[i],pixn_p)+
+            Ustoke_rot[i]*gammaU(m_array[i],pixn,m_p_array[i],pixn_p)
+            )*np.cos(alpha(m_array[i],n_diff_vect,f))
             b[i] = -(Vstoke_rot[i]*gammaV(m_array[i],pixn,m_p_array[i],pixn_p))*np.sin(alpha(m_array[i],n_diff_vect,f))
+            c[i] = (Istoke_rot[i]*gammaI(m_array[i],pixn,m_p_array[i],pixn_p)+
+            Qstoke_rot[i]*gammaQ(m_array[i],pixn,m_p_array[i],pixn_p)+
+            Ustoke_rot[i]*gammaU(m_array[i],pixn,m_p_array[i],pixn_p)
+            )*np.sin(alpha(m_array[i],n_diff_vect,f))
+            d[i] = (Vstoke_rot[i]*gammaV(m_array[i],pixn,m_p_array[i],pixn_p))*np.cos(alpha(m_array[i],n_diff_vect,f))
         else: 
-            a[i]=0
-            b[i]=0
+            a[i] = 0.
+            b[i] = 0.
+            c[i] = 0.
+            d[i] = 0.
         i+=1 
     Real_part =Area_pix*0.5*np.sum(np.add(a,b)) 
-    return Real_part
+    Imag_part =Area_pix*0.5*np.sum(np.add(c,d))
+    return Real_part, Imag_part, pixn
     
