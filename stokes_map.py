@@ -10,8 +10,10 @@ from scipy import integrate
 import response_function as rf
 import matplotlib.pyplot as plt
 
+#consider making this also a function
+
 nsd = 16
-print hp.nside2npix(nsd)
+#print hp.nside2npix(nsd)
 Q = qp.QMap(nside=nsd, pol=True, accuracy='low',
             fast_math=True, mean_aber=True)
 
@@ -32,31 +34,42 @@ pixn = np.arange(num)
 map_R = np.zeros(hp.nside2npix(nsd),dtype=np.float64)
 map_I = np.zeros(hp.nside2npix(nsd),dtype=np.float64)
 
-i = 0
-while i < num:
+def n_n_p_arrays():
+    i = 0
+    n=np.zeros((num,4))
+    n_p=np.zeros((num,4))
+    while i < num:
 
-    n = Q.azel2bore(0., 90., None, None, lon, lat, ctime[i]) #we'll use this to rotate the quatmap
-    n = np.array(n[0]) #n is the fixed direction
+        n_mat = Q.azel2bore(0., 90., None, None, lon, lat, ctime[i]) #we'll use this to rotate the quatmap
+        n[i] = np.array(n_mat[0]) #n is the fixed direction
 
-    n_p = Q.azel2bore(0., 90., None, None, lonp, latp, ctime[i]) #we'll use this to rotate the quatmap
-    n_p = np.array(n_p[0]) #n is the fixed direction
+        n_p_mat = Q.azel2bore(0., 90., None, None, lonp, latp, ctime[i]) #we'll use this to rotate the quatmap
+        n_p[i] = np.array(n_p_mat[0]) 
     
     ## quick check 
     # n_vect = ofs.m(np.deg2rad(Q.quat2radecpa(n)[1]), np.deg2rad(Q.quat2radecpa(n)[0]))
     # n_p_vect = ofs.m(np.deg2rad(Q.quat2radecpa(n_p)[1]), np.deg2rad(Q.quat2radecpa(n_p)[0]))
     # print np.dot(n_vect,n_p_vect)
     ##
+        i+=1
+    return n, n_p
 
-    HaHb_R[i], HaHb_I[i], pixn[i] = rf.HaHb_corr(n,n_p,1.,nsd)
+n = n_n_p_arrays()[0]
+n_p = n_n_p_arrays()[1]
 
-    map_R[pixn[i]] = HaHb_R[i]
-    map_I[pixn[i]] = HaHb_I[i]
-
-    i+=1
-
+#i = 0
+# while i < num:
+#
+#     HaHb_R[i], HaHb_I[i], pixn[i] = rf.HaHb_corr(n[i],n_p[i],1.,nsd)
+#
+#     map_R[pixn[i]] = HaHb_R[i]
+#     map_I[pixn[i]] = HaHb_I[i]
+#
+#     i+=1
+#
 #print HaHb
-hp.mollview(map_R)
-plt.savefig('map8_R.pdf')
-hp.mollview(map_I)
-plt.savefig('map8_I.pdf')
+# hp.mollview(map_R)
+# plt.savefig('map8_R.pdf')
+# hp.mollview(map_I)
+# plt.savefig('map8_I.pdf')
 

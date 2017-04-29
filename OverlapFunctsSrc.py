@@ -42,16 +42,16 @@ def ecross(theta,phi,i,j):
 #LIGO DETECOR TENSORS; H:Hanford, L:Livingston
 
     #const.s
-sigmaH=0.
-sigmaL=0.
-beta=np.pi
+# sigmaH=0.
+# sigmaL=0.
+# beta=np.pi
 
 R_earth=6378137  #radius of the earth in metres
 
 ##real ones:
-#sigmaH = (45.3 + 62.2)*np.pi/180
-#sigmaL = (45.3 - 62.2)*np.pi/180
-#beta = 27.2*np.pi/180
+sigmaH = (45.3 + 62.2)*np.pi/180.
+sigmaL = (45.3 - 62.2)*np.pi/180.
+beta = 27.2*np.pi/180.
 
     #arm vectors
 uH=[cos(sigmaH)*sin(beta/2.),sin(sigmaH),-cos(sigmaH)*cos(beta/2.)]

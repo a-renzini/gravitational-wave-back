@@ -8,11 +8,11 @@ import cmath
 import OverlapFunctsSrc as ofs
 from scipy import integrate
 import quat_rotation as qr
-import quat_2_abg as q2abg
+#import quat_2_abg as q2abg
 import matplotlib.pyplot as plt
 
 # initialize, maybe change a few options from their defaults
-nsd=8
+nsd=16
 Q = qp.QMap(nside=nsd, pol=True, accuracy='low',
             fast_math=True, mean_aber=True)
             
@@ -110,8 +110,7 @@ map = hp.synfast(cls, nside=nsd, pol=True, new=True)
 hp.mollview(map)
 plt.savefig('Istoke.pdf')
 
-Area_pix = 1.#what's this, recapially?
-
+Area_pix = 1.#what's this, really?
 
 
 ######## CHECK ALL ANGLE CONVENTIONS AND MAKE SURE THEY ALL AGREE! ##########
