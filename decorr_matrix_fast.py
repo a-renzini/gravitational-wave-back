@@ -35,65 +35,75 @@ gammaV = ofs.gammaVHL(theta,phi)
 # hp.mollview(gammaI)
 # plt.savefig('gammaI.pdf')         ##('hanning%s.pdf' % num)
 
-#Rotation of the gammas around a n quat
-
 n = sm.n_n_p_arrays()[0]
 n_p = sm.n_n_p_arrays()[1]
 
-#build alpha functs
+k = 0
+pixn = np.arange(len(n))
+pixn_p = np.arange(len(n))
+while k<len(n):
+    pixn[k] = Q.quat2pix(n[k],nsd)[0]   
+    pixn_p[k] = Q.quat2pix(n_p[k],nsd)[0]
+    k+=1
+
+#print pixn, pixn_p
+
+#2 build alpha functs
 cos_alpha = [np.zeros(lenmap)]*len(n)
 sin_alpha = [np.zeros(lenmap)]*len(n)
 
 i = 0
-j = 0
+notimes = 1
+gammaRI_rtot = np.zeros_like(gammaI)
+gammaRQ_rtot = np.zeros_like(gammaI)
+gammaRU_rtot = np.zeros_like(gammaI)
+gammaRV_rtot = np.zeros_like(gammaI)
+refpix = pixn[0]
 
 while i<len(n):
-    pixn = Q.quat2pix(n[i],nsd)[0]   
-    pixn_p = Q.quat2pix(n_p[i],nsd)[0]
+
+#the alpha functs: (depends only on pix numbers)
+    j = 0
     while j<lenmap:
-        n_minus_n_p = hp.pix2ang(nsd,ofs.vect_diff_pix(pixn,pixn_p,nsd))
-        n_diff_vect = ofs.m(n_minus_n_p[0]-np.pi*0.5, n_minus_n_p[1])    
+        n_minus_n_p = hp.pix2ang(nsd,ofs.vect_diff_pix(pixn[i],pixn_p[i],nsd))
+        n_diff_vect = ofs.m(n_minus_n_p[0]-np.pi*0.5, n_minus_n_p[1])
         cos_alpha[i][j] = np.cos(alpha(m_array[j],n_diff_vect,f))
         sin_alpha[i][j] = np.sin(alpha(m_array[j],n_diff_vect,f))
         j+=1
-    i+=1
-hp.mollview(cos_alpha[1])
-plt.savefig('trials/cos_alpha.pdf')
-    
-## GIF MAKER
 
-s = raw_input('Would you like to make a .gif of the overlap functions? (Y/n) ')
-if s == 'Y':
-    images = []
-    i = 0
-    while i<10: 
-        rot_m_array = rotation_pix(m_array,n[i])    #this is the rotated array; now one simply does
-
-        gammaI_rot = gammaI[rot_m_array]    #remember: check interpolation
-    #    gammaQ_rot = gammaQ[rot_m_array]
-    #    gammaU_rot = gammaU[rot_m_array]
-    #    gammaV_rot = gammaV[rot_m_array]
-
-        hp.mollview(gammaI_rot)
-        plt.savefig('gammaI/gammaI%s.png' % i)
-        images.append(imageio.imread('gammaI/gammaI%s.png' % i))
-        i+=1
-    imageio.mimsave('gammaI.gif', images)
-    
-###
-
-## ROTATING THE GAMMAR FUNCTIONS: Elements of the DECORR matrix & of in the data vector
-
-i = 0
-while i<len(n): 
     rot_m_array = rotation_pix(m_array,n[i])    #this is the rotated array; let's pretend counter-rotation is just inverting the order of the elements !!TO BE CHECKED!! . Now one simply does
 
     gammaRI_rot = gammaI[rot_m_array]*cos_alpha[i][rot_m_array]
     gammaRQ_rot = gammaQ[rot_m_array]*cos_alpha[i][rot_m_array]
     gammaRU_rot = gammaU[rot_m_array]*cos_alpha[i][rot_m_array]
     gammaRV_rot = gammaV[rot_m_array]*sin_alpha[i][rot_m_array]
+
+    if pixn[i] == refpix:
+        gammaRI_rtot +=  gammaRI_rot #summing over pixes #let's just do it for one stoke and see if it works 
+        notimes+=1
+        
+    else:
+        print notimes
+        gammaRI_rtot = gammaRI_rtot/notimes     #average over pixels
+        refpix = pixn[i]
+        notimes = 1
+        
+        hp.mollview(gammaRI_rtot)
+        plt.savefig('gammaRI_rotated/gammaRI_rotated%s.pdf' % i)
+        
+        gammaRI_rtot = gammaRI_rot
+        gammaRQ_rtot = gammaRQ_rot
+        gammaRU_rtot = gammaRU_rot
+        gammaRV_rtot = gammaRV_rot
+        
     
     i+=1
+
+    
+
+
+## ROTATING THE GAMMAR FUNCTIONS: Elements of the DECORR matrix & of in the data vector
+
 
 
 
