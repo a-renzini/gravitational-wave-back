@@ -18,7 +18,7 @@ Q = qp.QMap(nside=nsd, pol=True, accuracy='low',
             fast_math=True, mean_aber=True)
 
 num = 100
-ctime = 1418662800.+ 10.*np.arange(num) #seconds #this will become ctime[i] for n[i]
+ctime = 1418662800.+ 100.*np.arange(num) #seconds #this will become ctime[i] for n[i]
 
 #fix the zenith quaternion for HANFORD
 lat =46.455102

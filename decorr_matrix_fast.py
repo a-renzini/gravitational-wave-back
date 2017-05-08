@@ -11,6 +11,7 @@ from response_function import alpha
 import matplotlib.pyplot as plt
 import stokes_map as sm
 import imageio
+import pickle
 
 #set the frequency:
 
@@ -53,12 +54,19 @@ cos_alpha = [np.zeros(lenmap)]*len(n)
 sin_alpha = [np.zeros(lenmap)]*len(n)
 
 i = 0
-notimes = 1
+notimes = 0
+npix = 0
 gammaRI_rtot = np.zeros_like(gammaI)
 gammaRQ_rtot = np.zeros_like(gammaI)
 gammaRU_rtot = np.zeros_like(gammaI)
 gammaRV_rtot = np.zeros_like(gammaI)
-refpix = pixn[0]
+refpix = []
+refpix.append(pixn[0])
+print npix
+
+decorr_Ms = len(n)*[[[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)]],[[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)]],[[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)]],[[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)]],[[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)]]]
+
+#exit()
 
 while i<len(n):
 
@@ -73,43 +81,60 @@ while i<len(n):
 
     rot_m_array = rotation_pix(m_array,n[i])    #this is the rotated array; let's pretend counter-rotation is just inverting the order of the elements !!TO BE CHECKED!! . Now one simply does
 
+## ROTATING THE GAMMAR FUNCTIONS: Elements of the DECORR matrix & of in the data vector
+
     gammaRI_rot = gammaI[rot_m_array]*cos_alpha[i][rot_m_array]
     gammaRQ_rot = gammaQ[rot_m_array]*cos_alpha[i][rot_m_array]
     gammaRU_rot = gammaU[rot_m_array]*cos_alpha[i][rot_m_array]
     gammaRV_rot = gammaV[rot_m_array]*sin_alpha[i][rot_m_array]
 
-    if pixn[i] == refpix:
-        gammaRI_rtot +=  gammaRI_rot #summing over pixes #let's just do it for one stoke and see if it works 
+    if pixn[i] == refpix[npix]:
+        gammaRI_rtot +=  gammaRI_rot #summing within the same pix   
+        gammaRQ_rtot +=  gammaRQ_rot
+        gammaRU_rtot +=  gammaRU_rot
+        gammaRV_rtot +=  gammaRV_rot
+        
         notimes+=1
         
     else:
         print notimes
+        
         gammaRI_rtot = gammaRI_rtot/notimes     #average over pixels
-        refpix = pixn[i]
+        gammaRQ_rtot = gammaRQ_rtot/notimes 
+        gammaRU_rtot = gammaRU_rtot/notimes 
+        gammaRV_rtot = gammaRV_rtot/notimes 
+        
+        
+        
+        npix+=1
+        refpix.append(pixn[i])
         notimes = 1
+        
+        print npix
         
         hp.mollview(gammaRI_rtot)
         plt.savefig('gammaRI_rotated/gammaRI_rotated%s.pdf' % i)
+        
+        decorr_Ms[npix] = [[1,gammaRI_rtot,gammaRV_rtot,gammaRU_rtot,gammaRQ_rtot],[gammaRI_rtot,gammaRI_rtot*gammaRI_rtot,gammaRI_rtot*gammaRV_rtot,gammaRI_rtot*gammaRU_rtot,gammaRI_rtot*gammaRQ_rtot],[gammaRV_rtot,gammaRV_rtot*gammaRI_rtot,gammaRV_rtot*gammaRV_rtot,gammaRV_rtot*gammaRU_rtot,gammaRV_rtot*gammaRQ_rtot],[gammaRU_rtot,gammaRU_rtot*gammaRI_rtot,gammaRU_rtot*gammaRV_rtot,gammaRU_rtot*gammaRU_rtot,gammaRU_rtot*gammaRQ_rtot],[gammaRQ_rtot,gammaRQ_rtot*gammaRI_rtot,gammaRQ_rtot*gammaRV_rtot,gammaRQ_rtot*gammaRU_rtot,gammaRQ_rtot*gammaRQ_rtot]]
+                
+        #with open('decorr_Ms/decorr_M%s.txt' % npix, 'wb') as fp:
+        #    pickle.dump(decorr_Ms[npix], fp)
+        
+        #print decorr_Ms[npix]
         
         gammaRI_rtot = gammaRI_rot
         gammaRQ_rtot = gammaRQ_rot
         gammaRU_rtot = gammaRU_rot
         gammaRV_rtot = gammaRV_rot
-        
     
+    ### BUILDING THE DECORRELATION MATRIX ####
+
+        
     i+=1
 
-    
+print notimes
+gammaRI_rtot = gammaRI_rtot/notimes   
+hp.mollview(gammaRI_rtot)
+plt.savefig('gammaRI_rotated/gammaRI_rotated%s.pdf' % i)
 
-
-## ROTATING THE GAMMAR FUNCTIONS: Elements of the DECORR matrix & of in the data vector
-
-
-
-
-
-
-
-### BUILDING THE DECORRELATION MATRIX ####
-
-#np.matrix([[1, gammas], [],[],[],[]])
+print refpix
