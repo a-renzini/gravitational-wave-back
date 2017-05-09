@@ -11,7 +11,7 @@ import quat_rotation as qr
 #import quat_2_abg as q2abg
 import matplotlib.pyplot as plt
 
-# initialize, maybe change a few options from their defaults
+# this is the DATA nside
 nsd=16
 Q = qp.QMap(nside=nsd, pol=True, accuracy='low',
             fast_math=True, mean_aber=True)
@@ -77,17 +77,6 @@ lenmap = len(hplus)
 #plt.savefig('map_rot.pdf')
 
 theta, phi = hp.pix2ang(nsd,np.arange(lenmap)) 
-fplush_map = ofs.FplusH(theta,phi)
-
-
-
-vec_north = hp.ang2vec( 0.,0.)
-vec_m = np.array(hp.pix2vec(nsd,np.arange(lenmap)))
-#print vec_m
-#print vec_m.shape
-#print vec_north
-coseta = vec_m[2,:]
-
 
 # radecpamap = Q.quat2radecpa(quatmap_rotated)
 # radecpamapnumpy = np.array(radecpamap).T
@@ -97,7 +86,6 @@ coseta = vec_m[2,:]
 # quatmap_rot_pol = Q.quat2pix(quatmap_rotated,nsd)[1] #rotated polarization list
 
 xH=ofs.m(0.,ofs.beta*0.5)
-
 
 
 ####### RANDOM REAL I Q U V s ######################
@@ -110,21 +98,22 @@ map = hp.synfast(cls, nside=nsd, pol=True, new=True)
 hp.mollview(map)
 plt.savefig('Istoke.pdf')
 
-Area_pix = 1.#what's this, really?
+Area_pix = 1. #what's this, really?
 
 
 ######## CHECK ALL ANGLE CONVENTIONS AND MAKE SURE THEY ALL AGREE! ##########
 
 
 def rotation_pix(m_array,n): #rotates string of pixels m around QUATERNION n
-    dec_quatmap,ra_quatmap = hp.pix2ang(nsd,m_array) #
+    nside = hp.npix2nside(len(m_array))
+    dec_quatmap,ra_quatmap = hp.pix2ang(nside,m_array) #
     quatmap = Q.radecpa2quat(np.rad2deg(ra_quatmap), np.rad2deg(dec_quatmap-np.pi*0.5), 0.*np.ones_like(ra_quatmap)) #but maybe orientation here is actually the orientation of detector a, b? in which case, one could input it as a variable!
     quatmap_rotated = np.ones_like(quatmap)
     i = 0
-    while i < lenmap:
+    while i < len(m_array): #used to be lenmap
         quatmap_rotated[i] = qr.quat_mult(n,quatmap[i])
         i+=1
-    quatmap_rot_pix = Q.quat2pix(quatmap_rotated,nsd)[0] #rotated pixel list (pols are in [1])
+    quatmap_rot_pix = Q.quat2pix(quatmap_rotated,nside)[0] #rotated pixel list (pols are in [1])
     return quatmap_rot_pix
 
 #def m_prime(pixm,pixn,pixn_p):  #returns pixel number of m-n+n_p

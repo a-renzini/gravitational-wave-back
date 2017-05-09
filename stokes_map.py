@@ -57,6 +57,8 @@ def n_n_p_arrays():
 n = n_n_p_arrays()[0]
 n_p = n_n_p_arrays()[1]
 
+#BUILDING THE CORRELATION ARRAY
+
 #i = 0
 # while i < num:
 #

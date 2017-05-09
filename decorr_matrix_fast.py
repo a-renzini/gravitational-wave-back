@@ -15,11 +15,11 @@ import pickle
 
 #set the frequency:
 
-f = 1
+f = 1   #Hz
 
 #set the maps:
 
-nsd = 16
+nsd = 4
 Q = qp.QMap(nside=nsd, pol=True, accuracy='low',
             fast_math=True, mean_aber=True)
 
@@ -66,14 +66,13 @@ print npix
 
 decorr_Ms = len(n)*[[[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)]],[[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)]],[[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)]],[[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)]],[[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)],[np.zeros_like(gammaI)]]]
 
-#exit()
 
 while i<len(n):
 
 #the alpha functs: (depends only on pix numbers)
     j = 0
-    while j<lenmap:
-        n_minus_n_p = hp.pix2ang(nsd,ofs.vect_diff_pix(pixn[i],pixn_p[i],nsd))
+    while j<lenmap:             #nsd = 16 ##
+        n_minus_n_p = hp.pix2ang(16,ofs.vect_diff_pix(pixn[i],pixn_p[i],nsd))
         n_diff_vect = ofs.m(n_minus_n_p[0]-np.pi*0.5, n_minus_n_p[1])
         cos_alpha[i][j] = np.cos(alpha(m_array[j],n_diff_vect,f))
         sin_alpha[i][j] = np.sin(alpha(m_array[j],n_diff_vect,f))
@@ -115,7 +114,9 @@ while i<len(n):
         hp.mollview(gammaRI_rtot)
         plt.savefig('gammaRI_rotated/gammaRI_rotated%s.pdf' % i)
         
-        decorr_Ms[npix] = [[1,gammaRI_rtot,gammaRV_rtot,gammaRU_rtot,gammaRQ_rtot],[gammaRI_rtot,gammaRI_rtot*gammaRI_rtot,gammaRI_rtot*gammaRV_rtot,gammaRI_rtot*gammaRU_rtot,gammaRI_rtot*gammaRQ_rtot],[gammaRV_rtot,gammaRV_rtot*gammaRI_rtot,gammaRV_rtot*gammaRV_rtot,gammaRV_rtot*gammaRU_rtot,gammaRV_rtot*gammaRQ_rtot],[gammaRU_rtot,gammaRU_rtot*gammaRI_rtot,gammaRU_rtot*gammaRV_rtot,gammaRU_rtot*gammaRU_rtot,gammaRU_rtot*gammaRQ_rtot],[gammaRQ_rtot,gammaRQ_rtot*gammaRI_rtot,gammaRQ_rtot*gammaRV_rtot,gammaRQ_rtot*gammaRU_rtot,gammaRQ_rtot*gammaRQ_rtot]]
+        #Area_pix =
+        
+        decorr_Ms[npix] = [[[1.]*len(gammaRI_rtot),gammaRI_rtot,gammaRV_rtot,gammaRU_rtot,gammaRQ_rtot],[gammaRI_rtot,gammaRI_rtot*gammaRI_rtot,gammaRI_rtot*gammaRV_rtot,gammaRI_rtot*gammaRU_rtot,gammaRI_rtot*gammaRQ_rtot],[gammaRV_rtot,gammaRV_rtot*gammaRI_rtot,gammaRV_rtot*gammaRV_rtot,gammaRV_rtot*gammaRU_rtot,gammaRV_rtot*gammaRQ_rtot],[gammaRU_rtot,gammaRU_rtot*gammaRI_rtot,gammaRU_rtot*gammaRV_rtot,gammaRU_rtot*gammaRU_rtot,gammaRU_rtot*gammaRQ_rtot],[gammaRQ_rtot,gammaRQ_rtot*gammaRI_rtot,gammaRQ_rtot*gammaRV_rtot,gammaRQ_rtot*gammaRU_rtot,gammaRQ_rtot*gammaRQ_rtot]]
                 
         #with open('decorr_Ms/decorr_M%s.txt' % npix, 'wb') as fp:
         #    pickle.dump(decorr_Ms[npix], fp)
@@ -137,4 +138,23 @@ gammaRI_rtot = gammaRI_rtot/notimes
 hp.mollview(gammaRI_rtot)
 plt.savefig('gammaRI_rotated/gammaRI_rotated%s.pdf' % i)
 
-print refpix
+####
+#test take a decorr_M at some fixed pix m (= 49 in this case), pix n (= 3, in this case) and calculate the eigens to see what happens
+####
+
+decorr_M_fixpix = [[0.,0.,0.,0.,0.],[0.,0.,0.,0.,0.],[0.,0.,0.,0.,0.],[0.,0.,0.,0.,0.],[0.,0.,0.,0.,0.]]
+
+i = 0
+
+while i < 5:
+    j = 0
+    while j < 5:
+        decorr_M_fixpix[i][j] = decorr_Ms[3][i][j][49]
+        j+=1
+    i+=1
+
+print decorr_M_fixpix
+print np.linalg.eigvals(decorr_M_fixpix)
+
+
+#print refpix
