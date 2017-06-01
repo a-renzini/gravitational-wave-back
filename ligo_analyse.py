@@ -103,6 +103,23 @@ latMid,lonMid, azMid = midpoint(H1_lat,H1_lon,L1_lat,L1_lon)
 # ARIANNA
 # I need the gamma functions in the lab 'frame' here
 
+'''
+I think what you want is something like:
+
+nsd = 16    #nside
+lenmap =  hp.nside2npix(nsd)
+theta, phi = hp.pix2ang(nsd,np.arange(lenmap)) 
+
+gammaI = ofs.gammaIHL(theta,phi)
+gammaQ = ofs.gammaQHL(theta,phi)
+gammaU = ofs.gammaUHL(theta,phi)
+gammaV = ofs.gammaVHL(theta,phi)
+
+the frame should be correct, up to pi/4 rotations (need to double check convention). Will make sure asap.
+these can of course be made nside dependent - should I do that?
+'''
+
+
 # gammaI(nside) = 
 #etc.
 ###############
