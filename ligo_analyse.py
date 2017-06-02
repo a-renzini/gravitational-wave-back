@@ -251,11 +251,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         s_filt = lf.whitenbp_notch(s_split)
 
         # This is the 'projection' side of mapping equation
-        # d_p = (A_tp)^T N_tt'^-1 d_t'
+        # z_p = (A_tp)^T N_tt'^-1 d_t'= A_pt  N_tt'^-1 d_t'
         # It takes a timestream, inverse noise filters and projects onto
         # pixels p (here p are actually lm)
         # this is the 'dirty map'
 
+        # The sky map is obtained by
+        # s_p = (A_pt N_tt'^-1 A_t'p')^-1  z_p'
+        
         #sum over time
         #for tidx, (p, s, quat) in enumerate(zip(pix_b,s_filt,q_n)):
 
@@ -271,7 +274,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
         # rotate gammas
         # TODO: will need to oversample here
-        # TODO: gamma should be complex?
+        # i.e. use nside > nside final map
         # TODO: pol gammas
         rot_m_array = rotation_pix(Q, np.arange(npix), quat)
         gammaI_rot = gammaI[rot_m_array]
