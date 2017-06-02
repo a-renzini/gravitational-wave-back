@@ -11,11 +11,29 @@ import datetime as dt
 import pytz
 import qpoint as qp
 import healpy as hp
+from camb.bispectrum import threej
+import quat_rotation as qr
+
+# from Arianna
+import OverlapFunctsSrc as ofs
+#from response_function import rotation_pix
 
 # LIGO-specific readligo.py 
 import readligo as rl
 import ligo_filter as lf
 from gwpy.time import tconvert
+
+def rotation_pix(Q,m_array,n): #rotates string of pixels m around QUATERNION n
+    nside = hp.npix2nside(len(m_array))
+    dec_quatmap,ra_quatmap = hp.pix2ang(nside,m_array) #
+    quatmap = Q.radecpa2quat(np.rad2deg(ra_quatmap), np.rad2deg(dec_quatmap-np.pi*0.5), 0.*np.ones_like(ra_quatmap)) #but maybe orientation here is actually the orientation of detector a, b? in which case, one could input it as a variable!
+    quatmap_rotated = np.ones_like(quatmap)
+    i = 0
+    while i < len(m_array): #used to be lenmap
+        quatmap_rotated[i] = qr.quat_mult(n,quatmap[i])
+        i+=1
+    quatmap_rot_pix = Q.quat2pix(quatmap_rotated,nside)[0] #rotated pixel list (pols are in [1])
+    return quatmap_rot_pix
 
 def dfreq_factor(f,ell,b,alpha=3.,H0=68.0,f0=100.):
     # f : frequency (Hz)
@@ -94,50 +112,56 @@ az_b, el_b, baseline_length = vec2azel(H1_vec,L1_vec)
 # position of mid point and angle of great circle connecting to observatories
 latMid,lonMid, azMid = midpoint(H1_lat,H1_lon,L1_lat,L1_lon)
 
-#print np.degrees(az_b), np.degrees(el_b), b_mag
+nside = 32
+lmax = 16
+npix = hp.nside2npix(nside)
+data_map = np.zeros(npix)
+hits_map = np.zeros_like(data_map)
 
-#print freq_factor(16,baseline_length,0.01,300.)
-#exit()
+# cache 3j symbols
+threej_0 = np.zeros((2*lmax,2*lmax,2*lmax))
+threej_m = np.zeros((2*lmax,2*lmax,2*lmax,2*lmax,2*lmax))
+for l in range(lmax):
+    for m in range(l):
+        for lp in range(lmax):
+            lmin0 = np.abs(l - lp)
+            lmax0 = l + lp
+            threej_0[lmin0:lmax0+1,l,lp] = threej(l, lp, 0, 0)
+            for mp in range(lp):
+                # remaining m index
+                mpp = m+mp
+                lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                lmax_m = l + lp
+                threej_m[lmin_m:lmax_m+1,l,lp,m,mp] = threej(l, lp, m, mp)
 
-##############
-# ARIANNA
-# I need the gamma functions in the lab 'frame' here
-
-'''
-I think what you want is something like:
-
-nsd = 16    #nside
-lenmap =  hp.nside2npix(nsd)
-theta, phi = hp.pix2ang(nsd,np.arange(lenmap)) 
-
+# prepare lookup of frequency factor
+fl = [freq_factor(l,baseline_length,0.01,300.) for l in range(lmax*4)]
+ 
+# calculate overlap functions
+# TODO: integrate this with general detector table
+theta, phi = hp.pix2ang(nside,np.arange(npix)) 
 gammaI = ofs.gammaIHL(theta,phi)
 gammaQ = ofs.gammaQHL(theta,phi)
 gammaU = ofs.gammaUHL(theta,phi)
 gammaV = ofs.gammaVHL(theta,phi)
+m_array = np.arange(npix)
 
-the frame should be correct, up to pi/4 rotations (need to double check convention). Will make sure asap.
-these can of course be made nside dependent - should I do that?
-'''
-
-
-# gammaI(nside) = 
-#etc.
-###############
+# These will accumulate from timestream 
+data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+out_lm = np.zeros_like(data_lm)
+hit_lm = np.zeros(len(data_lm))
 
 # create qpoint object
-nside = 64
-data_map = np.zeros(hp.nside2npix(nside))
-hits_map = np.zeros_like(data_map)
 Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
 
 # define start and stop time to search
 # in GPS seconds
-#start = 931035615 #931079472
-#stop  = 971622015 #931086336
+start = 931035615 #931079472
+stop  = 971622015 #931086336
 #start = 931079472
 #stop  = 931086336
-start = 931200000
-stop = 931300000
+#start = 931200000
+#stop = 931300000
 
 # convert LIGO GPS time to datetime
 # make sure datetime object knows it is UTC timezone
@@ -172,13 +196,17 @@ segs_end =  np.where(diff<0)[0] + start #+1
 # This mask now defines conincident data from both L1 and H1
 good_data = good_data_H1 & good_data_L1
 
-# To-do: Add flagging of injections
+# TODO: Add flagging of injections
 
+hits = 0.
 # Now loop over all segments found
 for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):    
-    
+
+    # load data
     strain_H1, meta_H1, dq_H1 = rl.getstrain(begin, end, 'H1', filelist=filelist)
     strain_L1, meta_L1, dq_L1 = rl.getstrain(begin, end, 'L1', filelist=filelist)
+
+    # TODO: may want to do this in frequency space?
     strain_x = strain_H1*strain_L1
     
     # Figure out unix time for this segment
@@ -186,9 +214,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     utc_begin = tconvert(meta_H1['start']).replace(tzinfo=pytz.utc)
     utc_end = tconvert(meta_H1['stop']).replace(tzinfo=pytz.utc)
     ctime = np.arange((utc_begin - epoch).total_seconds(),(utc_end - epoch).total_seconds(),meta_H1['dt'])
+
+    # discard very short segments
     if len(ctime)/fs < 16: continue
     print utc_begin, utc_end
 
+    # if long then split into sub segments
     if len(ctime)/fs > 120:
         # split segment into sub parts
         # not interested in freq < 40Hz
@@ -207,7 +238,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         # get quaternions for H1->L1 baseline (use as boresight)
         q_b = Q.azel2bore(np.degrees(az_b), np.degrees(el_b), None, None, np.degrees(H1_lon), np.degrees(H1_lat), ct_split)
         # get quaternions for bisector pointing (use as boresight)
-        q_n = Q.azel2bore(azMid, 90.0, None, None, np.degrees(lonMid), np.degrees(latMid), ct_split)
+        #q_n = Q.azel2bore(azMid, 90.0, None, None, np.degrees(lonMid), np.degrees(latMid), ct_split)
+        q_n = Q.azel2bore(0., 90.0, None, None, np.degrees(lonMid), np.degrees(latMid), ct_split)
         
         pix_b, s2p, c2p = Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
 
@@ -217,205 +249,69 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         #strain_H1 = lf.whitenbp_notch(strain_H1)
         #strain_L1= lf.whitenbp_notch(strain_L1)
         s_filt = lf.whitenbp_notch(s_split)
-        #print 'filtered data...'
-        # Downsample data from 4096 Hz to ?????
-    
-        # Do our mapping algorithm here
-        # Accumulate data map and projection operator
+
+        # This is the 'projection' side of mapping equation
+        # d_p = (A_tp)^T N_tt'^-1 d_t'
+        # It takes a timestream, inverse noise filters and projects onto
+        # pixels p (here p are actually lm)
+        # this is the 'dirty map'
+
+        #sum over time
+        #for tidx, (p, s, quat) in enumerate(zip(pix_b,s_filt,q_n)):
+
+        # average over sub segment and use
+        # middle of segment for pointing etc.
+        mid_idx = len(pix_b)/2
+        p = pix_b[mid_idx]
+        quat = q_n[mid_idx]
+        s = np.average(s_filt)
+ 
+        # polar angles of baseline vector
+        theta_b, phi_b = hp.pix2ang(nside,p)
+
+        # rotate gammas
+        # TODO: will need to oversample here
+        # TODO: gamma should be complex?
+        # TODO: pol gammas
+        rot_m_array = rotation_pix(Q, np.arange(npix), quat)
+        gammaI_rot = gammaI[rot_m_array]
         
-        for p,s in zip(pix_b,s_filt):
-            data_map[p] += s
-            hits_map[p] += 1
-        #print 'added map...'
-    out = np.copy(data_map)
-    out[hits_map > 0] /= hits_map[hits_map > 0]
-    out[hits_map==0.] = hp.UNSEEN
+        # Expand rotated gammas into lm
+        glm = hp.map2alm(gammaI_rot, lmax, pol=False)
+
+        # sum over lp, mp
+        for l in range(lmax):
+            for m in range(l):
+                #print l, m
+                idx_lm = hp.Alm.getidx(lmax,l,m)
+                for lp in range(lmax):
+                    for mp in range(lp):
+                        # remaining m index
+                        mpp = m+mp
+                        lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                        lmax_m = l + lp
+                        for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                            data_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*fl[lpp]*sph_harm(mpp, lpp, theta_b, phi_b)*
+                                                glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
+                                                threej_0[lpp,l,lp]*threej_m[lpp,l,lp,m,mp]*s)
+                            hit_lm[idx_lm] += 1.
+                            hits += 1.
+                    
+        #print data_lm
+
+    out = hp.alm2map(data_lm/hits,nside,lmax=lmax)
+    #out = np.copy(data_map)
+    #out[hits_map > 0] /= hits_map[hits_map > 0]
+    #out[hits_map==0.] = hp.UNSEEN
     hp.mollview(out)
     plt.savefig('map.pdf')
     hp.write_map("map.fits",out)
 
-data_map[hits_map > 0] /= hits_map[hits_map > 0]
-data_map[hits_map == 0.] = hp.UNSEEN
-hp.mollview(data_map)
+#data_map[hits_map > 0] /= hits_map[hits_map > 0]
+#data_map[hits_map == 0.] = hp.UNSEEN
+hp.mollview(out)
 plt.savefig('map.pdf')
 hp.write_map("map.fits",data_map)
-exit()
-
-NFFT = 1*fs
-fmin = 10
-fmax = 2000
-Pxx_H1, freqs = mlab.psd(strain_H1, Fs = fs, NFFT = NFFT)
-Pxx_L1, freqs = mlab.psd(strain_L1, Fs = fs, NFFT = NFFT)
-Pxx_x, freqs = mlab.psd(strain_x, Fs = fs, NFFT = NFFT)
-
-# We will use interpolations of the ASDs computed above for whitening:
-
-psd_H1 = interp1d(freqs, Pxx_H1)
-psd_L1 = interp1d(freqs, Pxx_L1)
-psd_x = interp1d(freqs, Pxx_x)
-
-# plot the ASDs:
-plt.figure()
-plt.loglog(freqs, np.sqrt(Pxx_H1)/(sdx+1),'r',label='H1 strain')
-plt.loglog(freqs, np.sqrt(Pxx_L1)/(sdx+1),'g',label='L1 strain')
-plt.loglog(freqs, np.sqrt(Pxx_x)/(sdx+1),'b',label= 'L1xH1 strain')
-#plt.axis([fmin, fmax, 1e-24, 1e-19])
-plt.grid('on')
-plt.ylabel('ASD (strain/rtHz)')
-plt.xlabel('Freq (Hz)')
-plt.legend(loc='best')
-plt.title('ASDs L1 and H1')
-plt.savefig('ASDs.pdf')
 
 exit()
 
-#----------------------------------------------------------------
-# Load LIGO data from a single file
-#----------------------------------------------------------------
-# First from H1
-fn_H1 = 'ligo_data'+'/'+'H-H1_LOSC_4_V1-1126259446-32.hdf5'
-strain_H1, time_H1, chan_dict_H1 = rl.loaddata(fn_H1, 'H1')
-# and then from L1
-fn_L1 = 'ligo_data'+'/'+'L-L1_LOSC_4_V1-1126259446-32.hdf5'
-strain_L1, time_L1, chan_dict_L1 = rl.loaddata(fn_L1, 'L1')
-
-# sampling rate:
-fs = 4096
-# both H1 and L1 will have the same time vector, so:
-time = time_H1
-# the time sample interval (uniformly sampled!)
-dt = time[1] - time[0]
-
-
-# read in the NR template
-NRtime, NR_H1 = np.genfromtxt('ligo_data'+'/'+'GW150914_4_NR_waveform.txt').transpose()
-
-# First, let's look at the data and print out some stuff:
-
-# this doesn't seem to work for scientific notation:
-# np.set_printoptions(precision=4)
-
-print '  time_H1: len, min, mean, max = ', \
-   len(time_H1), time_H1.min(), time_H1.mean(), time_H1.max()
-print 'strain_H1: len, min, mean, max = ', \
-   len(strain_H1), strain_H1.min(),strain_H1.mean(),strain_H1.max()
-print 'strain_L1: len, min, mean, max = ', \
-   len(strain_L1), strain_L1.min(),strain_L1.mean(),strain_L1.max()
-    
-#What's in chan_dict? See https://losc.ligo.org/archive/dataset/GW150914/
-bits = chan_dict_H1['DATA']
-print 'H1     DATA: len, min, mean, max = ', len(bits), bits.min(),bits.mean(),bits.max()
-bits = chan_dict_H1['CBC_CAT1']
-print 'H1 CBC_CAT1: len, min, mean, max = ', len(bits), bits.min(),bits.mean(),bits.max()
-bits = chan_dict_H1['CBC_CAT2']
-print 'H1 CBC_CAT2: len, min, mean, max = ', len(bits), bits.min(),bits.mean(),bits.max()
-bits = chan_dict_L1['DATA']
-print 'L1     DATA: len, min, mean, max = ', len(bits), bits.min(),bits.mean(),bits.max()
-bits = chan_dict_L1['CBC_CAT1']
-print 'L1 CBC_CAT1: len, min, mean, max = ', len(bits), bits.min(),bits.mean(),bits.max()
-bits = chan_dict_L1['CBC_CAT2']
-print 'L1 CBC_CAT2: len, min, mean, max = ', len(bits), bits.min(),bits.mean(),bits.max()
-print 'In both H1 and L1, all 32 seconds of data are present (DATA=1), '
-print "and all pass data quality (CBC_CAT1=1 and CBC_CAT2=1)."
-
-# plot +- 5 seconds around the event:
-tevent = 1126259462.422         # Mon Sep 14 09:50:45 GMT 2015 
-deltat = 5.                     # seconds around the event
-# index into the strain time series for this time interval:
-indxt = np.where((time_H1 >= tevent-deltat) & (time_H1 < tevent+deltat))
-
-plt.figure()
-plt.plot(time_H1[indxt]-tevent,strain_H1[indxt],'r',label='H1 strain')
-plt.plot(time_L1[indxt]-tevent,strain_L1[indxt],'g',label='L1 strain')
-plt.xlabel('time (s) since '+str(tevent))
-plt.ylabel('strain')
-plt.legend(loc='lower right')
-plt.title('Advanced LIGO strain data near GW150914')
-plt.savefig('GW150914_strain.pdf')
-# number of sample for the fast fourier transform:
-NFFT = 1*fs
-fmin = 10
-fmax = 2000
-Pxx_H1, freqs = mlab.psd(strain_H1, Fs = fs, NFFT = NFFT)
-Pxx_L1, freqs = mlab.psd(strain_L1, Fs = fs, NFFT = NFFT)
-
-# We will use interpolations of the ASDs computed above for whitening:
-psd_H1 = interp1d(freqs, Pxx_H1)
-psd_L1 = interp1d(freqs, Pxx_L1)
-
-# plot the ASDs:
-plt.figure()
-plt.loglog(freqs, np.sqrt(Pxx_H1),'r',label='H1 strain')
-plt.loglog(freqs, np.sqrt(Pxx_L1),'g',label='L1 strain')
-plt.axis([fmin, fmax, 1e-24, 1e-19])
-plt.grid('on')
-plt.ylabel('ASD (strain/rtHz)')
-plt.xlabel('Freq (Hz)')
-plt.legend(loc='upper center')
-plt.title('Advanced LIGO strain data near GW150914')
-plt.savefig('GW150914_ASDs.pdf')
-
-# now whiten the data from H1 and L1, and also the NR template:
-strain_H1_whiten = lf.whiten(strain_H1,psd_H1,dt)
-strain_L1_whiten = lf.whiten(strain_L1,psd_L1,dt)
-NR_H1_whiten = lf.whiten(NR_H1,psd_H1,dt)
-
-# do bandpass and notch filtering
-
-# get filter coefficients
-coefs = lf.get_filter_coefs(fs)
-
-# filter it:
-strain_H1_whitenbp = lf.filter_data(strain_H1_whiten,coefs)
-strain_L1_whitenbp = lf.filter_data(strain_L1_whiten,coefs)
-NR_H1_whitenbp = lf.filter_data(NR_H1_whiten,coefs)
-
-# We need to suppress the high frequencies with some bandpassing:
-#bb, ab = butter(4, [20.*2./fs, 300.*2./fs], btype='band')
-#strain_H1_whitenbp = filtfilt(bb, ab, strain_H1_whiten)
-#strain_L1_whitenbp = filtfilt(bb, ab, strain_L1_whiten)
-#NR_H1_whitenbp = filtfilt(bb, ab, NR_H1_whiten)
-
-# plot the data after whitening:
-# first, shift L1 by 7 ms, and invert. See the GW150914 detection paper for why!
-strain_L1_shift = -np.roll(strain_L1_whitenbp,int(0.007*fs))
-
-plt.figure()
-plt.plot(time-tevent,strain_H1_whitenbp,'r',label='H1 strain')
-plt.plot(time-tevent,strain_L1_shift,'g',label='L1 strain')
-plt.plot(NRtime+0.002,NR_H1_whitenbp,'k',label='matched NR waveform')
-plt.xlim([-0.1,0.05])
-plt.ylim([-4,4])
-plt.xlabel('time (s) since '+str(tevent))
-plt.ylabel('whitented strain')
-plt.legend(loc='lower left')
-plt.title('Advanced LIGO WHITENED strain data near GW150914')
-plt.savefig('GW150914_strain_whitened.pdf')
-
-Pxx_H1, freqs = mlab.psd(strain_H1_whitenbp, Fs = fs, NFFT = NFFT)
-Pxx_L1, freqs = mlab.psd(strain_L1_whitenbp, Fs = fs, NFFT = NFFT)
-
-# We will use interpolations of the ASDs computed above for whitening:
-psd_H1 = interp1d(freqs, Pxx_H1)
-psd_L1 = interp1d(freqs, Pxx_L1)
-
-# plot the ASDs:
-plt.figure()
-plt.loglog(freqs, np.sqrt(Pxx_H1),'r',label='H1 strain')
-plt.loglog(freqs, np.sqrt(Pxx_L1),'g',label='L1 strain')
-#plt.axis([fmin, fmax, 1e-24, 1e-19])
-plt.grid('on')
-plt.ylabel('ASD (strain/rtHz)')
-plt.xlabel('Freq (Hz)')
-plt.legend(loc='upper center')
-plt.title('Advanced LIGO strain data near GW150914')
-plt.savefig('GW150914_ASDs_filt.pdf')
-
-plt.figure()
-plt.plot(time_H1[indxt]-tevent,strain_H1_whitenbp[indxt],'r',label='H1 strain')
-plt.plot(time_L1[indxt]-tevent,strain_L1_whitenbp[indxt],'g',label='L1 strain')
-plt.xlabel('time (s) since '+str(tevent))
-plt.ylabel('strain')
-plt.legend(loc='lower right')
-plt.title('Advanced LIGO strain data near GW150914')
-plt.savefig('GW150914_strain_filt.pdf')
