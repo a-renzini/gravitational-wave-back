@@ -29,10 +29,10 @@ def rotation_pix(Q,m_array,n): #rotates string of pixels m around QUATERNION n
     quatmap = Q.radecpa2quat(np.rad2deg(ra_quatmap), np.rad2deg(dec_quatmap-np.pi*0.5), 0.*np.ones_like(ra_quatmap)) #but maybe orientation here is actually the orientation of detector a, b? in which case, one could input it as a variable!
     quatmap_rotated = np.ones_like(quatmap)
     i = 0
-    while i < len(m_array): #used to be lenmap
+    while i < len(m_array): 
         quatmap_rotated[i] = qr.quat_mult(n,quatmap[i])
         i+=1
-    quatmap_rot_pix = Q.quat2pix(quatmap_rotated,nside)[0] #rotated pixel list (pols are in [1])
+    quatmap_rot_pix = Q.quat2pix(quatmap_rotated,nside)[0] #rotated pixel list (polarizations are in [1])
     return quatmap_rot_pix
 
 def dfreq_factor(f,ell,b,alpha=3.,H0=68.0,f0=100.):
@@ -41,7 +41,7 @@ def dfreq_factor(f,ell,b,alpha=3.,H0=68.0,f0=100.):
     # alpha: spectral index
     # b: baseline length (m)
     # f0: pivot frequency (Hz)
-    # H0: Hubble rate today (km/s/Mpc
+    # H0: Hubble rate today (km/s/Mpc)
 
     km_mpc = 3.086e+19 # km/Mpc conversion
     c = 3.e8 # speed of light 
@@ -88,7 +88,7 @@ def midpoint(lat1,lon1,lat2,lon2):
 
 # sampling rate:
 fs = 4096
-ligo_data_dir = '/Users/contaldi/Students/Arianna/LIGO/ligo_data/'
+ligo_data_dir = '/Users/contaldi/Students/Arianna/LIGO/ligo_data/'  #can be defined in the repo
 filelist = rl.FileList(directory=ligo_data_dir)
 
 # Configuration: radians and metres, Earth-centered frame
@@ -156,7 +156,7 @@ Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
 
 # define start and stop time to search
 # in GPS seconds
-start = 931035615 #931079472
+start = 931035615 #931079472 
 stop  = 971622015 #931086336
 #start = 931079472
 #stop  = 931086336
@@ -276,7 +276,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         # TODO: will need to oversample here
         # i.e. use nside > nside final map
         # TODO: pol gammas
-        rot_m_array = rotation_pix(Q, np.arange(npix), quat)
+        rot_m_array = rotation_pix(Q, np.arange(npix), quat) #rotating around the bisector of the gc V
         gammaI_rot = gammaI[rot_m_array]
         
         # Expand rotated gammas into lm
