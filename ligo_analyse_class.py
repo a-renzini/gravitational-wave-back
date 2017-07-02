@@ -64,15 +64,15 @@ class Ligo_Analyse(object):
         # position of mid point and angle of great circle connecting to observatories
         self.latMid,self.lonMid, self.azMid = self.midpoint(self.H1_lat,self.H1_lon,self.L1_lat,self.L1_lon)
         # cache 3j symbols
-        self.threej_0 = np.zeros((2*lmax,2*lmax,2*lmax))
-        self.threej_m = np.zeros((2*lmax,2*lmax,2*lmax,2*lmax,2*lmax))
-        for l in range(lmax):
-            for m in range(l):
-                for lp in range(lmax):
+        self.threej_0 = np.zeros((2*lmax+1,2*lmax+1,2*lmax+1))
+        self.threej_m = np.zeros((2*lmax+1,2*lmax+1,2*lmax+1,2*lmax+1,2*lmax+1))
+        for l in range(lmax+1):
+            for m in range(l+1):
+                for lp in range(lmax+1):
                     lmin0 = np.abs(l - lp)
                     lmax0 = l + lp
                     self.threej_0[lmin0:lmax0+1,l,lp] = threej(l, lp, 0, 0)
-                    for mp in range(lp):
+                    for mp in range(lp+1):
                         # remaining m index
                         mpp = m+mp
                         lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
@@ -118,7 +118,7 @@ class Ligo_Analyse(object):
         km_mpc = 3.086e+19 # km/Mpc conversion
         c = 3.e8 # speed of light 
         #fac = 8.*np.pi**3/3./H0**2 * km_mpc**2 * f**3*(f/f0)**(alpha-3.) * spherical_jn(ell, 2.*np.pi*f*b/c)
-        fac = (f/f0)**(alpha-3.) * spherical_jn(ell, 2.*np.pi*f*b/c)
+        fac =  spherical_jn(ell, 2.*np.pi*(f+0.j)*b/c) #*(f/f0)**(alpha-3.) *
         # add band pass and notches here
  
         return fac
@@ -242,49 +242,170 @@ class Ligo_Analyse(object):
         
         return ctime, strain_H1, strain_L1 #strain_x
 
+
+
     # ********* Projector *********
     # returns p = {lm} map of inverse-noise-filtered time-stream
-
-    def projector(self,ct_split, s_split, power_split,freq):
+    def projector(self,ctime, idx_t, strain_H1, strain_H2, freq_coar):
         print 'proj run'    
         nside=self._nside
         lmax=self._lmax
         #if you input s_split = 1, (maybe) it returns simply the projection operator 
             
         npix = self.npix
-        data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-        hit_lm = np.zeros(len(data_lm))
+        #data_lm_string = []
+        
+        for idx_t_p, (ct_split, s_1, s_2, freq) in enumerate(zip(ctime, strain_H1, strain_H2, freq_coar)):
+            
+            data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+            hit_lm = np.zeros(len(data_lm))
+    
+            # Filter the data
+            noise = strain_H1[idx_t]*np.conj(strain_H1[idx_t])*s_2*np.conj(s_2)     #NOISE!
+            s = np.divide(s_1*np.conj(s_2),noise.real)
+        
+            #fl = [self.freq_factor(l,0.01,300.) for l in range(lmax*4)]
+            data_lm += self.summer(ct_split, s, freq)
+            '''  
+            mid_idx = int(len(ct_split)/2)
+        
+            # get quaternions for H1->L1 baseline (use as boresight)
+            q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
+            # get quaternions for bisector pointing (use as boresight)
+            q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
+    
+            pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
+            
+            p = pix_b          
+            quat = q_n
+            #s = np.average(s_filt)
+        
+            # polar angles of baseline vector
+            theta_b, phi_b = hp.pix2ang(nside,p)
+
+            # rotate gammas
+            # TODO: will need to oversample here
+            # i.e. use nside > nside final map
+            # TODO: pol gammas
+            rot_m_array = self.rotation_pix(np.arange(npix), quat) #rotating around the bisector of the gc 
+            gammaI_rot = self.gammaI[rot_m_array]
+    
+            # Expand rotated gammas into lm
+            glm = hp.map2alm(gammaI_rot, lmax, pol=False)
+                          
+            hits = 0.
+            # sum over lp, mp
+            for l in range(lmax+1):
+                for m in range(l+1):
+                    idx_lm = hp.Alm.getidx(lmax,l,m)
+                    for idx_f, f in enumerate(freq):    #hits = 0 here maybe..?
+                    #print idx_f
+                        for lp in range(lmax+1):
+                            for mp in range(lp+1):
+                                # remaining m index
+                                mpp = m+mp
+                                lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                                lmax_m = l + lp
+                                for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                                    data_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
+                                    *sph_harm(mpp, lpp, theta_b, phi_b)*
+                                                        glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
+                                                        self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*s[idx_f]) #sure about these 3js?
+                                                        #s[idx_f]
+                                    hit_lm[idx_lm] += 1.
+                                    hits += 1.
+            '''
+            ###############################################
+            #data_lm_string.append(data_lm/hits)
+        return data_lm
+        
+    def summer(self, ct_split, s, freq):
+                
+        nside=self._nside
+        lmax=self._lmax
+        
+        sum_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+        
+        #if you input s_split = 1, (maybe) it returns simply the projection operator 
+        
+        npix = self.npix
+        
+        mid_idx = int(len(ct_split)/2)
     
         # get quaternions for H1->L1 baseline (use as boresight)
-        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split)
+        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
         # get quaternions for bisector pointing (use as boresight)
-        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split)
+        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
+
+        pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
+        
+        p = pix_b          
+        quat = q_n
+        #s = np.average(s_filt)
+    
+        # polar angles of baseline vector
+        theta_b, phi_b = hp.pix2ang(nside,p)
+
+        # rotate gammas
+        # TODO: will need to oversample here
+        # i.e. use nside > nside final map
+        # TODO: pol gammas
+        rot_m_array = self.rotation_pix(np.arange(npix), quat) #rotating around the bisector of the gc 
+        gammaI_rot = self.gammaI[rot_m_array]
+
+        # Expand rotated gammas into lm
+        glm = hp.map2alm(gammaI_rot, lmax, pol=False)              
+        
+        hits = 0.
+        # sum over lp, mp
+        for l in range(lmax+1):
+            for m in range(l+1):
+                idx_lm = hp.Alm.getidx(lmax,l,m)
+                for idx_f, f in enumerate(freq):    #hits = 0 here maybe..?
+                #print idx_f
+                    for lp in range(lmax+1):
+                        for mp in range(lp+1):
+                            # remaining m index
+                            mpp = m+mp
+                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                            lmax_m = l + lp
+                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                                sum_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
+                                *sph_harm(mpp, lpp, theta_b, phi_b)*
+                                                    glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
+                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*s[idx_f]) #sure about these 3js?
+                                                    #s[idx_f]
+                                hits += 1.
+        return sum_lm
+        
+    def projector_1(self,ct_split, s_split, power_split,freq):
+        print 'proj run'    
+        nside=self._nside
+        lmax=self._lmax
+        #if you input s_split = 1, (maybe) it returns simply the projection operator 
+            
+        npix = self.npix
+        
+        data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+        hit_lm = np.zeros(len(data_lm))
+        
+        mid_idx = int(len(ct_split)/2)
+        
+        # get quaternions for H1->L1 baseline (use as boresight)
+        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
+        # get quaternions for bisector pointing (use as boresight)
+        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
     
         pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
-        pix_n, s2p_n, c2p_n = self.Q.quat2pix(q_n, nside=nside, pol=True) #spin-2
     
         # Filter the data
-        s_filt = np.divide(s_split,power_split)
+        s_filt = np.divide(s_split,power_split.real)
 
-        # This is the 'projection' side of mapping equation
-        # z_p = (A_tp)^T N_tt'^-1 d_t'= A_pt  N_tt'^-1 d_t'
-        # It takes a timestream, inverse noise filters and projects onto
-        # pixels p (here p are actually lm)
-        # this is the 'dirty map'
-
-        # The sky map is obtained by
-        # s_p = (A_pt N_tt'^-1 A_t'p')^-1  z_p'
-    
-        #sum over time
-        #for tidx, (p, s, quat) in enumerate(zip(pix_b,s_filt,q_n)):
-
-        # average over sub segment and use
-        # middle of segment for pointing etc.
-        mid_idx = len(pix_n)/2
-        p = pix_b[mid_idx]          
-        quat = q_n[mid_idx]
+        p = pix_b          
+        quat = q_n
         s = np.average(s_filt)
-
+        print s
+        
         # polar angles of baseline vector
         theta_b, phi_b = hp.pix2ang(nside,p)
 
@@ -302,32 +423,132 @@ class Ligo_Analyse(object):
     
         hits = 0.
         # sum over lp, mp
-        for idx_f, f in enumerate(freq):
-            print idx_f
-            for l in range(lmax):
-                for m in range(l):
-                    #print l, m
-                    idx_lm = hp.Alm.getidx(lmax,l,m)
-                    for lp in range(lmax):
-                        for mp in range(lp):
+        for l in range(lmax+1):
+            for m in range(l+1):
+                idx_lm = hp.Alm.getidx(lmax,l,m)
+                for idx_f, f in enumerate(freq):    #hits = 0 here maybe..?
+                #print idx_f
+                    for lp in range(lmax+1):
+                        for mp in range(lp+1):
                             # remaining m index
                             mpp = m+mp
                             lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
                             lmax_m = l + lp
                             for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                                data_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)*sph_harm(mpp, lpp, theta_b, phi_b)*
+                                data_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
+                                *sph_harm(mpp, lpp, theta_b, phi_b)*
                                                     glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*s) 
+                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*s) #sure about these 3js?
                                                     #s[idx_f]
                                 hit_lm[idx_lm] += 1.
                                 hits += 1.
-        return hp.alm2map(data_lm/hits,nside,lmax=lmax)
+        return data_lm/hits
+
 
     # ********* Scanner *********
+    #to use scanner, re-check l, m ranges and other things. otherwise use scanner_1    
+    def scanner(self,ctime, idx_t, p_split_1_t, p_split_2,freq): #scanner(ctime_array, idx_t, p_split_1[idx_t], p_split_2, freq_coar_array)
+        nside=self._nside
+        lmax=self._lmax 
+            
+        npix = self.npix
         
-#    def scanner(self,ct_split):
+        data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+        hit_lm = np.zeros(len(data_lm))
 
+        #        for idx_t, ct_split in enumerate(ctime):
+        for idx_t_p, ct_split_p in enumerate(ctime):
+            
+            q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split_p)
+            q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split_p)
 
+            pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) 
+            pix_n, s2p_n, c2p_n = self.Q.quat2pix(q_n, nside=nside, pol=True)
+            
+            mid_idx = len(pix_n)/2
+            p = pix_b[mid_idx]          
+            quat = q_n[mid_idx]
+            
+            theta_b, phi_b = hp.pix2ang(nside,p)
+            
+            rot_m_array = self.rotation_pix(np.arange(npix), quat) 
+            gammaI_rot = self.gammaI[rot_m_array]
+
+            glm = hp.map2alm(gammaI_rot, lmax, pol=False)
+            
+            for idx_f, f in enumerate(freq):
+                #   print idx_f
+                for l in range(lmax):
+                    for m in range(l):
+                        #print l, m
+                        idx_lm = hp.Alm.getidx(lmax,l,m)
+                        for lp in range(lmax):
+                            for mp in range(lp):
+                                # remaining m index
+                                mpp = m+mp
+                                lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                                lmax_m = l + lp
+                                for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                                    data_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)*sph_harm(mpp, lpp, theta_b, phi_b)*
+                                                        glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
+                                                        self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])/p_split_1_t/p_split_2[idx_t_p]
+                                    hit_lm[idx_lm] += 1.
+                                    hits += 1.
+        return data_lm/hits #hp.alm2map(data_lm/hits,nside,lmax=lmax)
+
+    def scanner_1(self,ctime, idx_t, p_split_1_t, p_split_2,freq,data_lm = 1.): #scanner(ctime_array, idx_t, p_split_1[idx_t], p_split_2, freq_coar_array)
+        nside=self._nside
+        lmax=self._lmax 
+            
+        npix = self.npix
+        
+        scanned_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+        hit_lm = np.zeros(len(scanned_lm))
+        hits = 0.
+        
+        #        for idx_t, ct_split in enumerate(ctime):
+        for idx_t_p, ct_split_p in enumerate(ctime):
+            
+            print idx_t_p
+            
+            mid_idx = int(len(ct_split_p)/2)
+            
+            q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split_p[mid_idx])
+            q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split_p[mid_idx])[0]
+            
+            p, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) 
+            
+            quat = q_n
+            
+            theta_b, phi_b = hp.pix2ang(nside,p)
+            
+            print theta_b, phi_b
+            
+            rot_m_array = self.rotation_pix(np.arange(npix), quat) 
+            gammaI_rot = self.gammaI[rot_m_array]
+
+            glm = hp.map2alm(gammaI_rot, lmax, pol=False)
+            
+            weight = np.divide(1.,p_split_1_t*p_split_2[idx_t_p])
+            
+            for idx_f, f in enumerate(freq[idx_t_p]):
+                for l in range(lmax+1): #
+                    for m in range(l+1): #
+                        #print l, m
+                        idx_lm = hp.Alm.getidx(lmax,l,m)
+                        for lp in range(lmax+1): #
+                            for mp in range(lp+1): #
+                                # remaining m index
+                                mpp = m+mp
+                                lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                                lmax_m = l + lp
+                                for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                                    scanned_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*sph_harm(mpp, lpp, theta_b, phi_b)*self.dfreq_factor(f,lpp)
+                                    *glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])*data_lm*weight[idx_f]
+                                    hit_lm[idx_lm] += 1.
+                                    hits += 1.
+        return scanned_lm/hits #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
+    
     # ********* Projector Matrix *********
 
 '''

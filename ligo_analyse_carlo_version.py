@@ -88,7 +88,7 @@ def midpoint(lat1,lon1,lat2,lon2):
 
 # sampling rate:
 fs = 4096
-ligo_data_dir = '/Users/contaldi/Students/Arianna/LIGO/ligo_data/'  #can be defined in the repo
+ligo_data_dir = '/Users/pai/Data/'  #can be defined in the repo
 filelist = rl.FileList(directory=ligo_data_dir)
 
 # Configuration: radians and metres, Earth-centered frame
@@ -302,13 +302,15 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
         #print data_lm
 
-    out = hp.alm2map(data_lm/hits,nside,lmax=lmax)
-    #out = np.copy(data_map)
-    #out[hits_map > 0] /= hits_map[hits_map > 0]
-    #out[hits_map==0.] = hp.UNSEEN
-    hp.mollview(out)
-    plt.savefig('map.pdf')
-    hp.write_map("map.fits",out)
+out = hp.alm2map(data_lm/hits,nside,lmax=lmax)
+#out = np.copy(data_map)
+#out[hits_map > 0] /= hits_map[hits_map > 0]
+#out[hits_map==0.] = hp.UNSEEN
+hp.mollview(out)
+plt.savefig('map_carlo.pdf')
+hp.write_map("map_carlo.fits",out)
+
+exit()
 
 #data_map[hits_map > 0] /= hits_map[hits_map > 0]
 #data_map[hits_map == 0.] = hp.UNSEEN
