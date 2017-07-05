@@ -35,11 +35,12 @@ LIGO ANALYSIS ROUTINES
 
 class Ligo_Analyse(object):
 
-    def __init__(self, nside, lmax):
+    def __init__(self, nside, lmax, fs):
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
         self._nside = nside
         self._lmax = lmax
+        self.fs = fs
         
         # ********* Fixed Setup Constants *********
 
@@ -157,12 +158,168 @@ class Ligo_Analyse(object):
 
         return latMid,lonMid, brng
 
+# **************** Whitening Modules ***************
 
+    def iir_bandstops(self, fstops, fs, order=4):
+        """ellip notch filter
+        fstops is a list of entries of the form [frequency (Hz), df, df2]                           
+        where df is the pass width and df2 is the stop width (narrower                              
+        than the pass width). Use caution if passing more than one freq at a time,                  
+        because the filter response might behave in ways you don't expect.
+        """
+        nyq = 0.5 * fs
+
+        # Zeros zd, poles pd, and gain kd for the digital filter
+        zd = np.array([])
+        pd = np.array([])
+        kd = 1
+
+        # Notches
+        for fstopData in fstops:
+            fstop = fstopData[0]
+            df = fstopData[1]
+            df2 = fstopData[2]
+            low = (fstop - df) / nyq
+            high = (fstop + df) / nyq
+            low2 = (fstop - df2) / nyq
+            high2 = (fstop + df2) / nyq
+            z, p, k = iirdesign([low,high], [low2,high2], gpass=1, gstop=6,
+                                ftype='ellip', output='zpk')
+            zd = np.append(zd,z)
+            pd = np.append(pd,p)
+
+        # Set gain to one at 100 Hz...better not notch there                                        
+        bPrelim,aPrelim = zpk2tf(zd, pd, 1)
+        outFreq, outg0 = freqz(bPrelim, aPrelim, 100/nyq)
+
+        # Return the numerator and denominator of the digital filter                                
+        b,a = zpk2tf(zd,pd,k)
+        return b, a
+    
+    def get_filter_coefs(self, fs, bandpass=True):
+    
+        # assemble the filter b,a coefficients:
+        coefs = []
+
+        # bandpass filter parameters
+        lowcut=20 #43
+        highcut=300 #260
+        order = 4
+
+        # Frequencies of notches at known instrumental spectral line frequencies.
+        # You can see these lines in the ASD above, so it is straightforward to make this list.
+        notchesAbsolute = np.array(
+            [14.0,34.70, 35.30, 35.90, 36.70, 37.30, 40.95, 60.00, 
+             120.00, 179.99, 304.99, 331.49, 510.02, 1009.99])
+        # exclude notch below lowcut
+        notchesAbsolute = notchesAbsolute[notchesAbsolute > lowcut]
+
+        # notch filter coefficients:
+        for notchf in notchesAbsolute:                      
+            bn, an = self.iir_bandstops(np.array([[notchf,1,0.1]]), fs, order=4)
+            coefs.append((bn,an))
+
+        # Manually do a wider notch filter around 510 Hz etc.          
+        bn, an = self.iir_bandstops(np.array([[510,200,20]]), fs, order=4)
+        coefs.append((bn, an))
+
+        # also notch out the forest of lines around 331.5 Hz
+        bn, an = self.iir_bandstops(np.array([[331.5,10,1]]), fs, order=4)
+        coefs.append((bn, an))
+
+        if bandpass:
+            # bandpass filter coefficients
+            # do bandpass as last filter
+            nyq = 0.5*fs
+            low = lowcut / nyq
+            high = highcut / nyq
+            bb, ab = butter(order, [low, high], btype='band')
+            coefs.append((bb,ab))
+    
+        return coefs
+
+    def filter_data(self, data_in,coefs):
+        data = data_in.copy()
+        for coef in coefs:
+            b,a = coef
+            # filtfilt applies a linear filter twice, once forward and once backwards.
+            # The combined filter has linear phase.
+            data = filtfilt(b, a, data)
+        return data
+
+    def whiten(self, strain, interp_psd, dt):
+        Nt = len(strain)
+        Nt = lf.bestFFTlength(Nt)
+        freqs = np.fft.rfftfreq(Nt, dt)
+        print 'whitening...', Nt
+        # whitening: transform to freq domain, divide by asd
+        hf = np.fft.rfft(strain[:Nt])
+        white_hf = hf / (np.sqrt(interp_psd(freqs) /dt/2.))
+        #white_ht = np.fft.irfft(white_hf, n=Nt)
+        print 'done whitening...'
+        return white_hf
+
+    def filter(self, strain_in):
+        fs=self.fs
+        dt=1./fs
+        strain = strain_in.copy()
+        # do bandpass and notch filtering
+        # get filter coefficients
+        coefs = self.get_filter_coefs(fs,bandpass=False)
+
+        # filter it:
+        strain_bp = self.filter_data(strain,coefs)
+
+        # bandpass filter parameters
+        lowcut=20 #43
+        highcut=300 #260
+        order = 4
+
+        # bandpass filter coefficients
+        # do bandpass as last filter. #HELP! 
+        nyq = 0.5*fs
+        low = lowcut / nyq
+        high = highcut / nyq
+        bb, ab = butter(order, [low, high], btype='band')
+        strain_bp_1 = filtfilt(bb, ab, strain_bp)
+
+        # number of sample for the fast fourier transform:
+        NFFT = 1*fs
+        Pxx, freqs = mlab.psd(strain_bp_1, Fs = fs, NFFT = NFFT)
+        
+        # We will use interpolations of the ASDs computed above for whitening:
+        psd = interp1d(freqs, Pxx)
+        
+        #print Pxx
+        
+        #Should really use analytic fit to PSD now that it is notched
+
+        # now whiten the data 
+        #strain_whiten = whiten(strain_bp,psd,dt)
+        
+        white_hf = self.whiten(strain,psd,dt)
+        
+        # bandpass filter parameters
+        #lowcut=20 #43
+        #highcut=300 #260
+        #order = 4
+
+        # bandpass filter coefficients
+        # do bandpass as last filter
+        #nyq = 0.5*fs
+        #low = lowcut / nyq
+        #high = highcut / nyq
+        #bb, ab = butter(order, [low, high], btype='band')
+        #strain_bp = filtfilt(bb, ab, strain_whiten)
+    
+        return white_hf
+    
 
     # ********* Data Segmenter *********
 
-    def segmenter(self,start,stop,filelist,fs):
-
+    def flagger(self,start,stop,filelist):
+        
+        fs = self.fs
         # convert LIGO GPS time to datetime
         # make sure datetime object knows it is UTC timezone
         utc_start = tconvert(start).replace(tzinfo=pytz.utc)
@@ -199,128 +356,63 @@ class Ligo_Analyse(object):
         # TODO: Add flagging of injections
 
         # Now loop over all segments found
-        for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):    
+        
+        return segs_begin, segs_end 
+        
+        #for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):    
 
-            # load data
-            strain_H1, meta_H1, dq_H1 = rl.getstrain(begin, end, 'H1', filelist=filelist)
-            strain_L1, meta_L1, dq_L1 = rl.getstrain(begin, end, 'L1', filelist=filelist)
+    def segmenter(self, begin, end, filelist):
+        fs = self.fs
+        # load data
+        strain_H1, meta_H1, dq_H1 = rl.getstrain(begin, end, 'H1', filelist=filelist)
+        strain_L1, meta_L1, dq_L1 = rl.getstrain(begin, end, 'L1', filelist=filelist)
 
-            # TODO: may want to do this in frequency space
-            #strain_x = strain_H1*strain_L1
+        # TODO: may want to do this in frequency space
+        #strain_x = strain_H1*strain_L1
+        print '+++'
+        epoch = dt.datetime.utcfromtimestamp(0).replace(tzinfo=pytz.utc)
+        print '+++'
+        
+        # Figure out unix time for this segment
+        # This is the ctime for qpoint
+        utc_begin = tconvert(meta_H1['start']).replace(tzinfo=pytz.utc)
+        utc_end = tconvert(meta_H1['stop']).replace(tzinfo=pytz.utc)
+        ctime = np.arange((utc_begin - epoch).total_seconds(),(utc_end - epoch).total_seconds(),meta_H1['dt'])
 
+        # discard very short segments
+        if len(ctime)/fs < 16: 
+            return [0.],[0.],[0.]
+        print utc_begin, utc_end
 
-            # Figure out unix time for this segment
-            # This is the ctime for qpoint
-            utc_begin = tconvert(meta_H1['start']).replace(tzinfo=pytz.utc)
-            utc_end = tconvert(meta_H1['stop']).replace(tzinfo=pytz.utc)
-            ctime = np.arange((utc_begin - epoch).total_seconds(),(utc_end - epoch).total_seconds(),meta_H1['dt'])
-
-            # discard very short segments
-            if len(ctime)/fs < 16: continue
-            print utc_begin, utc_end
-
-            # if long then split into sub segments
-            if len(ctime)/fs > 120:
-                # split segment into sub parts
-                # not interested in freq < 40Hz
-                n_split = np.int(len(ctime)/(60*fs))
-                print 'split ', n_split, len(ctime)/fs
-                ctime = np.array_split(ctime, n_split)
-                strain_H1 = np.array_split(strain_H1, n_split)
-                strain_L1 = np.array_split(strain_L1, n_split)
-                
-            else:
-                # add dummy dimension
-                n_split = 1
-                ctime = ctime[None,...]
-                strain_H1 = strain_H1[None,...]
-                strain_L1 = strain_L1[None,...]
+        # if long then split into sub segments
+        if len(ctime)/fs > 120:
+            # split segment into sub parts
+            # not interested in freq < 40Hz
+            n_split = np.int(len(ctime)/(60*fs))
+            print 'split ', n_split, len(ctime)/fs
+            ctime = np.array_split(ctime, n_split)
+            strain_H1 = np.array_split(strain_H1, n_split)
+            strain_L1 = np.array_split(strain_L1, n_split)
+            return ctime, strain_H1, strain_L1 #strain_x
             
-        
-            #for quick run: insert projection here, and do it for each segment    
-        
-        
-        return ctime, strain_H1, strain_L1 #strain_x
-
+        else:
+            # add dummy dimension
+            n_split = 1
+            ctime = ctime[None,...]
+            strain_H1 = strain_H1[None,...]
+            strain_L1 = strain_L1[None,...]
+            return ctime, strain_H1, strain_L1 #strain_x
+    
+        #for quick run: insert projection here, and do it for each segment    
+    
+    
+    #return ctime, strain_H1, strain_L1 #strain_x
 
 
     # ********* Projector *********
     # returns p = {lm} map of inverse-noise-filtered time-stream
-    def projector(self,ctime, idx_t, strain_H1, strain_H2, freq_coar):
-        print 'proj run'    
-        nside=self._nside
-        lmax=self._lmax
-        #if you input s_split = 1, (maybe) it returns simply the projection operator 
-            
-        npix = self.npix
-        #data_lm_string = []
-        
-        for idx_t_p, (ct_split, s_1, s_2, freq) in enumerate(zip(ctime, strain_H1, strain_H2, freq_coar)):
-            
-            data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-            hit_lm = np.zeros(len(data_lm))
-    
-            # Filter the data
-            noise = strain_H1[idx_t]*np.conj(strain_H1[idx_t])*s_2*np.conj(s_2)     #NOISE!
-            s = np.divide(s_1*np.conj(s_2),noise.real)
-        
-            #fl = [self.freq_factor(l,0.01,300.) for l in range(lmax*4)]
-            data_lm += self.summer(ct_split, s, freq)
-            '''  
-            mid_idx = int(len(ct_split)/2)
-        
-            # get quaternions for H1->L1 baseline (use as boresight)
-            q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
-            # get quaternions for bisector pointing (use as boresight)
-            q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
-    
-            pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
-            
-            p = pix_b          
-            quat = q_n
-            #s = np.average(s_filt)
-        
-            # polar angles of baseline vector
-            theta_b, phi_b = hp.pix2ang(nside,p)
-
-            # rotate gammas
-            # TODO: will need to oversample here
-            # i.e. use nside > nside final map
-            # TODO: pol gammas
-            rot_m_array = self.rotation_pix(np.arange(npix), quat) #rotating around the bisector of the gc 
-            gammaI_rot = self.gammaI[rot_m_array]
-    
-            # Expand rotated gammas into lm
-            glm = hp.map2alm(gammaI_rot, lmax, pol=False)
-                          
-            hits = 0.
-            # sum over lp, mp
-            for l in range(lmax+1):
-                for m in range(l+1):
-                    idx_lm = hp.Alm.getidx(lmax,l,m)
-                    for idx_f, f in enumerate(freq):    #hits = 0 here maybe..?
-                    #print idx_f
-                        for lp in range(lmax+1):
-                            for mp in range(lp+1):
-                                # remaining m index
-                                mpp = m+mp
-                                lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                                lmax_m = l + lp
-                                for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                                    data_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
-                                    *sph_harm(mpp, lpp, theta_b, phi_b)*
-                                                        glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                                        self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*s[idx_f]) #sure about these 3js?
-                                                        #s[idx_f]
-                                    hit_lm[idx_lm] += 1.
-                                    hits += 1.
-            '''
-            ###############################################
-            #data_lm_string.append(data_lm/hits)
-        return data_lm
-        
-    def summer(self, ct_split, s, freq):
-                
+       
+    def summer(self, ct_split, s, freq):        
         nside=self._nside
         lmax=self._lmax
         
@@ -345,7 +437,9 @@ class Ligo_Analyse(object):
     
         # polar angles of baseline vector
         theta_b, phi_b = hp.pix2ang(nside,p)
-
+        
+        #print theta_b, phi_b
+        
         # rotate gammas
         # TODO: will need to oversample here
         # i.e. use nside > nside final map
@@ -376,127 +470,171 @@ class Ligo_Analyse(object):
                                                     self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*s[idx_f]) #sure about these 3js?
                                                     #s[idx_f]
                                 hits += 1.
-        return sum_lm
-        
-    def projector_1(self,ct_split, s_split, power_split,freq):
-        print 'proj run'    
+        return sum_lm/hits
+
+    def summer_f(self, ct_split, f):        
         nside=self._nside
         lmax=self._lmax
-        #if you input s_split = 1, (maybe) it returns simply the projection operator 
-            
+        
+        sum_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+                
         npix = self.npix
-        
-        data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-        hit_lm = np.zeros(len(data_lm))
-        
         mid_idx = int(len(ct_split)/2)
-        
-        # get quaternions for H1->L1 baseline (use as boresight)
+    
         q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
-        # get quaternions for bisector pointing (use as boresight)
         q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
-    
-        pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
-    
-        # Filter the data
-        s_filt = np.divide(s_split,power_split.real)
 
+        pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
+        
         p = pix_b          
         quat = q_n
-        s = np.average(s_filt)
-        print s
-        
-        # polar angles of baseline vector
+    
         theta_b, phi_b = hp.pix2ang(nside,p)
-
-        # rotate gammas
-        # TODO: will need to oversample here
-        # i.e. use nside > nside final map
-        # TODO: pol gammas
+        
         rot_m_array = self.rotation_pix(np.arange(npix), quat) #rotating around the bisector of the gc 
         gammaI_rot = self.gammaI[rot_m_array]
-    
-        # Expand rotated gammas into lm
-        glm = hp.map2alm(gammaI_rot, lmax, pol=False)
+
+        glm = hp.map2alm(gammaI_rot, lmax, pol=False)              
         
-        #fl = [self.freq_factor(l,0.01,300.) for l in range(lmax*4)]
-    
         hits = 0.
         # sum over lp, mp
         for l in range(lmax+1):
             for m in range(l+1):
                 idx_lm = hp.Alm.getidx(lmax,l,m)
-                for idx_f, f in enumerate(freq):    #hits = 0 here maybe..?
                 #print idx_f
-                    for lp in range(lmax+1):
-                        for mp in range(lp+1):
-                            # remaining m index
-                            mpp = m+mp
-                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                            lmax_m = l + lp
-                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                                data_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
-                                *sph_harm(mpp, lpp, theta_b, phi_b)*
-                                                    glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*s) #sure about these 3js?
+                for lp in range(lmax+1):
+                    for mp in range(lp+1):
+                        # remaining m index
+                        mpp = m+mp
+                        lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                        lmax_m = l + lp
+                        for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                            sum_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
+                            *sph_harm(mpp, lpp, theta_b, phi_b)*
+                                                glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
+                                                self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]) #sure about these 3js?
                                                     #s[idx_f]
-                                hit_lm[idx_lm] += 1.
-                                hits += 1.
-        return data_lm/hits
+                            hits += 1.
+        return sum_lm/hits
 
+    def summer_f_lm(self, ct_split, f,idx_lm):        
+        nside=self._nside
+        lmax=self._lmax
+        
+        sum_lm = 0.
+                
+        npix = self.npix
+        mid_idx = int(len(ct_split)/2)
+    
+        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
+        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
+
+        pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
+        
+        p = pix_b          
+        quat = q_n
+    
+        theta_b, phi_b = hp.pix2ang(nside,p)
+        
+        rot_m_array = self.rotation_pix(np.arange(npix), quat) #rotating around the bisector of the gc 
+        gammaI_rot = self.gammaI[rot_m_array]
+
+        glm = hp.map2alm(gammaI_rot, lmax, pol=False)              
+        
+        hits = 0.
+        
+        l, m = hp.Alm.getlm(lmax, i=idx_lm)
+        
+        for lp in range(lmax+1):
+            for mp in range(lp+1):
+                # remaining m index
+                mpp = m+mp
+                lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                lmax_m = l + lp
+                for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                    sum_lm += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
+                    *sph_harm(mpp, lpp, theta_b, phi_b)*
+                                        glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
+                                        self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]) #sure about these 3js?
+                                            #s[idx_f]
+                    hits += 1.
+        return sum_lm/hits
+
+        
+    def projector(self,ctime, strain_H1, strain_H2, freq_x_coar):
+        print 'proj run'    
+        nside=self._nside
+        lmax=self._lmax
+            
+        npix = self.npix
+        data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+        
+        for idx_t, (ct_split, s_1, s_2, freq) in enumerate(zip(ctime, strain_H1, strain_H2, freq_x_coar)):
+
+            # Filter the data
+            #noise = strain_H1[idx_t]*np.conj(strain_H1[idx_t])*s_2*np.conj(s_2)     #NOISE!
+            s = s_1*np.conj(s_2)#np.divide(,noise.real)
+            
+            #HITS?
+            
+            #fl = [self.freq_factor(l,0.01,300.) for l in range(lmax*4)]
+            data_lm += self.summer(ct_split, s, freq)
+
+            ###############################################
+            #data_lm_string.append(data_lm/hits)
+        return data_lm
 
     # ********* Scanner *********
     #to use scanner, re-check l, m ranges and other things. otherwise use scanner_1    
-    def scanner(self,ctime, idx_t, p_split_1_t, p_split_2,freq): #scanner(ctime_array, idx_t, p_split_1[idx_t], p_split_2, freq_coar_array)
+    def scanner(self,ct_split, p_split_1_t, p_split_2_t,freq,data_lm = 1.): #scanner(ctime_array, idx_t, p_split_1[idx_t], p_split_2, freq_coar_array)
         nside=self._nside
         lmax=self._lmax 
             
         npix = self.npix
         
-        data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-        hit_lm = np.zeros(len(data_lm))
+        scanned_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+        hit_lm = np.zeros(len(scanned_lm))
+        hits = 0.
 
-        #        for idx_t, ct_split in enumerate(ctime):
-        for idx_t_p, ct_split_p in enumerate(ctime):
-            
-            q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split_p)
-            q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split_p)
+        mid_idx = int(len(ct_split)/2)
+        
+        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
+        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
+        
+        p, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) 
+        
+        quat = q_n
+        
+        theta_b, phi_b = hp.pix2ang(nside,p)
+        
+        rot_m_array = self.rotation_pix(np.arange(npix), quat) 
+        gammaI_rot = self.gammaI[rot_m_array]
 
-            pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) 
-            pix_n, s2p_n, c2p_n = self.Q.quat2pix(q_n, nside=nside, pol=True)
-            
-            mid_idx = len(pix_n)/2
-            p = pix_b[mid_idx]          
-            quat = q_n[mid_idx]
-            
-            theta_b, phi_b = hp.pix2ang(nside,p)
-            
-            rot_m_array = self.rotation_pix(np.arange(npix), quat) 
-            gammaI_rot = self.gammaI[rot_m_array]
+        glm = hp.map2alm(gammaI_rot, lmax, pol=False)
+        
+        weight = np.divide(1.,p_split_1_t*p_split_2_t)
+        
+        for idx_f, f in enumerate(freq):
+            for l in range(lmax+1): #
+                for m in range(l+1): #
+                    #print l, m
+                    idx_lm = hp.Alm.getidx(lmax,l,m)
+                    for lp in range(lmax+1): #
+                        for mp in range(lp+1): #
+                            # remaining m index
+                            mpp = m+mp
+                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                            lmax_m = l + lp
+                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                                scanned_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*sph_harm(mpp, lpp, theta_b, phi_b)*self.dfreq_factor(f,lpp)
+                                *glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])*data_lm*weight[idx_f]
+                                hit_lm[idx_lm] += 1.
+                                hits += 1.
+        return scanned_lm/hits #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
 
-            glm = hp.map2alm(gammaI_rot, lmax, pol=False)
-            
-            for idx_f, f in enumerate(freq):
-                #   print idx_f
-                for l in range(lmax):
-                    for m in range(l):
-                        #print l, m
-                        idx_lm = hp.Alm.getidx(lmax,l,m)
-                        for lp in range(lmax):
-                            for mp in range(lp):
-                                # remaining m index
-                                mpp = m+mp
-                                lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                                lmax_m = l + lp
-                                for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                                    data_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)*sph_harm(mpp, lpp, theta_b, phi_b)*
-                                                        glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                                        self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])/p_split_1_t/p_split_2[idx_t_p]
-                                    hit_lm[idx_lm] += 1.
-                                    hits += 1.
-        return data_lm/hits #hp.alm2map(data_lm/hits,nside,lmax=lmax)
 
     def scanner_1(self,ctime, idx_t, p_split_1_t, p_split_2,freq,data_lm = 1.): #scanner(ctime_array, idx_t, p_split_1[idx_t], p_split_2, freq_coar_array)
+    
         nside=self._nside
         lmax=self._lmax 
             
@@ -522,8 +660,6 @@ class Ligo_Analyse(object):
             
             theta_b, phi_b = hp.pix2ang(nside,p)
             
-            print theta_b, phi_b
-            
             rot_m_array = self.rotation_pix(np.arange(npix), quat) 
             gammaI_rot = self.gammaI[rot_m_array]
 
@@ -548,6 +684,80 @@ class Ligo_Analyse(object):
                                     hit_lm[idx_lm] += 1.
                                     hits += 1.
         return scanned_lm/hits #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
+
+
+    def scanner_short(self,ctime_idx_t, idx_f, p_split_1_f, p_split_2,freq,data_lm = 1.): #scanner(ctime_array, idx_t, p_split_1[idx_t], p_split_2, freq_coar_array)
+    
+        nside=self._nside
+        lmax=self._lmax 
+            
+        npix = self.npix
+        
+        scanned_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+        hit_lm = np.zeros(len(scanned_lm))
+        hits = 0.
+        
+        mid_idx = int(len(ctime_idx_t)/2)
+        
+        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ctime_idx_t[mid_idx])
+        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ctime_idx_t[mid_idx])[0]
+        
+        p, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) 
+        
+        quat = q_n
+        
+        theta_b, phi_b = hp.pix2ang(nside,p)
+        
+        rot_m_array = self.rotation_pix(np.arange(npix), quat) 
+        gammaI_rot = self.gammaI[rot_m_array]
+
+        glm = hp.map2alm(gammaI_rot, lmax, pol=False)
+        
+        for idx_fp, fp in enumerate(freq):
+            weight = np.divide(1.,p_split_1_f*p_split_2[idx_fp])
+            for l in range(lmax+1): #
+                for m in range(l+1): #
+                    #print l, m
+                    idx_lm = hp.Alm.getidx(lmax,l,m)
+                    for lp in range(lmax+1): #
+                        for mp in range(lp+1): #
+                            # remaining m index
+                            mpp = m+mp
+                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                            lmax_m = l + lp
+                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                                scanned_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*sph_harm(mpp, lpp, theta_b, phi_b)*self.dfreq_factor(fp,lpp)
+                                *glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])*data_lm*weight
+                                hit_lm[idx_lm] += 1.
+                                hits += 1.
+        return scanned_lm/hits #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
+    
+    # ********* Decorrelator *********    
+
+  
+    def decorrelator(self, ctime, freq, p_split_1, p_split_2):
+        
+        nside=self._nside
+        lmax=self._lmax 
+            
+        npix = self.npix        
+        
+        M_lm_lpmp =[]
+        
+        for idx_lm in range(hp.Alm.getidx(lmax,lmax,lmax)+1):
+            print idx_lm
+            M_lpmp = np.array([np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)])
+                
+            for idx_t, ct_split in enumerate(ctime):
+                print idx_t
+                for idx_f, f in enumerate(freq[idx_t]):
+                    print '+'
+                    scan_lm = self.scanner_short(ct_split, idx_f,p_split_1[idx_t][idx_f], p_split_2[idx_t],freq[idx_t])
+                    print '-'
+                    M_lpmp += self.summer_f_lm(ct_split, f,idx_lm)*scan_lm
+                
+            M_lm_lpmp.append(M_lpmp)
+        return M_lm_lpmp
     
     # ********* Projector Matrix *********
 

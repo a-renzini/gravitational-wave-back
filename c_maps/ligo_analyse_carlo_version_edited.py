@@ -157,7 +157,7 @@ Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
 # define start and stop time to search
 # in GPS seconds
 start = 931035615 #931079472 
-stop  = 971622015 #931086336
+stop  = 931086336 #971622015 #
 #start = 931079472
 #stop  = 931086336
 #start = 931200000
