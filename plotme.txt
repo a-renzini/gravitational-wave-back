@@ -1,0 +1,1879 @@
+
+WARNING! No file found with GPS start time 970039296
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970043392 and IFO H1
+WARNING! No file found with GPS start time 970043392
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970047488 and IFO H1
+WARNING! No file found with GPS start time 970047488
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970051584 and IFO H1
+WARNING! No file found with GPS start time 970051584
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970055680 and IFO H1
+WARNING! No file found with GPS start time 970055680
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970059776 and IFO H1
+WARNING! No file found with GPS start time 970059776
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970063872 and IFO H1
+WARNING! No file found with GPS start time 970063872
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970067968 and IFO H1
+WARNING! No file found with GPS start time 970067968
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970072064 and IFO H1
+WARNING! No file found with GPS start time 970072064
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970076160 and IFO H1
+WARNING! No file found with GPS start time 970076160
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970080256 and IFO H1
+WARNING! No file found with GPS start time 970080256
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970084352 and IFO H1
+WARNING! No file found with GPS start time 970084352
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970088448 and IFO H1
+WARNING! No file found with GPS start time 970088448
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970092544 and IFO H1
+WARNING! No file found with GPS start time 970092544
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970096640 and IFO H1
+WARNING! No file found with GPS start time 970096640
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970100736 and IFO H1
+WARNING! No file found with GPS start time 970100736
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970104832 and IFO H1
+WARNING! No file found with GPS start time 970104832
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970108928 and IFO H1
+WARNING! No file found with GPS start time 970108928
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970113024 and IFO H1
+WARNING! No file found with GPS start time 970113024
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970117120 and IFO H1
+WARNING! No file found with GPS start time 970117120
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970121216 and IFO H1
+WARNING! No file found with GPS start time 970121216
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970125312 and IFO H1
+WARNING! No file found with GPS start time 970125312
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970129408 and IFO H1
+WARNING! No file found with GPS start time 970129408
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970133504 and IFO H1
+WARNING! No file found with GPS start time 970133504
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970137600 and IFO H1
+WARNING! No file found with GPS start time 970137600
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970141696 and IFO H1
+WARNING! No file found with GPS start time 970141696
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970145792 and IFO H1
+WARNING! No file found with GPS start time 970145792
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970149888 and IFO H1
+WARNING! No file found with GPS start time 970149888
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970153984 and IFO H1
+WARNING! No file found with GPS start time 970153984
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970158080 and IFO H1
+WARNING! No file found with GPS start time 970158080
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970162176 and IFO H1
+WARNING! No file found with GPS start time 970162176
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970166272 and IFO H1
+WARNING! No file found with GPS start time 970166272
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970170368 and IFO H1
+WARNING! No file found with GPS start time 970170368
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970174464 and IFO H1
+WARNING! No file found with GPS start time 970174464
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970178560 and IFO H1
+WARNING! No file found with GPS start time 970178560
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970182656 and IFO H1
+WARNING! No file found with GPS start time 970182656
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970186752 and IFO H1
+WARNING! No file found with GPS start time 970186752
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970190848 and IFO H1
+WARNING! No file found with GPS start time 970190848
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970194944 and IFO H1
+WARNING! No file found with GPS start time 970194944
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970199040 and IFO H1
+WARNING! No file found with GPS start time 970199040
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970203136 and IFO H1
+WARNING! No file found with GPS start time 970203136
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970207232 and IFO H1
+WARNING! No file found with GPS start time 970207232
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970211328 and IFO H1
+WARNING! No file found with GPS start time 970211328
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970215424 and IFO H1
+WARNING! No file found with GPS start time 970215424
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970219520 and IFO H1
+WARNING! No file found with GPS start time 970219520
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970223616 and IFO H1
+WARNING! No file found with GPS start time 970223616
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970227712 and IFO H1
+WARNING! No file found with GPS start time 970227712
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970231808 and IFO H1
+WARNING! No file found with GPS start time 970231808
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970235904 and IFO H1
+WARNING! No file found with GPS start time 970235904
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970240000 and IFO H1
+WARNING! No file found with GPS start time 970240000
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970244096 and IFO H1
+WARNING! No file found with GPS start time 970244096
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970248192 and IFO H1
+WARNING! No file found with GPS start time 970248192
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970252288 and IFO H1
+WARNING! No file found with GPS start time 970252288
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970256384 and IFO H1
+WARNING! No file found with GPS start time 970256384
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970260480 and IFO H1
+WARNING! No file found with GPS start time 970260480
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970264576 and IFO H1
+WARNING! No file found with GPS start time 970264576
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970268672 and IFO H1
+WARNING! No file found with GPS start time 970268672
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970272768 and IFO H1
+WARNING! No file found with GPS start time 970272768
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970276864 and IFO H1
+WARNING! No file found with GPS start time 970276864
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970280960 and IFO H1
+WARNING! No file found with GPS start time 970280960
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970285056 and IFO H1
+WARNING! No file found with GPS start time 970285056
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970289152 and IFO H1
+WARNING! No file found with GPS start time 970289152
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970293248 and IFO H1
+WARNING! No file found with GPS start time 970293248
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970297344 and IFO H1
+WARNING! No file found with GPS start time 970297344
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970301440 and IFO H1
+WARNING! No file found with GPS start time 970301440
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970305536 and IFO H1
+WARNING! No file found with GPS start time 970305536
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970309632 and IFO H1
+WARNING! No file found with GPS start time 970309632
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970313728 and IFO H1
+WARNING! No file found with GPS start time 970313728
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970317824 and IFO H1
+WARNING! No file found with GPS start time 970317824
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970321920 and IFO H1
+WARNING! No file found with GPS start time 970321920
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970326016 and IFO H1
+WARNING! No file found with GPS start time 970326016
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970330112 and IFO H1
+WARNING! No file found with GPS start time 970330112
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970334208 and IFO H1
+WARNING! No file found with GPS start time 970334208
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970338304 and IFO H1
+WARNING! No file found with GPS start time 970338304
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970342400 and IFO H1
+WARNING! No file found with GPS start time 970342400
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970346496 and IFO H1
+WARNING! No file found with GPS start time 970346496
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970350592 and IFO H1
+WARNING! No file found with GPS start time 970350592
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970354688 and IFO H1
+WARNING! No file found with GPS start time 970354688
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970358784 and IFO H1
+WARNING! No file found with GPS start time 970358784
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970362880 and IFO H1
+WARNING! No file found with GPS start time 970362880
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970366976 and IFO H1
+WARNING! No file found with GPS start time 970366976
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970371072 and IFO H1
+WARNING! No file found with GPS start time 970371072
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970375168 and IFO H1
+WARNING! No file found with GPS start time 970375168
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970379264 and IFO H1
+WARNING! No file found with GPS start time 970379264
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970383360 and IFO H1
+WARNING! No file found with GPS start time 970383360
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970387456 and IFO H1
+WARNING! No file found with GPS start time 970387456
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970391552 and IFO H1
+WARNING! No file found with GPS start time 970391552
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970395648 and IFO H1
+WARNING! No file found with GPS start time 970395648
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970399744 and IFO H1
+WARNING! No file found with GPS start time 970399744
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970403840 and IFO H1
+WARNING! No file found with GPS start time 970403840
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970407936 and IFO H1
+WARNING! No file found with GPS start time 970407936
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970412032 and IFO H1
+WARNING! No file found with GPS start time 970412032
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970416128 and IFO H1
+WARNING! No file found with GPS start time 970416128
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970420224 and IFO H1
+WARNING! No file found with GPS start time 970420224
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970424320 and IFO H1
+WARNING! No file found with GPS start time 970424320
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970428416 and IFO H1
+WARNING! No file found with GPS start time 970428416
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970432512 and IFO H1
+WARNING! No file found with GPS start time 970432512
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970436608 and IFO H1
+WARNING! No file found with GPS start time 970436608
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970440704 and IFO H1
+WARNING! No file found with GPS start time 970440704
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970444800 and IFO H1
+WARNING! No file found with GPS start time 970444800
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970448896 and IFO H1
+WARNING! No file found with GPS start time 970448896
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970452992 and IFO H1
+WARNING! No file found with GPS start time 970452992
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970457088 and IFO H1
+WARNING! No file found with GPS start time 970457088
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970461184 and IFO H1
+WARNING! No file found with GPS start time 970461184
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970465280 and IFO H1
+WARNING! No file found with GPS start time 970465280
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970469376 and IFO H1
+WARNING! No file found with GPS start time 970469376
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970473472 and IFO H1
+WARNING! No file found with GPS start time 970473472
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970477568 and IFO H1
+WARNING! No file found with GPS start time 970477568
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970481664 and IFO H1
+WARNING! No file found with GPS start time 970481664
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970485760 and IFO H1
+WARNING! No file found with GPS start time 970485760
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970489856 and IFO H1
+WARNING! No file found with GPS start time 970489856
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970493952 and IFO H1
+WARNING! No file found with GPS start time 970493952
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970498048 and IFO H1
+WARNING! No file found with GPS start time 970498048
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970502144 and IFO H1
+WARNING! No file found with GPS start time 970502144
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970506240 and IFO H1
+WARNING! No file found with GPS start time 970506240
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970510336 and IFO H1
+WARNING! No file found with GPS start time 970510336
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970514432 and IFO H1
+WARNING! No file found with GPS start time 970514432
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970518528 and IFO H1
+WARNING! No file found with GPS start time 970518528
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970522624 and IFO H1
+WARNING! No file found with GPS start time 970522624
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970526720 and IFO H1
+WARNING! No file found with GPS start time 970526720
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970530816 and IFO H1
+WARNING! No file found with GPS start time 970530816
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970534912 and IFO H1
+WARNING! No file found with GPS start time 970534912
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970539008 and IFO H1
+WARNING! No file found with GPS start time 970539008
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970543104 and IFO H1
+WARNING! No file found with GPS start time 970543104
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970547200 and IFO H1
+WARNING! No file found with GPS start time 970547200
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970551296 and IFO H1
+WARNING! No file found with GPS start time 970551296
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970555392 and IFO H1
+WARNING! No file found with GPS start time 970555392
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970559488 and IFO H1
+WARNING! No file found with GPS start time 970559488
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970563584 and IFO H1
+WARNING! No file found with GPS start time 970563584
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970567680 and IFO H1
+WARNING! No file found with GPS start time 970567680
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970571776 and IFO H1
+WARNING! No file found with GPS start time 970571776
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970575872 and IFO H1
+WARNING! No file found with GPS start time 970575872
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970579968 and IFO H1
+WARNING! No file found with GPS start time 970579968
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970584064 and IFO H1
+WARNING! No file found with GPS start time 970584064
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970588160 and IFO H1
+WARNING! No file found with GPS start time 970588160
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970592256 and IFO H1
+WARNING! No file found with GPS start time 970592256
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970596352 and IFO H1
+WARNING! No file found with GPS start time 970596352
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970600448 and IFO H1
+WARNING! No file found with GPS start time 970600448
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970604544 and IFO H1
+WARNING! No file found with GPS start time 970604544
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970608640 and IFO H1
+WARNING! No file found with GPS start time 970608640
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970612736 and IFO H1
+WARNING! No file found with GPS start time 970612736
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970616832 and IFO H1
+WARNING! No file found with GPS start time 970616832
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970620928 and IFO H1
+WARNING! No file found with GPS start time 970620928
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970625024 and IFO H1
+WARNING! No file found with GPS start time 970625024
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970629120 and IFO H1
+WARNING! No file found with GPS start time 970629120
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970633216 and IFO H1
+WARNING! No file found with GPS start time 970633216
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970637312 and IFO H1
+WARNING! No file found with GPS start time 970637312
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970641408 and IFO H1
+WARNING! No file found with GPS start time 970641408
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970645504 and IFO H1
+WARNING! No file found with GPS start time 970645504
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970649600 and IFO H1
+WARNING! No file found with GPS start time 970649600
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970653696 and IFO H1
+WARNING! No file found with GPS start time 970653696
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970657792 and IFO H1
+WARNING! No file found with GPS start time 970657792
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970661888 and IFO H1
+WARNING! No file found with GPS start time 970661888
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970665984 and IFO H1
+WARNING! No file found with GPS start time 970665984
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970670080 and IFO H1
+WARNING! No file found with GPS start time 970670080
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970674176 and IFO H1
+WARNING! No file found with GPS start time 970674176
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970678272 and IFO H1
+WARNING! No file found with GPS start time 970678272
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970682368 and IFO H1
+WARNING! No file found with GPS start time 970682368
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970686464 and IFO H1
+WARNING! No file found with GPS start time 970686464
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970690560 and IFO H1
+WARNING! No file found with GPS start time 970690560
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970694656 and IFO H1
+WARNING! No file found with GPS start time 970694656
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970698752 and IFO H1
+WARNING! No file found with GPS start time 970698752
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970702848 and IFO H1
+WARNING! No file found with GPS start time 970702848
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970706944 and IFO H1
+WARNING! No file found with GPS start time 970706944
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970711040 and IFO H1
+WARNING! No file found with GPS start time 970711040
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970715136 and IFO H1
+WARNING! No file found with GPS start time 970715136
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970719232 and IFO H1
+WARNING! No file found with GPS start time 970719232
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970723328 and IFO H1
+WARNING! No file found with GPS start time 970723328
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970727424 and IFO H1
+WARNING! No file found with GPS start time 970727424
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970731520 and IFO H1
+WARNING! No file found with GPS start time 970731520
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970735616 and IFO H1
+WARNING! No file found with GPS start time 970735616
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970739712 and IFO H1
+WARNING! No file found with GPS start time 970739712
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970743808 and IFO H1
+WARNING! No file found with GPS start time 970743808
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970747904 and IFO H1
+WARNING! No file found with GPS start time 970747904
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970752000 and IFO H1
+WARNING! No file found with GPS start time 970752000
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970756096 and IFO H1
+WARNING! No file found with GPS start time 970756096
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970760192 and IFO H1
+WARNING! No file found with GPS start time 970760192
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970764288 and IFO H1
+WARNING! No file found with GPS start time 970764288
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970768384 and IFO H1
+WARNING! No file found with GPS start time 970768384
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970772480 and IFO H1
+WARNING! No file found with GPS start time 970772480
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970776576 and IFO H1
+WARNING! No file found with GPS start time 970776576
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970780672 and IFO H1
+WARNING! No file found with GPS start time 970780672
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970784768 and IFO H1
+WARNING! No file found with GPS start time 970784768
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970788864 and IFO H1
+WARNING! No file found with GPS start time 970788864
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970792960 and IFO H1
+WARNING! No file found with GPS start time 970792960
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970797056 and IFO H1
+WARNING! No file found with GPS start time 970797056
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970801152 and IFO H1
+WARNING! No file found with GPS start time 970801152
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970805248 and IFO H1
+WARNING! No file found with GPS start time 970805248
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970809344 and IFO H1
+WARNING! No file found with GPS start time 970809344
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970813440 and IFO H1
+WARNING! No file found with GPS start time 970813440
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970817536 and IFO H1
+WARNING! No file found with GPS start time 970817536
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970821632 and IFO H1
+WARNING! No file found with GPS start time 970821632
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970825728 and IFO H1
+WARNING! No file found with GPS start time 970825728
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970829824 and IFO H1
+WARNING! No file found with GPS start time 970829824
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970833920 and IFO H1
+WARNING! No file found with GPS start time 970833920
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970838016 and IFO H1
+WARNING! No file found with GPS start time 970838016
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970842112 and IFO H1
+WARNING! No file found with GPS start time 970842112
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970846208 and IFO H1
+WARNING! No file found with GPS start time 970846208
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970850304 and IFO H1
+WARNING! No file found with GPS start time 970850304
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970854400 and IFO H1
+WARNING! No file found with GPS start time 970854400
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970858496 and IFO H1
+WARNING! No file found with GPS start time 970858496
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970862592 and IFO H1
+WARNING! No file found with GPS start time 970862592
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970866688 and IFO H1
+WARNING! No file found with GPS start time 970866688
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970870784 and IFO H1
+WARNING! No file found with GPS start time 970870784
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970874880 and IFO H1
+WARNING! No file found with GPS start time 970874880
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970878976 and IFO H1
+WARNING! No file found with GPS start time 970878976
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970883072 and IFO H1
+WARNING! No file found with GPS start time 970883072
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970887168 and IFO H1
+WARNING! No file found with GPS start time 970887168
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970891264 and IFO H1
+WARNING! No file found with GPS start time 970891264
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970895360 and IFO H1
+WARNING! No file found with GPS start time 970895360
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970899456 and IFO H1
+WARNING! No file found with GPS start time 970899456
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970903552 and IFO H1
+WARNING! No file found with GPS start time 970903552
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970907648 and IFO H1
+WARNING! No file found with GPS start time 970907648
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970911744 and IFO H1
+WARNING! No file found with GPS start time 970911744
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970915840 and IFO H1
+WARNING! No file found with GPS start time 970915840
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970919936 and IFO H1
+WARNING! No file found with GPS start time 970919936
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970924032 and IFO H1
+WARNING! No file found with GPS start time 970924032
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970928128 and IFO H1
+WARNING! No file found with GPS start time 970928128
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970932224 and IFO H1
+WARNING! No file found with GPS start time 970932224
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970936320 and IFO H1
+WARNING! No file found with GPS start time 970936320
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970940416 and IFO H1
+WARNING! No file found with GPS start time 970940416
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970944512 and IFO H1
+WARNING! No file found with GPS start time 970944512
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970948608 and IFO H1
+WARNING! No file found with GPS start time 970948608
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970952704 and IFO H1
+WARNING! No file found with GPS start time 970952704
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970956800 and IFO H1
+WARNING! No file found with GPS start time 970956800
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970960896 and IFO H1
+WARNING! No file found with GPS start time 970960896
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970964992 and IFO H1
+WARNING! No file found with GPS start time 970964992
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970969088 and IFO H1
+WARNING! No file found with GPS start time 970969088
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970973184 and IFO H1
+WARNING! No file found with GPS start time 970973184
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970977280 and IFO H1
+WARNING! No file found with GPS start time 970977280
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970981376 and IFO H1
+WARNING! No file found with GPS start time 970981376
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970985472 and IFO H1
+WARNING! No file found with GPS start time 970985472
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970989568 and IFO H1
+WARNING! No file found with GPS start time 970989568
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970993664 and IFO H1
+WARNING! No file found with GPS start time 970993664
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 970997760 and IFO H1
+WARNING! No file found with GPS start time 970997760
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971001856 and IFO H1
+WARNING! No file found with GPS start time 971001856
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971005952 and IFO H1
+WARNING! No file found with GPS start time 971005952
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971010048 and IFO H1
+WARNING! No file found with GPS start time 971010048
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971014144 and IFO H1
+WARNING! No file found with GPS start time 971014144
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971018240 and IFO H1
+WARNING! No file found with GPS start time 971018240
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971022336 and IFO H1
+WARNING! No file found with GPS start time 971022336
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971026432 and IFO H1
+WARNING! No file found with GPS start time 971026432
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971030528 and IFO H1
+WARNING! No file found with GPS start time 971030528
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971034624 and IFO H1
+WARNING! No file found with GPS start time 971034624
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971038720 and IFO H1
+WARNING! No file found with GPS start time 971038720
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971042816 and IFO H1
+WARNING! No file found with GPS start time 971042816
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971046912 and IFO H1
+WARNING! No file found with GPS start time 971046912
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971051008 and IFO H1
+WARNING! No file found with GPS start time 971051008
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971055104 and IFO H1
+WARNING! No file found with GPS start time 971055104
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971059200 and IFO H1
+WARNING! No file found with GPS start time 971059200
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971063296 and IFO H1
+WARNING! No file found with GPS start time 971063296
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971067392 and IFO H1
+WARNING! No file found with GPS start time 971067392
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971071488 and IFO H1
+WARNING! No file found with GPS start time 971071488
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971075584 and IFO H1
+WARNING! No file found with GPS start time 971075584
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971079680 and IFO H1
+WARNING! No file found with GPS start time 971079680
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971083776 and IFO H1
+WARNING! No file found with GPS start time 971083776
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971087872 and IFO H1
+WARNING! No file found with GPS start time 971087872
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971091968 and IFO H1
+WARNING! No file found with GPS start time 971091968
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971096064 and IFO H1
+WARNING! No file found with GPS start time 971096064
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971100160 and IFO H1
+WARNING! No file found with GPS start time 971100160
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971104256 and IFO H1
+WARNING! No file found with GPS start time 971104256
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971108352 and IFO H1
+WARNING! No file found with GPS start time 971108352
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971112448 and IFO H1
+WARNING! No file found with GPS start time 971112448
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971116544 and IFO H1
+WARNING! No file found with GPS start time 971116544
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971120640 and IFO H1
+WARNING! No file found with GPS start time 971120640
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971124736 and IFO H1
+WARNING! No file found with GPS start time 971124736
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971128832 and IFO H1
+WARNING! No file found with GPS start time 971128832
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971132928 and IFO H1
+WARNING! No file found with GPS start time 971132928
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971137024 and IFO H1
+WARNING! No file found with GPS start time 971137024
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971141120 and IFO H1
+WARNING! No file found with GPS start time 971141120
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971145216 and IFO H1
+WARNING! No file found with GPS start time 971145216
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971149312 and IFO H1
+WARNING! No file found with GPS start time 971149312
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971153408 and IFO H1
+WARNING! No file found with GPS start time 971153408
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971157504 and IFO H1
+WARNING! No file found with GPS start time 971157504
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971161600 and IFO H1
+WARNING! No file found with GPS start time 971161600
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971165696 and IFO H1
+WARNING! No file found with GPS start time 971165696
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971169792 and IFO H1
+WARNING! No file found with GPS start time 971169792
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971173888 and IFO H1
+WARNING! No file found with GPS start time 971173888
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971177984 and IFO H1
+WARNING! No file found with GPS start time 971177984
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971182080 and IFO H1
+WARNING! No file found with GPS start time 971182080
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971186176 and IFO H1
+WARNING! No file found with GPS start time 971186176
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971190272 and IFO H1
+WARNING! No file found with GPS start time 971190272
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971194368 and IFO H1
+WARNING! No file found with GPS start time 971194368
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971198464 and IFO H1
+WARNING! No file found with GPS start time 971198464
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971202560 and IFO H1
+WARNING! No file found with GPS start time 971202560
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971206656 and IFO H1
+WARNING! No file found with GPS start time 971206656
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971210752 and IFO H1
+WARNING! No file found with GPS start time 971210752
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971214848 and IFO H1
+WARNING! No file found with GPS start time 971214848
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971218944 and IFO H1
+WARNING! No file found with GPS start time 971218944
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971223040 and IFO H1
+WARNING! No file found with GPS start time 971223040
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971227136 and IFO H1
+WARNING! No file found with GPS start time 971227136
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971231232 and IFO H1
+WARNING! No file found with GPS start time 971231232
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971235328 and IFO H1
+WARNING! No file found with GPS start time 971235328
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971239424 and IFO H1
+WARNING! No file found with GPS start time 971239424
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971243520 and IFO H1
+WARNING! No file found with GPS start time 971243520
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971247616 and IFO H1
+WARNING! No file found with GPS start time 971247616
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971251712 and IFO H1
+WARNING! No file found with GPS start time 971251712
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971255808 and IFO H1
+WARNING! No file found with GPS start time 971255808
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971259904 and IFO H1
+WARNING! No file found with GPS start time 971259904
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971264000 and IFO H1
+WARNING! No file found with GPS start time 971264000
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971268096 and IFO H1
+WARNING! No file found with GPS start time 971268096
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971272192 and IFO H1
+WARNING! No file found with GPS start time 971272192
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971276288 and IFO H1
+WARNING! No file found with GPS start time 971276288
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971280384 and IFO H1
+WARNING! No file found with GPS start time 971280384
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971284480 and IFO H1
+WARNING! No file found with GPS start time 971284480
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971288576 and IFO H1
+WARNING! No file found with GPS start time 971288576
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971292672 and IFO H1
+WARNING! No file found with GPS start time 971292672
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971296768 and IFO H1
+WARNING! No file found with GPS start time 971296768
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971300864 and IFO H1
+WARNING! No file found with GPS start time 971300864
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971304960 and IFO H1
+WARNING! No file found with GPS start time 971304960
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971309056 and IFO H1
+WARNING! No file found with GPS start time 971309056
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971313152 and IFO H1
+WARNING! No file found with GPS start time 971313152
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971317248 and IFO H1
+WARNING! No file found with GPS start time 971317248
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971321344 and IFO H1
+WARNING! No file found with GPS start time 971321344
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971325440 and IFO H1
+WARNING! No file found with GPS start time 971325440
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971329536 and IFO H1
+WARNING! No file found with GPS start time 971329536
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971333632 and IFO H1
+WARNING! No file found with GPS start time 971333632
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971337728 and IFO H1
+WARNING! No file found with GPS start time 971337728
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971341824 and IFO H1
+WARNING! No file found with GPS start time 971341824
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971345920 and IFO H1
+WARNING! No file found with GPS start time 971345920
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971350016 and IFO H1
+WARNING! No file found with GPS start time 971350016
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971354112 and IFO H1
+WARNING! No file found with GPS start time 971354112
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971358208 and IFO H1
+WARNING! No file found with GPS start time 971358208
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971362304 and IFO H1
+WARNING! No file found with GPS start time 971362304
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971366400 and IFO H1
+WARNING! No file found with GPS start time 971366400
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971370496 and IFO H1
+WARNING! No file found with GPS start time 971370496
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971374592 and IFO H1
+WARNING! No file found with GPS start time 971374592
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971378688 and IFO H1
+WARNING! No file found with GPS start time 971378688
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971382784 and IFO H1
+WARNING! No file found with GPS start time 971382784
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971386880 and IFO H1
+WARNING! No file found with GPS start time 971386880
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971390976 and IFO H1
+WARNING! No file found with GPS start time 971390976
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971395072 and IFO H1
+WARNING! No file found with GPS start time 971395072
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971399168 and IFO H1
+WARNING! No file found with GPS start time 971399168
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971403264 and IFO H1
+WARNING! No file found with GPS start time 971403264
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971407360 and IFO H1
+WARNING! No file found with GPS start time 971407360
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971411456 and IFO H1
+WARNING! No file found with GPS start time 971411456
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971415552 and IFO H1
+WARNING! No file found with GPS start time 971415552
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971419648 and IFO H1
+WARNING! No file found with GPS start time 971419648
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971423744 and IFO H1
+WARNING! No file found with GPS start time 971423744
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971427840 and IFO H1
+WARNING! No file found with GPS start time 971427840
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971431936 and IFO H1
+WARNING! No file found with GPS start time 971431936
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971436032 and IFO H1
+WARNING! No file found with GPS start time 971436032
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971440128 and IFO H1
+WARNING! No file found with GPS start time 971440128
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971444224 and IFO H1
+WARNING! No file found with GPS start time 971444224
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971448320 and IFO H1
+WARNING! No file found with GPS start time 971448320
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971452416 and IFO H1
+WARNING! No file found with GPS start time 971452416
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971456512 and IFO H1
+WARNING! No file found with GPS start time 971456512
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971460608 and IFO H1
+WARNING! No file found with GPS start time 971460608
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971464704 and IFO H1
+WARNING! No file found with GPS start time 971464704
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971468800 and IFO H1
+WARNING! No file found with GPS start time 971468800
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971472896 and IFO H1
+WARNING! No file found with GPS start time 971472896
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971476992 and IFO H1
+WARNING! No file found with GPS start time 971476992
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971481088 and IFO H1
+WARNING! No file found with GPS start time 971481088
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971485184 and IFO H1
+WARNING! No file found with GPS start time 971485184
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971489280 and IFO H1
+WARNING! No file found with GPS start time 971489280
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971493376 and IFO H1
+WARNING! No file found with GPS start time 971493376
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971497472 and IFO H1
+WARNING! No file found with GPS start time 971497472
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971501568 and IFO H1
+WARNING! No file found with GPS start time 971501568
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971505664 and IFO H1
+WARNING! No file found with GPS start time 971505664
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971509760 and IFO H1
+WARNING! No file found with GPS start time 971509760
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971513856 and IFO H1
+WARNING! No file found with GPS start time 971513856
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971517952 and IFO H1
+WARNING! No file found with GPS start time 971517952
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971522048 and IFO H1
+WARNING! No file found with GPS start time 971522048
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971526144 and IFO H1
+WARNING! No file found with GPS start time 971526144
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971530240 and IFO H1
+WARNING! No file found with GPS start time 971530240
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971534336 and IFO H1
+WARNING! No file found with GPS start time 971534336
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971538432 and IFO H1
+WARNING! No file found with GPS start time 971538432
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971542528 and IFO H1
+WARNING! No file found with GPS start time 971542528
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971546624 and IFO H1
+WARNING! No file found with GPS start time 971546624
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971550720 and IFO H1
+WARNING! No file found with GPS start time 971550720
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971554816 and IFO H1
+WARNING! No file found with GPS start time 971554816
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971558912 and IFO H1
+WARNING! No file found with GPS start time 971558912
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971563008 and IFO H1
+WARNING! No file found with GPS start time 971563008
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971567104 and IFO H1
+WARNING! No file found with GPS start time 971567104
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971571200 and IFO H1
+WARNING! No file found with GPS start time 971571200
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971575296 and IFO H1
+WARNING! No file found with GPS start time 971575296
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971579392 and IFO H1
+WARNING! No file found with GPS start time 971579392
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971583488 and IFO H1
+WARNING! No file found with GPS start time 971583488
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971587584 and IFO H1
+WARNING! No file found with GPS start time 971587584
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971591680 and IFO H1
+WARNING! No file found with GPS start time 971591680
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971595776 and IFO H1
+WARNING! No file found with GPS start time 971595776
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971599872 and IFO H1
+WARNING! No file found with GPS start time 971599872
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971603968 and IFO H1
+WARNING! No file found with GPS start time 971603968
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971608064 and IFO H1
+WARNING! No file found with GPS start time 971608064
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971612160 and IFO H1
+WARNING! No file found with GPS start time 971612160
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971616256 and IFO H1
+WARNING! No file found with GPS start time 971616256
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 971620352 and IFO H1
+WARNING! No file found with GPS start time 971620352
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931033088 and IFO L1
+WARNING! No file found with GPS start time 931033088
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931037184 and IFO L1
+WARNING! No file found with GPS start time 931037184
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931041280 and IFO L1
+WARNING! No file found with GPS start time 931041280
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931045376 and IFO L1
+WARNING! No file found with GPS start time 931045376
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931049472 and IFO L1
+WARNING! No file found with GPS start time 931049472
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931053568 and IFO L1
+WARNING! No file found with GPS start time 931053568
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931057664 and IFO L1
+WARNING! No file found with GPS start time 931057664
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931061760 and IFO L1
+WARNING! No file found with GPS start time 931061760
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931065856 and IFO L1
+WARNING! No file found with GPS start time 931065856
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931086336 and IFO L1
+WARNING! No file found with GPS start time 931086336
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931090432 and IFO L1
+WARNING! No file found with GPS start time 931090432
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931094528 and IFO L1
+WARNING! No file found with GPS start time 931094528
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931098624 and IFO L1
+WARNING! No file found with GPS start time 931098624
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931102720 and IFO L1
+WARNING! No file found with GPS start time 931102720
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931119104 and IFO L1
+WARNING! No file found with GPS start time 931119104
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931123200 and IFO L1
+WARNING! No file found with GPS start time 931123200
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931127296 and IFO L1
+WARNING! No file found with GPS start time 931127296
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931131392 and IFO L1
+WARNING! No file found with GPS start time 931131392
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931139584 and IFO L1
+WARNING! No file found with GPS start time 931139584
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931143680 and IFO L1
+WARNING! No file found with GPS start time 931143680
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931147776 and IFO L1
+WARNING! No file found with GPS start time 931147776
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931151872 and IFO L1
+WARNING! No file found with GPS start time 931151872
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931209216 and IFO L1
+WARNING! No file found with GPS start time 931209216
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931213312 and IFO L1
+WARNING! No file found with GPS start time 931213312
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931225600 and IFO L1
+WARNING! No file found with GPS start time 931225600
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931229696 and IFO L1
+WARNING! No file found with GPS start time 931229696
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931233792 and IFO L1
+WARNING! No file found with GPS start time 931233792
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931237888 and IFO L1
+WARNING! No file found with GPS start time 931237888
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931258368 and IFO L1
+WARNING! No file found with GPS start time 931258368
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931278848 and IFO L1
+WARNING! No file found with GPS start time 931278848
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931295232 and IFO L1
+WARNING! No file found with GPS start time 931295232
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931299328 and IFO L1
+WARNING! No file found with GPS start time 931299328
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931303424 and IFO L1
+WARNING! No file found with GPS start time 931303424
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931307520 and IFO L1
+WARNING! No file found with GPS start time 931307520
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931311616 and IFO L1
+WARNING! No file found with GPS start time 931311616
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931319808 and IFO L1
+WARNING! No file found with GPS start time 931319808
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931332096 and IFO L1
+WARNING! No file found with GPS start time 931332096
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931364864 and IFO L1
+WARNING! No file found with GPS start time 931364864
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931368960 and IFO L1
+WARNING! No file found with GPS start time 931368960
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931373056 and IFO L1
+WARNING! No file found with GPS start time 931373056
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931389440 and IFO L1
+WARNING! No file found with GPS start time 931389440
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931393536 and IFO L1
+WARNING! No file found with GPS start time 931393536
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931405824 and IFO L1
+WARNING! No file found with GPS start time 931405824
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931409920 and IFO L1
+WARNING! No file found with GPS start time 931409920
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931414016 and IFO L1
+WARNING! No file found with GPS start time 931414016
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931487744 and IFO L1
+WARNING! No file found with GPS start time 931487744
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931491840 and IFO L1
+WARNING! No file found with GPS start time 931491840
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931516416 and IFO L1
+WARNING! No file found with GPS start time 931516416
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931520512 and IFO L1
+WARNING! No file found with GPS start time 931520512
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931545088 and IFO L1
+WARNING! No file found with GPS start time 931545088
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931549184 and IFO L1
+WARNING! No file found with GPS start time 931549184
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931553280 and IFO L1
+WARNING! No file found with GPS start time 931553280
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931557376 and IFO L1
+WARNING! No file found with GPS start time 931557376
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931569664 and IFO L1
+WARNING! No file found with GPS start time 931569664
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931573760 and IFO L1
+WARNING! No file found with GPS start time 931573760
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931577856 and IFO L1
+WARNING! No file found with GPS start time 931577856
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931581952 and IFO L1
+WARNING! No file found with GPS start time 931581952
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931606528 and IFO L1
+WARNING! No file found with GPS start time 931606528
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931614720 and IFO L1
+WARNING! No file found with GPS start time 931614720
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931618816 and IFO L1
+WARNING! No file found with GPS start time 931618816
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931622912 and IFO L1
+WARNING! No file found with GPS start time 931622912
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931627008 and IFO L1
+WARNING! No file found with GPS start time 931627008
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931631104 and IFO L1
+WARNING! No file found with GPS start time 931631104
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931635200 and IFO L1
+WARNING! No file found with GPS start time 931635200
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931639296 and IFO L1
+WARNING! No file found with GPS start time 931639296
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931651584 and IFO L1
+WARNING! No file found with GPS start time 931651584
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931655680 and IFO L1
+WARNING! No file found with GPS start time 931655680
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931688448 and IFO L1
+WARNING! No file found with GPS start time 931688448
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931692544 and IFO L1
+WARNING! No file found with GPS start time 931692544
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931696640 and IFO L1
+WARNING! No file found with GPS start time 931696640
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931700736 and IFO L1
+WARNING! No file found with GPS start time 931700736
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931704832 and IFO L1
+WARNING! No file found with GPS start time 931704832
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931721216 and IFO L1
+WARNING! No file found with GPS start time 931721216
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931729408 and IFO L1
+WARNING! No file found with GPS start time 931729408
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931745792 and IFO L1
+WARNING! No file found with GPS start time 931745792
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931749888 and IFO L1
+WARNING! No file found with GPS start time 931749888
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931753984 and IFO L1
+WARNING! No file found with GPS start time 931753984
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931758080 and IFO L1
+WARNING! No file found with GPS start time 931758080
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931762176 and IFO L1
+WARNING! No file found with GPS start time 931762176
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931811328 and IFO L1
+WARNING! No file found with GPS start time 931811328
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931815424 and IFO L1
+WARNING! No file found with GPS start time 931815424
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931819520 and IFO L1
+WARNING! No file found with GPS start time 931819520
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931823616 and IFO L1
+WARNING! No file found with GPS start time 931823616
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931831808 and IFO L1
+WARNING! No file found with GPS start time 931831808
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931835904 and IFO L1
+WARNING! No file found with GPS start time 931835904
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931840000 and IFO L1
+WARNING! No file found with GPS start time 931840000
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931844096 and IFO L1
+WARNING! No file found with GPS start time 931844096
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931860480 and IFO L1
+WARNING! No file found with GPS start time 931860480
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931901440 and IFO L1
+WARNING! No file found with GPS start time 931901440
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931905536 and IFO L1
+WARNING! No file found with GPS start time 931905536
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931909632 and IFO L1
+WARNING! No file found with GPS start time 931909632
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931921920 and IFO L1
+WARNING! No file found with GPS start time 931921920
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931926016 and IFO L1
+WARNING! No file found with GPS start time 931926016
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 931966976 and IFO L1
+WARNING! No file found with GPS start time 931966976
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932003840 and IFO L1
+WARNING! No file found with GPS start time 932003840
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932216832 and IFO L1
+WARNING! No file found with GPS start time 932216832
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932220928 and IFO L1
+WARNING! No file found with GPS start time 932220928
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932225024 and IFO L1
+WARNING! No file found with GPS start time 932225024
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932229120 and IFO L1
+WARNING! No file found with GPS start time 932229120
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932233216 and IFO L1
+WARNING! No file found with GPS start time 932233216
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932237312 and IFO L1
+WARNING! No file found with GPS start time 932237312
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932253696 and IFO L1
+WARNING! No file found with GPS start time 932253696
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932298752 and IFO L1
+WARNING! No file found with GPS start time 932298752
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932302848 and IFO L1
+WARNING! No file found with GPS start time 932302848
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932384768 and IFO L1
+WARNING! No file found with GPS start time 932384768
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932388864 and IFO L1
+WARNING! No file found with GPS start time 932388864
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932392960 and IFO L1
+WARNING! No file found with GPS start time 932392960
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932446208 and IFO L1
+WARNING! No file found with GPS start time 932446208
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932466688 and IFO L1
+WARNING! No file found with GPS start time 932466688
+Segment list may contain errors due to missing files.
+WARNING! Failed to load file /Users/pai/Data/L-L1_LOSC_4_V1-932515840-4096.hdf5
+Segment list may contain errors due to corrupt files.
+WARNING!  No file found for GPS 932519936 and IFO L1
+WARNING! No file found with GPS start time 932519936
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932524032 and IFO L1
+WARNING! No file found with GPS start time 932524032
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932528128 and IFO L1
+WARNING! No file found with GPS start time 932528128
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932532224 and IFO L1
+WARNING! No file found with GPS start time 932532224
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932536320 and IFO L1
+WARNING! No file found with GPS start time 932536320
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932540416 and IFO L1
+WARNING! No file found with GPS start time 932540416
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932544512 and IFO L1
+WARNING! No file found with GPS start time 932544512
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932548608 and IFO L1
+WARNING! No file found with GPS start time 932548608
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932552704 and IFO L1
+WARNING! No file found with GPS start time 932552704
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932556800 and IFO L1
+WARNING! No file found with GPS start time 932556800
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932560896 and IFO L1
+WARNING! No file found with GPS start time 932560896
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932564992 and IFO L1
+WARNING! No file found with GPS start time 932564992
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932569088 and IFO L1
+WARNING! No file found with GPS start time 932569088
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932573184 and IFO L1
+WARNING! No file found with GPS start time 932573184
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932577280 and IFO L1
+WARNING! No file found with GPS start time 932577280
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932581376 and IFO L1
+WARNING! No file found with GPS start time 932581376
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932585472 and IFO L1
+WARNING! No file found with GPS start time 932585472
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932589568 and IFO L1
+WARNING! No file found with GPS start time 932589568
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932593664 and IFO L1
+WARNING! No file found with GPS start time 932593664
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932597760 and IFO L1
+WARNING! No file found with GPS start time 932597760
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932601856 and IFO L1
+WARNING! No file found with GPS start time 932601856
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932605952 and IFO L1
+WARNING! No file found with GPS start time 932605952
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932610048 and IFO L1
+WARNING! No file found with GPS start time 932610048
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932614144 and IFO L1
+WARNING! No file found with GPS start time 932614144
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932618240 and IFO L1
+WARNING! No file found with GPS start time 932618240
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932622336 and IFO L1
+WARNING! No file found with GPS start time 932622336
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932626432 and IFO L1
+WARNING! No file found with GPS start time 932626432
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932630528 and IFO L1
+WARNING! No file found with GPS start time 932630528
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932634624 and IFO L1
+WARNING! No file found with GPS start time 932634624
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932638720 and IFO L1
+WARNING! No file found with GPS start time 932638720
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932642816 and IFO L1
+WARNING! No file found with GPS start time 932642816
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932646912 and IFO L1
+WARNING! No file found with GPS start time 932646912
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932651008 and IFO L1
+WARNING! No file found with GPS start time 932651008
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932655104 and IFO L1
+WARNING! No file found with GPS start time 932655104
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932659200 and IFO L1
+WARNING! No file found with GPS start time 932659200
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932663296 and IFO L1
+WARNING! No file found with GPS start time 932663296
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932667392 and IFO L1
+WARNING! No file found with GPS start time 932667392
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932671488 and IFO L1
+WARNING! No file found with GPS start time 932671488
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932675584 and IFO L1
+WARNING! No file found with GPS start time 932675584
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932679680 and IFO L1
+WARNING! No file found with GPS start time 932679680
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932683776 and IFO L1
+WARNING! No file found with GPS start time 932683776
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932687872 and IFO L1
+WARNING! No file found with GPS start time 932687872
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932691968 and IFO L1
+WARNING! No file found with GPS start time 932691968
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932696064 and IFO L1
+WARNING! No file found with GPS start time 932696064
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932700160 and IFO L1
+WARNING! No file found with GPS start time 932700160
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932704256 and IFO L1
+WARNING! No file found with GPS start time 932704256
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932708352 and IFO L1
+WARNING! No file found with GPS start time 932708352
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932712448 and IFO L1
+WARNING! No file found with GPS start time 932712448
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932716544 and IFO L1
+WARNING! No file found with GPS start time 932716544
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932720640 and IFO L1
+WARNING! No file found with GPS start time 932720640
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932724736 and IFO L1
+WARNING! No file found with GPS start time 932724736
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932728832 and IFO L1
+WARNING! No file found with GPS start time 932728832
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932732928 and IFO L1
+WARNING! No file found with GPS start time 932732928
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932737024 and IFO L1
+WARNING! No file found with GPS start time 932737024
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932741120 and IFO L1
+WARNING! No file found with GPS start time 932741120
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932745216 and IFO L1
+WARNING! No file found with GPS start time 932745216
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932749312 and IFO L1
+WARNING! No file found with GPS start time 932749312
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932753408 and IFO L1
+WARNING! No file found with GPS start time 932753408
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932757504 and IFO L1
+WARNING! No file found with GPS start time 932757504
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932761600 and IFO L1
+WARNING! No file found with GPS start time 932761600
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932765696 and IFO L1
+WARNING! No file found with GPS start time 932765696
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932769792 and IFO L1
+WARNING! No file found with GPS start time 932769792
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932773888 and IFO L1
+WARNING! No file found with GPS start time 932773888
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932777984 and IFO L1
+WARNING! No file found with GPS start time 932777984
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932782080 and IFO L1
+WARNING! No file found with GPS start time 932782080
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932786176 and IFO L1
+WARNING! No file found with GPS start time 932786176
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932790272 and IFO L1
+WARNING! No file found with GPS start time 932790272
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932794368 and IFO L1
+WARNING! No file found with GPS start time 932794368
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932798464 and IFO L1
+WARNING! No file found with GPS start time 932798464
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932802560 and IFO L1
+WARNING! No file found with GPS start time 932802560
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932806656 and IFO L1
+WARNING! No file found with GPS start time 932806656
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932810752 and IFO L1
+WARNING! No file found with GPS start time 932810752
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932814848 and IFO L1
+WARNING! No file found with GPS start time 932814848
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932818944 and IFO L1
+WARNING! No file found with GPS start time 932818944
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932823040 and IFO L1
+WARNING! No file found with GPS start time 932823040
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932827136 and IFO L1
+WARNING! No file found with GPS start time 932827136
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932831232 and IFO L1
+WARNING! No file found with GPS start time 932831232
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932835328 and IFO L1
+WARNING! No file found with GPS start time 932835328
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932839424 and IFO L1
+WARNING! No file found with GPS start time 932839424
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932843520 and IFO L1
+WARNING! No file found with GPS start time 932843520
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932847616 and IFO L1
+WARNING! No file found with GPS start time 932847616
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932851712 and IFO L1
+WARNING! No file found with GPS start time 932851712
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932855808 and IFO L1
+WARNING! No file found with GPS start time 932855808
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932859904 and IFO L1
+WARNING! No file found with GPS start time 932859904
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932864000 and IFO L1
+WARNING! No file found with GPS start time 932864000
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932868096 and IFO L1
+WARNING! No file found with GPS start time 932868096
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932872192 and IFO L1
+WARNING! No file found with GPS start time 932872192
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932876288 and IFO L1
+WARNING! No file found with GPS start time 932876288
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932880384 and IFO L1
+WARNING! No file found with GPS start time 932880384
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932884480 and IFO L1
+WARNING! No file found with GPS start time 932884480
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932888576 and IFO L1
+WARNING! No file found with GPS start time 932888576
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932892672 and IFO L1
+WARNING! No file found with GPS start time 932892672
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932896768 and IFO L1
+WARNING! No file found with GPS start time 932896768
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932900864 and IFO L1
+WARNING! No file found with GPS start time 932900864
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932904960 and IFO L1
+WARNING! No file found with GPS start time 932904960
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932909056 and IFO L1
+WARNING! No file found with GPS start time 932909056
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932913152 and IFO L1
+WARNING! No file found with GPS start time 932913152
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932917248 and IFO L1
+WARNING! No file found with GPS start time 932917248
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932921344 and IFO L1
+WARNING! No file found with GPS start time 932921344
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932925440 and IFO L1
+WARNING! No file found with GPS start time 932925440
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932929536 and IFO L1
+WARNING! No file found with GPS start time 932929536
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932933632 and IFO L1
+WARNING! No file found with GPS start time 932933632
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932937728 and IFO L1
+WARNING! No file found with GPS start time 932937728
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932941824 and IFO L1
+WARNING! No file found with GPS start time 932941824
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932945920 and IFO L1
+WARNING! No file found with GPS start time 932945920
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932950016 and IFO L1
+WARNING! No file found with GPS start time 932950016
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932954112 and IFO L1
+WARNING! No file found with GPS start time 932954112
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932958208 and IFO L1
+WARNING! No file found with GPS start time 932958208
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932962304 and IFO L1
+WARNING! No file found with GPS start time 932962304
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932966400 and IFO L1
+WARNING! No file found with GPS start time 932966400
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932970496 and IFO L1
+WARNING! No file found with GPS start time 932970496
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932974592 and IFO L1
+WARNING! No file found with GPS start time 932974592
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932978688 and IFO L1
+WARNING! No file found with GPS start time 932978688
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932982784 and IFO L1
+WARNING! No file found with GPS start time 932982784
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932986880 and IFO L1
+WARNING! No file found with GPS start time 932986880
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932990976 and IFO L1
+WARNING! No file found with GPS start time 932990976
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932995072 and IFO L1
+WARNING! No file found with GPS start time 932995072
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 932999168 and IFO L1
+WARNING! No file found with GPS start time 932999168
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933003264 and IFO L1
+WARNING! No file found with GPS start time 933003264
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933007360 and IFO L1
+WARNING! No file found with GPS start time 933007360
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933011456 and IFO L1
+WARNING! No file found with GPS start time 933011456
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933015552 and IFO L1
+WARNING! No file found with GPS start time 933015552
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933019648 and IFO L1
+WARNING! No file found with GPS start time 933019648
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933023744 and IFO L1
+WARNING! No file found with GPS start time 933023744
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933027840 and IFO L1
+WARNING! No file found with GPS start time 933027840
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933031936 and IFO L1
+WARNING! No file found with GPS start time 933031936
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933036032 and IFO L1
+WARNING! No file found with GPS start time 933036032
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933040128 and IFO L1
+WARNING! No file found with GPS start time 933040128
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933044224 and IFO L1
+WARNING! No file found with GPS start time 933044224
+Segment list may contain errors due to missing files.
+WARNING!  No file found for GPS 933048320 and IFO L1
+WARNING! No file found with GPS start time 933048320

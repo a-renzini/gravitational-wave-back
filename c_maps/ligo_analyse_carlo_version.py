@@ -300,8 +300,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                             hit_lm[idx_lm] += 1.
                             hits += 1.
 
-        hp.mollview(hp.alm2map(data_lm/hits,nside,lmax=lmax))
-        plt.savefig('c_maps/map%s.pdf' %idx)
         #print data_lm
 
     out = hp.alm2map(data_lm/hits,nside,lmax=lmax)
@@ -309,14 +307,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     #out[hits_map > 0] /= hits_map[hits_map > 0]
     #out[hits_map==0.] = hp.UNSEEN
     hp.mollview(out)
-    plt.savefig('map.pdf')
+    plt.savefig('map%s.pdf' %sdx)
     hp.write_map("map.fits",out)
      
     
 #data_map[hits_map > 0] /= hits_map[hits_map > 0]
 #data_map[hits_map == 0.] = hp.UNSEEN
 hp.mollview(out)
-plt.savefig('map.pdf')
+plt.savefig('map%s.pdf' %sdx)
 hp.write_map("map.fits",data_map)
 
 exit()

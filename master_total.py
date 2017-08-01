@@ -1,6 +1,7 @@
 import numpy as np
 import qpoint as qp
 import healpy as hp
+import pylab
 #import ligo_analyse_class as lac
 from ligo_analyse_class import Ligo_Analyse
 import readligo as rl
@@ -23,8 +24,8 @@ run = Ligo_Analyse(nside,lmax, fs)
 
 # define start and stop time to search
 # in GPS seconds
-start = 931035615 #931079472 #
-stop  = 971622015 #971622015 #931622015 #931086336 #
+start = 931079472 #931035615 #
+stop  = 931622015 #971622015 #931622015 #931086336 #
 #start = 931079472
 #stop  = 931086336
 #start = 931200000
@@ -37,6 +38,9 @@ print 'flagging the good data...'
 segs_begin, segs_end = run.flagger(start,stop,filelist)
 
 print len(segs_begin)
+
+D_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+S_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
 
 for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     
@@ -56,13 +60,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
     #convenience chopping:
 
-    x = 30
+    #x = 30
+    
+    #ctime = ctime[:x]
+    #strain_H1 = strain_H1[:x]
+    #strain_L1 = strain_L1[:x]
 
-    ctime = ctime[:x]
-    strain_H1 = strain_H1[:x]
-    strain_L1 = strain_L1[:x]
-
-    print 'data conveniently chopped; analysing ', x, ' segments.'
+    #print 'data conveniently chopped; analysing ', x, ' segments.'
 
     ####################################################################
 
@@ -78,10 +82,21 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     for idx_str, (h1, l1) in enumerate(zip(strain_H1, strain_L1)):
 
         # FT
-  
-        strain_H1_f = run.filter(h1) #np.fft.rfft(h1[:Nt])
-        strain_L1_f = run.filter(l1) #np.fft.rfft(l1[:Nt])
-
+        strain_H1_f, pref_h = run.filter(h1)
+        strain_L1_f, pref_l = run.filter(l1)
+        
+        sig_len = strain_H1_f.size
+        freq = np.fft.rfftfreq(2*sig_len-1, d=1./fs)
+        
+        plt.figure()
+        #plt.axis([0,10000, 0.001, 10.]) 
+        plt.loglog(freq, np.abs(strain_H1_f),'r',label='whitened & bp.ed')
+        plt.loglog(freq, np.abs(pref_h),'g',label='just whitened')
+        #pylab.xlim([20.,300.])
+        plt.xlabel('logscaled freq (Hz)')
+        plt.ylabel('whitened strain amplitude (noise units)')
+        plt.legend()
+        plt.savefig('white_h_f%s.png' % idx_str)
     #    strain_x = strain_H1_f*np.conj(strain_L1_f)
     #    power_x = strain_x*np.conj(strain_x)
     
@@ -94,17 +109,20 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         s_H1_coar = []
         s_L1_coar = []
         f_x_coar = []
-    
-        sig_len = strain_H1_f.size
-        print sig_len
-        freq = np.fft.fftfreq(sig_len, d=1./fs)
-        idx_a = 0
+        
+        num_f = len(h1)
+        
 
+                
+        idx_a = 0
+        
+        cf = 10000
+        
         while idx_a < sig_len:
-            f_x_coar.append(np.mean(freq[idx_a:idx_a+10000])) #probably redundant
-            s_H1_coar.append(np.mean(strain_H1_f[idx_a:idx_a+10000]))
-            s_L1_coar.append(np.mean(strain_L1_f[idx_a:idx_a+10000]))
-            idx_a = idx_a+10000
+            f_x_coar.append(np.mean(freq[idx_a:idx_a+cf])) #probably redundant
+            s_H1_coar.append(np.mean(strain_H1_f[idx_a:idx_a+cf]))
+            s_L1_coar.append(np.mean(strain_L1_f[idx_a:idx_a+cf]))
+            idx_a = idx_a+cf
 
     #    f_x_coar.append(np.mean(freq[idx_a-10000:]))
     #    s_H1_coar.append(np.mean(strain_H1_f[idx_a-10000:]))
@@ -121,8 +139,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     
     #s_x_coar = strain_H1_coar*np.conj(strain_L1_coar)
     #p_x_coar = s_x_coar*np.conj(s_x_coar) #build this into a matrix (or put it into the projector routine?)
-
-
+    
     ####################################################################
 
     proj_lm = np.array([np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)]*len(ctime))
@@ -137,7 +154,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     #     plt.savefig('maps/dirty_map_lm%s.pdf' % idx_t )
 
       
-    d_lm = run.projector(ctime,strain_H1_coar, strain_L1_coar,freq_x_coar)
+    d_lm = run.projector(ctime,strain_H1_coar, strain_L1_coar,freq_x_coar,cf=cf)
+    D_lm +=d_lm/len(ctime)
     
     for idx_t, ct_split in enumerate(ctime):
         ones = [1.]*len(freq_x_coar[idx_t])
@@ -152,7 +170,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     print 'saved: dirty_map.pdf'
 
     ####################################################################
-
+	
+    #exit()
+	
     p_split_1 = strain_H1_coar * np.conj(strain_H1_coar)
     p_split_2 = strain_L1_coar * np.conj(strain_L1_coar)
 
@@ -175,7 +195,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     scan_lm = []
 
     for idx_t in range(len(ctime)):
-            scan_lm.append(run.scanner(ctime[idx_t], p_split_1.real[idx_t],p_split_2.real[idx_t],freq_x_coar[idx_t]))
+            scan_lm.append(run.scanner(ctime[idx_t], p_split_1.real[idx_t],p_split_2.real[idx_t],freq_x_coar[idx_t],cf=cf))
 
     print '2. projecting...'
 
@@ -189,11 +209,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 proj = proj_lm[idx_t][idx_lm]
                 #print proj
                 M_lpmp += proj*scan
-        M_lm_lpmp.append(M_lpmp)
+        M_lm_lpmp.append(M_lpmp/len(ctime))
 
     print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
     
-    print M_lpmp
+    print M_lm_lpmp
     
     print '3. inverting...'
 
@@ -208,7 +228,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     s_p = []
 
 #    for i in range(len(ctime)):
-    s_lm = np.array(np.dot(M_inv,d_lm))
+    s_lm = np.array(np.dot(M_inv,d_lm/len(ctime)))
+    S_lm+= s_lm
     s_p = hp.alm2map(s_lm,nside,lmax=lmax)
     #print len(s_lm)
     #print s_lm
@@ -220,6 +241,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     hp.mollview(s_p)
     plt.savefig('maps_running/s_p%s.pdf' % sdx)
     
+    hp.mollview(hp.alm2map(D_lm,nside,lmax=lmax))
+    plt.savefig('D_p%s.pdf' % sdx)
+
+    hp.mollview(hp.alm2map(S_lm,nside,lmax=lmax))
+    plt.savefig('S_p%s.pdf' % sdx)
     
     ############# using the decorrelator instead: #########
     #

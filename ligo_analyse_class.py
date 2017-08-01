@@ -9,11 +9,12 @@ import matplotlib.mlab as mlab
 import h5py
 import datetime as dt
 import pytz
+import pylab
 import qpoint as qp
 import healpy as hp
 from camb.bispectrum import threej
 import quat_rotation as qr
-
+from scipy.optimize import curve_fit
 import OverlapFunctsSrc as ofs
 
 # LIGO-specific readligo.py 
@@ -247,57 +248,90 @@ class Ligo_Analyse(object):
             data = filtfilt(b, a, data)
         return data
 
+    def buttering(self, x):
+        nyq = 0.5*self.fs
+        low = 30 / nyq
+        high = 300 / nyq
+        bb, ab = butter(4, [low, high], btype='band')
+        bb = np.array(bb)
+        ab = np.array(ab)
+        butt_coefs = (bb,ab)
+        num = 0.
+        den = 0.
+        for i in range(len(ab)):
+            num += bb[i]*x**(-i)
+            den += ab[i]*x**(-i)
+        transfer = num/den
+        
+        return transfer
+
+ #   def cutout(self,x, freqs,low = 20, high = 300):
+        
+
+
     def whiten(self, strain, interp_psd, dt):
         Nt = len(strain)
         Nt = lf.bestFFTlength(Nt)
         freqs = np.fft.rfftfreq(Nt, dt)
-        print 'whitening...', Nt
+        print 'whitening...'
         # whitening: transform to freq domain, divide by asd
-        hf = np.fft.rfft(strain[:Nt])
-        white_hf = hf / (np.sqrt(interp_psd(freqs) /dt/2.))
-        #white_ht = np.fft.irfft(white_hf, n=Nt)
+        hf = np.fft.rfft(strain[:Nt])/np.sqrt(Nt) #?
+        # remember: interp_psd is strain/rtHz
+        white_hf = hf/(np.sqrt(interp_psd(freqs)/2./dt))
+	    #white_hf_bp = white_hf*self.g_butt(freqs,3)
         print 'done whitening...'
         return white_hf
 
     def filter(self, strain_in):
+        #print strain_in
         fs=self.fs
         dt=1./fs
         strain = strain_in.copy()
         # do bandpass and notch filtering
         # get filter coefficients
         coefs = self.get_filter_coefs(fs,bandpass=False)
-
+        
         # filter it:
-        strain_bp = self.filter_data(strain,coefs)
-
+        strain_fil = self.filter_data(strain,coefs)
+        
         # bandpass filter parameters
-        lowcut=20 #43
+        lowcut=30 #43
         highcut=300 #260
         order = 4
 
         # bandpass filter coefficients
         # do bandpass as last filter. #HELP! 
-        nyq = 0.5*fs
-        low = lowcut / nyq
-        high = highcut / nyq
-        bb, ab = butter(order, [low, high], btype='band')
-        strain_bp_1 = filtfilt(bb, ab, strain_bp)
+        #nyq = 0.5*fs
+        #low = lowcut / nyq
+        #high = highcut / nyq
+        #bb, ab = butter(order, [low, high], btype='band')
+        #strain_bp_1 = filtfilt(bb, ab, strain_bp)
 
         # number of sample for the fast fourier transform:
         NFFT = 1*fs
-        Pxx, freqs = mlab.psd(strain_bp_1, Fs = fs, NFFT = NFFT)
+        Pxx, freqs = mlab.psd(strain_fil, Fs = fs, NFFT = NFFT)
         
         # We will use interpolations of the ASDs computed above for whitening:
-        psd = interp1d(freqs, Pxx)
+        psd = interp1d(freqs, Pxx)      #substitute with interpolating function (np.fit, curve_fit a/f**i+c+bf**j )
         
-        #print Pxx
         
+        ###### interpolating function (not working as data isn't properly notched imo)
+        def f_fit(x,a,b,c,i,j):
+            return a/(x**i)+c+b*x**j
+        
+        psd_params, psd_cov = curve_fit(f_fit,freqs[50:300], Pxx[50:300],bounds=([-1.,-1.,-1.E-25,0.,0.],[1.,1.,1.E-20,1.5,1.5 ]))
+        
+        print psd_params
+        #########
+
         #Should really use analytic fit to PSD now that it is notched
 
         # now whiten the data 
         #strain_whiten = whiten(strain_bp,psd,dt)
         
-        white_hf = self.whiten(strain,psd,dt)
+        white_hf = self.whiten(strain_fil,psd,dt)
+        white_hf_bp = self.buttering(white_hf)*white_hf
+        #print white_hf
         
         # bandpass filter parameters
         #lowcut=20 #43
@@ -312,7 +346,7 @@ class Ligo_Analyse(object):
         #bb, ab = butter(order, [low, high], btype='band')
         #strain_bp = filtfilt(bb, ab, strain_whiten)
     
-        return white_hf
+        return white_hf_bp, white_hf
     
 
     # ********* Data Segmenter *********
@@ -403,8 +437,6 @@ class Ligo_Analyse(object):
             strain_L1 = strain_L1[None,...]
             return ctime, strain_H1, strain_L1 #strain_x
     
-        #for quick run: insert projection here, and do it for each segment    
-    
     
     #return ctime, strain_H1, strain_L1 #strain_x
 
@@ -417,6 +449,7 @@ class Ligo_Analyse(object):
         lmax=self._lmax
         
         sum_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+        hit_lm = np.zeros_like(sum_lm)
         
         #if you input s_split = 1, (maybe) it returns simply the projection operator 
         
@@ -450,13 +483,13 @@ class Ligo_Analyse(object):
         # Expand rotated gammas into lm
         glm = hp.map2alm(gammaI_rot, lmax, pol=False)              
         
-        hits = 0.
         # sum over lp, mp
         for l in range(lmax+1):
             for m in range(l+1):
                 idx_lm = hp.Alm.getidx(lmax,l,m)
                 for idx_f, f in enumerate(freq):    #hits = 0 here maybe..?
                 #print idx_f
+                    hits = 0
                     for lp in range(lmax+1):
                         for mp in range(lp+1):
                             # remaining m index
@@ -467,12 +500,22 @@ class Ligo_Analyse(object):
                                 sum_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
                                 *sph_harm(mpp, lpp, theta_b, phi_b)*
                                                     glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*s[idx_f]) #sure about these 3js?
-                                                    #s[idx_f]
-                                hits += 1.
-        return sum_lm/hits
+                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*s[idx_f]) 
+                                                    
+                                hit_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
+                                *sph_harm(mpp, lpp, theta_b, phi_b)*
+                                                    glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
+                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
+                                hits+=1
 
-    def summer_f(self, ct_split, f):        
+        norm = np.abs(np.sum(np.abs(hit_lm))) #maybe?
+        print norm
+        print np.abs(hit_lm/norm), np.sum(np.abs(hit_lm/norm))
+        exit()
+        #print np.divide(sum_lm,hit_lm)
+        return sum_lm/norm #np.divide(sum_lm,hit_lm) #
+
+    def summer_f(self, ct_split, f):        #returns summed element for a specific f
         nside=self._nside
         lmax=self._lmax
         
@@ -517,6 +560,7 @@ class Ligo_Analyse(object):
                             hits += 1.
         return sum_lm/hits
 
+    '''
     def summer_f_lm(self, ct_split, f,idx_lm):        
         nside=self._nside
         lmax=self._lmax
@@ -559,34 +603,29 @@ class Ligo_Analyse(object):
                                             #s[idx_f]
                     hits += 1.
         return sum_lm/hits
-
+    '''
         
-    def projector(self,ctime, strain_H1, strain_H2, freq_x_coar):
+    def projector(self,ctime, strain_H1, strain_H2, freq_x_coar, cf=10000.):
         print 'proj run'    
         nside=self._nside
         lmax=self._lmax
             
         npix = self.npix
         data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-        
-        for idx_t, (ct_split, s_1, s_2, freq) in enumerate(zip(ctime, strain_H1, strain_H2, freq_x_coar)):
-
-            # Filter the data
-            #noise = strain_H1[idx_t]*np.conj(strain_H1[idx_t])*s_2*np.conj(s_2)     #NOISE!
-            s = s_1*np.conj(s_2)#np.divide(,noise.real)
+        hits = 0.
+        for idx_t, (ct_split, s_1, s_2, freq) in enumerate(zip(ctime, strain_H1, strain_H2, freq_x_coar)): 
             
-            #HITS?
+            s = s_1*np.conj(s_2)/(60.*4096./cf) ## div by number of new samples in a 1minute segment
             
-            #fl = [self.freq_factor(l,0.01,300.) for l in range(lmax*4)]
             data_lm += self.summer(ct_split, s, freq)
-
-            ###############################################
-            #data_lm_string.append(data_lm/hits)
-        return data_lm
+            
+            hits+=1.
+        
+        return data_lm/hits
 
     # ********* Scanner *********
     #to use scanner, re-check l, m ranges and other things. otherwise use scanner_1    
-    def scanner(self,ct_split, p_split_1_t, p_split_2_t,freq,data_lm = 1.): #scanner(ctime_array, idx_t, p_split_1[idx_t], p_split_2, freq_coar_array)
+    def scanner(self,ct_split, p_split_1_t, p_split_2_t,freq,cf=10000,data_lm = 1.): #scanner(ctime_array, idx_t, p_split_1[idx_t], p_split_2, freq_coar_array)
         nside=self._nside
         lmax=self._lmax 
             
@@ -612,7 +651,7 @@ class Ligo_Analyse(object):
 
         glm = hp.map2alm(gammaI_rot, lmax, pol=False)
         
-        weight = np.divide(1.,p_split_1_t*p_split_2_t)
+        weight = np.divide(1.,p_split_1_t*p_split_2_t)/(60.*4096./cf)  #np.ones_like(p_split_1_t) #
         
         for idx_f, f in enumerate(freq):
             for l in range(lmax+1): #
@@ -630,7 +669,7 @@ class Ligo_Analyse(object):
                                 *glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])*data_lm*weight[idx_f]
                                 hit_lm[idx_lm] += 1.
                                 hits += 1.
-        return scanned_lm/hits #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
+        return np.divide(scanned_lm,hit_lm) #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
 
 
     def scanner_1(self,ctime, idx_t, p_split_1_t, p_split_2,freq,data_lm = 1.): #scanner(ctime_array, idx_t, p_split_1[idx_t], p_split_2, freq_coar_array)
@@ -762,61 +801,18 @@ class Ligo_Analyse(object):
     # ********* Projector Matrix *********
 
 '''
-    def A_pt(self,ct_split):
-    
-        nside=self._nside
-        lmax=self._lmax
-    
-        npix = self.npix
-
-        # projector in matrix form: p = {lm} rows, t columns
-        A_lm_t = np.array(len(ct_split)*[np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)])
-        hit_lm = np.zeros(len(A_lm_t[0]))
-
-        # get quaternions for H1->L1 baseline (use as boresight)
-        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split)
-        # get quaternions for bisector pointing (use as boresight)
-        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split)
-
-        pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
-        pix_n, s2p_n, c2p_n = self.Q.quat2pix(q_n, nside=nside, pol=True) #spin-2
-
-        # average over sub segment and use
-        # middle of segment for pointing etc.
-        mid_idx = len(pix_n)/2
-        p = pix_b[mid_idx]          
-        quat = q_n[mid_idx]
-
-        # polar angles of baseline vector
-        theta_b, phi_b = hp.pix2ang(nside,p)
-
-        # rotate gammas
-        rot_m_array = self.rotation_pix(np.arange(npix), quat) #rotating around the bisector of the gc 
-        gammaI_rot = self.gammaI[rot_m_array]
-
-        # Expand rotated gammas into lm
-        glm = hp.map2alm(gammaI_rot, lmax, pol=False)
-        fl = [self.freq_factor(l,0.01,300.) for l in range(lmax*4)]
-
-        hits = 0.
-        for i in range(ct_split):       # i = time index
-            for l in range(lmax):
-                for m in range(l):
-                    #print l, m
-                    idx_lm = hp.Alm.getidx(lmax,l,m)    # idx_lm = p index
-                    for lp in range(lmax):             # lp, mp, lpp, mpp = indices summed over to make A_lm
-                        for mp in range(lp):
-                            # remaining m index
-                            mpp = m+mp
-                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                            lmax_m = l + lp
-                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                                A_lm_t[i][idx_lm] += ((-1)**mpp*(0+1.j)**lpp*fl[lpp]*sph_harm(mpp, lpp, theta_b, phi_b)*
-                                                    glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
-                                hit_lm[idx_lm] += 1.
-                                hits += 1.
-        return A_lm_t
+    Nt = len(strain)
+    Nt = lf.bestFFTlength(Nt)
+    plt.figure()
+    #plt.axis([1200.,60000., -1E-14, 1E-14])
+    plt.plot(np.abs(np.fft.rfft(strain_fil[:Nt])/Nt),'r',label='fft')
+    pylab.ylim([0.,1E-21])
+    plt.savefig('fft.png')
+    plt.figure()
+    plt.plot(np.sqrt(Pxx),'g',label='Pxx')
+    pylab.ylim([0.,1E-21])
+    plt.legend()
+    plt.savefig('Pxx.png')
 '''        
     # ********* Scanner Matrix *********
     
