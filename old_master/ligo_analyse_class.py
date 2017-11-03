@@ -36,14 +36,12 @@ LIGO ANALYSIS ROUTINES
 
 class Ligo_Analyse(object):
 
-    def __init__(self, nside, lmax, fs, low_f, high_f):
+    def __init__(self, nside, lmax, fs):
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
         self._nside = nside
         self._lmax = lmax
         self.fs = fs
-        self.low_f = low_f
-        self.high_f = high_f
         
         # ********* Fixed Setup Constants *********
 
@@ -150,29 +148,10 @@ class Ligo_Analyse(object):
         #fac = 8.*np.pi**3/3./H0**2 * km_mpc**2 * f**3*(f/f0)**(alpha-3.) * spherical_jn(ell, 2.*np.pi*f*b/c)
         fac =  spherical_jn(ell, 2.*np.pi*(f)*b/c) #*(f/f0)**(alpha-3.) *
         # add band pass and notches here
-        
+ 
         return fac
 
-
-    def dfreq_facXs(self,f,s,df,ell,real,alpha=3.,H0=68.0,f0=100.):
-        #real = True returns the real part, = False the imag
-        
-        b=self.baseline_length
-        
-        idx_f = int(f/df)
-        
-        km_mpc = 3.086e+19 # km/Mpc conversion
-        c = 3.e8 # speed of light 
-        #fac = 8.*np.pi**3/3./H0**2 * km_mpc**2 * f**3*(f/f0)**(alpha-3.) * spherical_jn(ell, 2.*np.pi*f*b/c)
-        fac =  spherical_jn(ell, 2.*np.pi*(f)*b/c)*s[idx_f] #*(f/f0)**(alpha-3.) *
-        # add band pass and notches here
-        if real == True: return np.real(fac)#, np.imag(fac)
-        else: return np.imag(fac)
-
-
-    def freq_factor(self,ell,alpha=3.,H0=68.0,f0=100.):
-        fmin=self.low_f
-        fmax=self.high_f
+    def freq_factor(self,ell,fmin,fmax,alpha=3.,H0=68.0,f0=100.):
         return integrate.quad(self.dfreq_factor,fmin,fmax,args=(ell))[0]
     
     def vec2azel(self,v1,v2):
@@ -492,6 +471,16 @@ class Ligo_Analyse(object):
         
         hf_psd=interp1d(frexx,Pxx*norm)
         
+        #print frexx, Pxx, len(Pxx)
+        
+        #Pxx, frexx = mlab.psd(strain_in_win[:Nt], Fs = fs, NFFT = 4*fs, window = mlab.window_none)
+                
+        # plt.figure()
+        # plt.loglog(freqs,np.sqrt(hf_psd_data), color = 'r')
+        # plt.loglog(frexx,np.sqrt(Pxx), alpha = 0.5)
+        # #plt.loglog(freqs,np.sqrt(hf_psd(freqs)), color = 'g') #(freqs)
+        # #plt.ylim([-100.,100.])
+        # plt.savefig('pxx.png' )
         
         '''NOTCHING. '''
         
@@ -683,13 +672,10 @@ class Ligo_Analyse(object):
     # ********* Projector *********
     # returns p = {lm} map of inverse-noise-filtered time-stream
        
-    def summer(self, ct_split, s, freq):     
-           
+    def summer(self, ct_split, s, freq):        
         nside=self._nside
         lmax=self._lmax
         
-        df = self.fs/4./len(s)
-    
         sum_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
         hit_lm = np.zeros_like(sum_lm)
         
@@ -725,43 +711,33 @@ class Ligo_Analyse(object):
         # Expand rotated gammas into lm
         glm = hp.map2alm(gammaI_rot, lmax, pol=False)              
         
-        '''
-        
-        insert integral over frequency in the sum; integrate.quad(self.dfreq_factor*s,fmin,fmax,args=(ell))[0]
-        s needs to be turned into a function of frequency(?)
-        
-        '''
-
         # sum over lp, mp
         for l in range(lmax+1):
             for m in range(l+1):
-
                 idx_lm = hp.Alm.getidx(lmax,l,m)
-
-                for lp in range(lmax+1):
-                    for mp in range(lp+1):
-                        # remaining m index
-                        mpp = m+mp
-                        lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                        lmax_m = l + lp
-                        for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-
-                            sum_lm[idx_lm] += np.conj(4*np.pi*(0+1.j)**lpp
-                            #*self.dfreq_factor(f,lpp)*s[idx_f]
-                            *np.conj(sph_harm(mpp, lpp, theta_b, phi_b))*
-                            glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                            self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])                                                         *np.sum(self.dfreq_factor(freq,lpp)*s)*df    ##freq dependence summed over
-                                                
-                            hit_lm[idx_lm] += np.conj((-1)**mpp*(0+1.j)**lpp
-                            *self.freq_factor(lpp)
-                            *np.conj(sph_harm(mpp, lpp, theta_b, phi_b))*
-                            glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                            self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
-
+                for idx_f, f in enumerate(freq):  
+                #print idx_f
+                    hits = 0
+                    for lp in range(lmax+1):
+                        for mp in range(lp+1):
+                            # remaining m index
+                            mpp = m+mp
+                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                            lmax_m = l + lp
+                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                                sum_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
+                                *sph_harm(mpp, lpp, theta_b, phi_b)*
+                                                    glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
+                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*s[idx_f]) 
+                                                    
+                                hit_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
+                                *sph_harm(mpp, lpp, theta_b, phi_b)*
+                                                    glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
+                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
+                                hits+=1
         norm = np.abs(np.sum(np.abs(hit_lm))) #maybe?
         #print np.abs(hit_lm/norm), np.sum(np.abs(hit_lm/norm))
         return sum_lm/norm #np.divide(sum_lm,hit_lm) #
-
 
     def summer_f(self, ct_split, f):        #returns summed element for a specific f
         nside=self._nside
@@ -853,8 +829,7 @@ class Ligo_Analyse(object):
         return sum_lm/hits
     '''
         
-    def projector(self,ctime, strain_H1, strain_H2,freqs):
-        
+    def projector(self,ctime, strain_H1, strain_H2,p_split_1,p_split_2 ,freq_x_coar, cf=1000.):
         print 'proj run'    
         nside=self._nside
         lmax=self._lmax
@@ -862,15 +837,14 @@ class Ligo_Analyse(object):
         npix = self.npix
         data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
         hits = 0.
-        for idx_t, (ct_split, s_1, s_2) in enumerate(zip(ctime, strain_H1, strain_H2)): 
+        for idx_t, (ct_split, s_1, s_2, p_1, p_2, freq) in enumerate(zip(ctime, strain_H1, strain_H2, p_split_1, p_split_2, freq_x_coar)): 
             
-            #get rid of this weighting; 
+            weight = np.divide(1.,p_1*p_2)/(60.*float(self.fs)/cf)
+            s = s_1*np.conj(s_2)*weight ##  div by number of new samples in a 1minute segment
             
-            #weight = np.divide(1.,p_1*p_2)/(60.*float(self.fs)/cf)
+            print weight
             
-            s = s_1*np.conj(s_2) ##  still fully frequency dependent
-            
-            data_lm += self.summer(ct_split, s, freqs)
+            data_lm += self.summer(ct_split, s, freq)
                         
             hits+=1.
         
@@ -903,13 +877,16 @@ class Ligo_Analyse(object):
 
         theta_b, phi_b = hp.pix2ang(nside,p)
         
-        #print theta_b, phi_b
+        print theta_b, phi_b
         
         rot_m_array = self.rotation_pix(np.arange(npix), quat) #rotating around the bisector of the gc 
         gammaI_rot = self.gammaI[rot_m_array]
         
         # Expand rotated gammas into lm
         glm = hp.map2alm(gammaI_rot, lmax, pol=False)              
+        
+
+        
         
         for l in range(lmax+1): #
             
@@ -930,7 +907,7 @@ class Ligo_Analyse(object):
                         #print lp, mp, glm[hp.Alm.getidx(lmax,lp,mp)]
                         
                         for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                            tstream += ((-1)**mpp*self.freq_factor(lpp)*(0+1.j)**lpp
+                            tstream += ((-1)**mpp*self.freq_factor(lpp,low_f,high_f)*(0+1.j)**lpp
                             *(sph_harm(-mpp, lpp, theta_b, phi_b))
                                                 *(glm[hp.Alm.getidx(lmax,lp,mp)])
                                                 *np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
@@ -1077,8 +1054,10 @@ class Ligo_Analyse(object):
             M_lm_lpmp.append(M_lpmp)
         return M_lm_lpmp
     
-    # ********* S(f) *********
+    # ********* Projector Matrix *********
 
-    #def S(self, s, freqs):
+
+    # ********* Scanner Matrix *********
+    
+#    def A_tp(self, ct_split):
         
-        #return 

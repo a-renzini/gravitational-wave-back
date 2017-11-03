@@ -410,7 +410,7 @@ def getstrain(start, stop, ifo, filelist=None):
 class SegmentList():
     def __init__(self, filename, numcolumns=3):
 
-    	if type(filename) is str:
+        if type(filename) is str:
             try:
                 if numcolumns == 4:
                     number, start, stop, duration = np.loadtxt(filename, dtype='int',unpack=True)
