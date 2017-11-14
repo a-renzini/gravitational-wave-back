@@ -63,7 +63,6 @@ vL=[sin(sigmaL)*sin(beta/2.),cos(sigmaL),sin(sigmaL)*cos(beta/2.)]
 dH=0.5*(np.outer(uH,uH)-np.outer(vH,vH))
 dL=0.5*(np.outer(uL,uL)-np.outer(vL,vL))
 
-
 #OVERLAP FUNCTIONS
 
     #beam pattern functions
@@ -100,6 +99,7 @@ def FcrossH(theta,phi):            #can also make it a func of "a": detector ten
         i=i+1
     return res
 
+
 def FcrossL(theta,phi):
     res=0
     i=0
@@ -123,6 +123,7 @@ def gammaQHL(theta,phi):
 
 def gammaUHL(theta,phi):            
     return FplusH(theta,phi)*FcrossL(theta,phi)+FcrossH(theta,phi)*FplusL(theta,phi)
+
 
 #########################
 

@@ -7,7 +7,7 @@ import matplotlib.mlab as mlab
 
 FACTOR_LIMIT = 100
 def bestFFTlength(n):
-    while n % 8 != 0:
+    while n % 128 != 0:
         n-=1
     return n
 

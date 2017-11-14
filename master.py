@@ -6,11 +6,23 @@ import pylab
 from ligo_analyse_class import Ligo_Analyse
 import readligo as rl
 import ligo_filter as lf
+import matplotlib as mlb
 import matplotlib.pyplot as plt
+import time
+import BigClass as bc
 
 EPSILON = 1E-24
 
 ####################################################################
+print '++++++++++++++++++++++++++'
+print '=========================='
+print '++++++++++++++++++++++++++'
+print '=========================='
+print (time.strftime("%H:%M:%S")), (time.strftime("%d/%m/%Y"))
+print '++++++++++++++++++++++++++'
+print '=========================='
+print '++++++++++++++++++++++++++'
+print '=========================='
 
 # sampling rate:
 fs = 4096
@@ -22,18 +34,22 @@ lmax = 2
 test = False
 
 #INTEGRATING FREQS:
-low_f = 1.
-high_f = 1024.  
+low_f = 80.
+high_f = 300.
+low_cut = 80.
+high_cut = 300.
 
-#create empty lm object:
+
+#create empty lm objects:
 m_lm = np.ones(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+M_lm_lpmp =0.
 
 #create object of class:
 run = Ligo_Analyse(nside,lmax, fs, low_f, high_f)
 
 # define start and stop time to search
 # in GPS seconds
-start = 931079472#079472 #931035615 #            931079472: 31 segs   931158100: 69 segs  931168100: 7 segs
+start = 931079472    #931079472: 31 segs   931158100: 69 segs  931168100: 7 segs
 stop  = 931622015 #971622015 #931622015 #931086336 #
 
 
@@ -59,7 +75,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     ctime, strain_H1, strain_L1 = run.segmenter(begin,end,filelist)
     stream = []
     
-
+    
     if len(ctime)<2 : 
         print 'too short!'
         continue
@@ -70,18 +86,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
     '''
     
-    #for idx_t, ct_split in enumerate(ctime):
-        #print ct_split
-    #    stream.append(run.scan(ct_split, low_f, high_f, m_lm))
+    for idx_t, ct_split in enumerate(ctime):
+        stream.append(run.scan(ct_split, low_f, high_f, m_lm))
 
     '''
-    
-    # print stream
-    #
-    # plt.figure()
-    # plt.plot(stream[0], color = 'r')
-    # #plt.ylim([-100.,100.])
-    # plt.savefig('scan.png' )
 
     #convenience chopping:
 
@@ -104,11 +112,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
     Nt = len(strain_H1[0])
     Nt = lf.bestFFTlength(Nt)
-
+    
     for idx_str, (h1, l1) in enumerate(zip(strain_H1, strain_L1)):
-        
-        #print idx_str
-        
+        #print idx_str        
         # FT
         
         # plt.figure()
@@ -122,53 +128,35 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         h1_in = h1.copy()
         l1_in = l1.copy()
         
-        #print len(h1)
-        
         if test == True:
-            h1_in = run.injector(h1_in,low_f,high_f)
-            l1_in = run.injector(l1_in,low_f,high_f)
-        
-        #print len(h1_in)
-        
-        # plt.figure()
-        # plt.plot(h1_in, color = 'r')
-        # plt.plot(l1_in, color = 'b')
-        # #plt.ylim([-100.,100.])
-        # plt.savefig('testb.png' )
-        
-        
-        strain_H1_f, H1_psd, H1_psd_data = run.filter(h1_in, low_f,high_f)
-        strain_L1_f, L1_psd, L1_psd_data = run.filter(l1_in, low_f,high_f)
-        
-        samp_hz = fs**2*(len(strain_H1_f))**(-1.)-6.68
-        low_f_idx = int(low_f*samp_hz) 
-        high_f_idx = int(high_f*samp_hz)
+            h1_in = run.injector(h1_in,low_cut,high_cut)
+            l1_in = run.injector(l1_in,low_cut,high_cut)
+                
+        strain_H1_f, H1_psd = run.filter(h1_in, low_cut,high_cut)
+        strain_L1_f, L1_psd = run.filter(l1_in, low_cut,high_cut)
         
         freqs = np.fft.rfftfreq(2*Nt, 1./fs)
         freqs = freqs[:Nt/2+1]
         
-        strain_H1_f *= 1.#np.sqrt(Nt)
-        strain_L1_f *= 1.#np.sqrt(Nt)
-        
+        strain_H1_f *= 1.#/Nt
+        strain_L1_f *= 1.#/Nt
 
         h1_psd = H1_psd(freqs)*fs**2   #(freqs)
         l1_psd = L1_psd(freqs)*fs**2
-        h1_psd_d = H1_psd_data*fs**2   #(freqs)
-        l1_psd_d = L1_psd_data*fs**2
+        
+        #mask = (freqs>low_cut) & (freqs < high_cut)
+        #print np.mean(h1_psd[mask]), np.min(h1_psd[mask]), np.max(h1_psd[mask])
+        #print np.mean(l1_psd[mask]), np.min(l1_psd[mask]), np.max(l1_psd[mask])
         
         #WEIGHTING
         strain_H1_w = strain_H1_f/(h1_psd)
         strain_L1_w = strain_L1_f/(l1_psd)
         
-        strain_H1_w_d = strain_H1_f/(h1_psd_d)#*np.sqrt(2.)
-        strain_L1_w_d = strain_L1_f/(l1_psd_d)#*np.sqrt(2.)
+        #print '=irfft='
+        #hf1_inv = np.fft.irfft(strain_H1_f)
+        #hf2_inv = np.fft.irfft(strain_L1_f)
+        #print '++'
         
-        hf1_inv = np.fft.irfft(strain_H1_w*np.sqrt(Nt))
-        hf2_inv = np.fft.irfft(strain_L1_w*np.sqrt(Nt))
-        
-        hf1_inv_d = np.fft.irfft(strain_H1_w_d*np.sqrt(Nt))
-        hf2_inv_d = np.fft.irfft(strain_L1_w_d*np.sqrt(Nt))
-                
         '''
         now strain_x is a segment of 60 seconds of correlated signal, in frequency space.
         '''
@@ -185,93 +173,73 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         
     ####################################################################
         
-    proj_lm = np.array([np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)]*len(ctime)) #why *len_ctime?
+    #proj_lm = np.array([np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)]*len(ctime)) #why *len_ctime?
 
     print 'running the projector, obtaining a dirty map'
     
     print len(strain_split_H1), len(strain_split_H1[0])
-      
-    z_lm = run.projector(ctime,strain_split_H1, strain_split_L1,freqs)
-    Z_lm +=z_lm/len(ctime)
     
-    for idx_t, ct_split in enumerate(ctime):
-        ones = [1.]*len(freqs)
-        proj_lm[idx_t] = run.summer(ctime[idx_t],ones,freqs) 
+    pix_bs = []
+    q_ns = []
+    pix_ns = []
+    
+    for i in range(len(ctime)):
+        pix_bs.append(run.geometry(ctime[i])[0])
+        q_ns.append(run.geometry(ctime[i])[1])
+        pix_ns.append(run.geometry(ctime[i])[2])
+    
+    print pix_bs
+    
+    z_lm = run.projector(ctime,strain_split_H1, strain_split_L1,freqs,pix_bs, q_ns)
+    Z_lm +=z_lm
+    
+   # for idx_t, ct_split in enumerate(ctime):
+   #     ones = [1.]*len(freqs)
+   #     proj_lm[idx_t] = run.summer(ctime[idx_t],ones,freqs) 
     
     #dirty_map_lm = hp.alm2map(np.sum(dt_lm,axis = 0),nside,lmax=lmax)
-    dirty_map = hp.alm2map(z_lm,nside,lmax=lmax)
+    dirty_map = hp.alm2map(Z_lm,nside,lmax=lmax)
+    
+    fig = plt.figure()
     hp.mollview(dirty_map)
+    hp.visufunc.projscatter(hp.pix2ang(nside,pix_bs))
+    hp.visufunc.projscatter(hp.pix2ang(nside,pix_ns))
     plt.savefig('maps_running/dirty_map%s.pdf' % sdx)
     #dirty_map_lm = hp.alm2map(np.sum(dt_lm,axis = 0),nside,lmax=lmax)
 
     print 'saved: dirty_map.pdf'
 
     ####################################################################
-	
-	
-    #p_split_1 = H1_psd(freqs_x_coar) #strain_H1_coar * np.conj(strain_H1_coar)
-    #p_split_2 = L1_psd(freqs_x_coar) #strain_L1_coar * np.conj(strain_L1_coar)
     
-    print '+++'
-    print np.mean(p_split_1)
-    print '+++'
-    
-    # p_split_1_mid = []
-    # p_split_2_mid = []
-    #
-    # for idx_p in range(len(p_split_1)):
-    #     p_split_1_mid.append(np.mean(p_split_1[idx_p]))
-    #     p_split_2_mid.append(np.mean(p_split_2[idx_p]))
-    #
-    # p_split_1_mid = np.array(p_split_1_mid)
-    # p_split_2_mid = np.array(p_split_2_mid)
-
-    M_lm_lpmp =[]
-
     print 'building M^-1:'
-
-    print '1. scanning...'
-
-    scan_lm = []
-    
     
     for idx_t in range(len(ctime)):
-            scan_lm.append(run.scanner(ctime[idx_t], p_split_1[idx_t],p_split_2[idx_t],freqs,cf=cf))
-
-    print '2. projecting...'
-
-    for idx_lm in range(hp.Alm.getidx(lmax,lmax,lmax)+1):
-        
-        M_lpmp = np.zeros(len(proj_lm[0]),dtype=complex)
-        #print idx_lm
-        if proj_lm[0][idx_lm]>EPSILON or proj_lm[0][idx_lm]<-EPSILON:
-            for idx_t in range(len(ctime)):
-                scan = scan_lm[idx_t]
-                proj = proj_lm[idx_t][idx_lm]
-                #print proj
-                M_lpmp += np.conj(proj)*scan
-        M_lm_lpmp.append(M_lpmp/len(ctime))
+        M_lm_lpmp += run.M_lm_lpmp_t(ctime[idx_t], p_split_1[idx_t], p_split_2[idx_t],freqs)
+        #exit()
 
     print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
     
-    print M_lm_lpmp
+    np.savetxt('M%s.txt' % sdx,M_lm_lpmp)
+    print np.linalg.eigvals(M_lm_lpmp), np.linalg.cond(M_lm_lpmp)
     
     print '3. inverting...'
 
     M_inv = np.linalg.inv(M_lm_lpmp)
 
     print 'the matrix has been inverted!'
+    
+    #exit()
+
     #print M_inv
 
     ####################################################################
 
     #s_lm = []
-    s_p = []
+    S_p = []
 
-#    for i in range(len(ctime)):
-    s_lm = np.array(np.dot(M_inv,z_lm/len(ctime)))
-    S_lm+= s_lm
-    s_p = hp.alm2map(s_lm,nside,lmax=lmax)
+    S_lm = np.array(np.dot(M_inv,Z_lm)) #fully accumulated maps!
+    #S_lm+= s_lm
+    S_p = hp.alm2map(S_lm,nside,lmax=lmax)
     #print len(s_lm)
     #print s_lm
 
@@ -279,16 +247,18 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     #print 'dt total:' , len(dt_tot.real)
     #print dt_tot
 
-    hp.mollview(s_p)
-    plt.savefig('maps_running/s_p%s.pdf' % sdx)
+    hp.mollview(S_p)
+    plt.savefig('maps_running/S_p%s.pdf' % sdx)
     
-    hp.mollview(hp.alm2map(Z_lm,nside,lmax=lmax))
-    plt.savefig('D_p%s.pdf' % sdx)
+    np.savetxt('M%seigens.txt' % sdx, np.linalg.eigvals(M_lm_lpmp))
+    
+hp.mollview(hp.alm2map(Z_lm/len(ctime),nside,lmax=lmax))
+plt.savefig('Z_p%s.pdf' % sdx)
 
-    hp.mollview(hp.alm2map(S_lm,nside,lmax=lmax))
-    plt.savefig('S_p%s.pdf' % sdx)
+hp.mollview(hp.alm2map(S_lm/len(ctime),nside,lmax=lmax))
+plt.savefig('S_p%s.pdf' % sdx)
     
-    exit()
+exit()
     
     ############# using the decorrelator instead: #########
     #
@@ -315,3 +285,40 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     #plt.legend()
     #plt.savefig('datapow.png')
 
+
+'''
+print 'building M^-1:'
+
+M_lm_lpmp =[]
+    
+print '1. scanning...'
+
+scan_lm = []
+
+
+for idx_t in range(len(ctime)):
+        scan_lm.append(run.scanner(ctime[idx_t], p_split_1[idx_t],p_split_2[idx_t],freqs))
+
+print '2. projecting...'
+
+for idx_lm in range(hp.Alm.getidx(lmax,lmax,lmax)+1):
+    
+    M_lpmp = np.zeros(len(proj_lm[0]),dtype=complex)
+    #print idx_lm
+    if proj_lm[0][idx_lm]>EPSILON or proj_lm[0][idx_lm]<-EPSILON:
+        for idx_t in range(len(ctime)):
+            scan = scan_lm[idx_t]
+            proj = proj_lm[idx_t][idx_lm]
+            M_lpmp += np.conj(proj)*scan
+    M_lm_lpmp.append(M_lpmp)
+
+print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
+
+print M_lm_lpmp
+
+print '3. inverting...'
+
+M_inv = np.linalg.inv(M_lm_lpmp)
+
+print 'the matrix has been inverted!'
+'''

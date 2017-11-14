@@ -153,23 +153,6 @@ class Ligo_Analyse(object):
         
         return fac
 
-
-    def dfreq_facXs(self,f,s,df,ell,real,alpha=3.,H0=68.0,f0=100.):
-        #real = True returns the real part, = False the imag
-        
-        b=self.baseline_length
-        
-        idx_f = int(f/df)
-        
-        km_mpc = 3.086e+19 # km/Mpc conversion
-        c = 3.e8 # speed of light 
-        #fac = 8.*np.pi**3/3./H0**2 * km_mpc**2 * f**3*(f/f0)**(alpha-3.) * spherical_jn(ell, 2.*np.pi*f*b/c)
-        fac =  spherical_jn(ell, 2.*np.pi*(f)*b/c)*s[idx_f] #*(f/f0)**(alpha-3.) *
-        # add band pass and notches here
-        if real == True: return np.real(fac)#, np.imag(fac)
-        else: return np.imag(fac)
-
-
     def freq_factor(self,ell,alpha=3.,H0=68.0,f0=100.):
         fmin=self.low_f
         fmax=self.high_f
@@ -206,6 +189,22 @@ class Ligo_Analyse(object):
 
         return latMid,lonMid, brng
 
+    def geometry(self,ct_split, pol = False):		#ct_split = ctime_i
+        
+        #returns the baseline pixel p and the boresight quaternion q_n
+        nside = self._nside
+        mid_idx = int(len(ct_split)/2)
+    
+        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
+        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
+    
+        p, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True)
+        n, s2n, c2n = self.Q.quat2pix(q_n, nside=nside, pol=True)  
+        theta_b, phi_b = hp.pix2ang(nside,p)
+        
+        if pol == False: return p, q_n, n
+        else : return p, s2p, c2p, q_n, n
+            
 # **************** Whitening Modules ***************
 
     def iir_bandstops(self, fstops, fs, order=4):
@@ -311,34 +310,7 @@ class Ligo_Analyse(object):
         return transfer
 
  #   def cutout(self,x, freqs,low = 20, high = 300):
-        
-    def whiten(self, strain, interp_psd, dt):
-        Nt = len(strain)
-        freqs = np.fft.rfftfreq(Nt, dt)
 
-        # whitening: transform to freq domain, divide by asd, then transform back, 
-        # taking care to get normalization right.
-        hf = np.fft.rfft(strain)
-        white_hf = hf / (np.sqrt(interp_psd(freqs) /dt/2.))
-        
-        white_hf[freqs>300] *= 0.
-        white_hf[freqs<150] *= 0.
-        white_ht = np.fft.irfft(white_hf, n=Nt)
-        return white_ht
-
-    def whiten1(self, strain, interp_psd, dt):
-        Nt = len(strain)
-        Nt = lf.bestFFTlength(Nt)
-        freqs = np.fft.rfftfreq(Nt, dt)
-        print 'whitening...'
-        # whitening: transform to freq domain, divide by asd
-        hf = np.fft.rfft(strain[:Nt])/np.sqrt(Nt) #?
-        # remember: interp_psd is strain/rtHz
-        white_hf = hf/(np.sqrt(interp_psd(freqs)/2./dt))
-	    #white_hf_bp = white_hf*self.g_butt(freqs,3)
-        print 'done whitening...'
-        return white_hf
-    
     def ligofilter(self, strain_in):
         NFFT = 4*self.fs
         Pxx, freqs = mlab.psd(strain_in, Fs = self.fs, NFFT = NFFT)
@@ -470,19 +442,19 @@ class Ligo_Analyse(object):
         strain_in_nowin *= signal.tukey(Nt,alpha=0.05)
         strain_in *= np.blackman(Nt)
         freqs = np.fft.rfftfreq(2*Nt, dt)
+        #print '=rfft='
         hf = np.fft.rfft(strain_in, n=2*Nt)#, norm = 'ortho') 
         hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt)#, norm = 'ortho') 
+        #print '++'
         
         hf = hf[:Nt/2+1]
         hf_nowin = hf_nowin[:Nt/2+1]
         freqs = freqs[:Nt/2+1]
                 
         '''the PSD. '''
-        
         Pxx, frexx = mlab.psd(strain_in_nowin, Fs=fs, NFFT=2*fs,noverlap=fs/2,window=np.blackman(2*fs),scale_by_freq=True)
         hf_psd = interp1d(frexx,Pxx)
         hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())/(fs**2))
-        
         
         #Norm
         mask = (freqs>low_f) & (freqs < high_f)
@@ -497,7 +469,6 @@ class Ligo_Analyse(object):
         
         hf_in = hf.copy()
         notch_fs = np.array([14.0,34.70, 35.30, 35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.49, 510.02, 1009.99])
-        #heights = []
         sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,5.,5.,1.])
         #np.array([0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.5,0.3,0.2])
         
@@ -555,7 +526,7 @@ class Ligo_Analyse(object):
         # index = [idx, dect]
         #
             
-        return hf_nbped, hf_psd, hf_psd_data #_nbped
+        return hf_nbped, hf_psd
         
 
     # ********* Data Segmenter *********
@@ -610,8 +581,6 @@ class Ligo_Analyse(object):
         strain_H1, meta_H1, dq_H1 = rl.getstrain(begin, end, 'H1', filelist=filelist)
         strain_L1, meta_L1, dq_L1 = rl.getstrain(begin, end, 'L1', filelist=filelist)
 
-        # TODO: may want to do this in frequency space
-        #strain_x = strain_H1*strain_L1
         print '+++'
         epoch = dt.datetime.utcfromtimestamp(0).replace(tzinfo=pytz.utc)
         print '+++'
@@ -636,37 +605,40 @@ class Ligo_Analyse(object):
             ctime_seg = np.array_split(ctime, n_split)
             strain_H1_seg = np.array_split(strain_H1, n_split)
             strain_L1_seg = np.array_split(strain_L1, n_split)
-            step=int(len(strain_H1_seg[0])/2)
-            ctime_over = np.array_split(ctime[step:-step], n_split-1)
-            strain_H1_over = np.array_split(strain_H1[step:-step], n_split-1)
-            strain_L1_over = np.array_split(strain_L1[step:-step], n_split-1)
-            #print len(strain_H1_seg[0]), len(strain_H1_over[0]), len(strain_H1[step:-step])
+            #step=int(len(strain_H1_seg[0])/2)
+            #ctime_over = np.array_split(ctime[step:-step], n_split-1)
+            #strain_H1_over = np.array_split(strain_H1[step:-step], n_split-1)
+            #strain_L1_over = np.array_split(strain_L1[step:-step], n_split-1)
             
-            zipped_ct = np.array(zip(ctime_seg[:-1],ctime_over))
-            ctime_out = zipped_ct.reshape(-1, zipped_ct.shape[-1])
+            #zipped_ct = np.array(zip(ctime_seg[:-1],ctime_over))
+            #print zipped_ct
+            #print len(zipped_ct),len(zipped_ct[0]), len(zipped_ct[0][0])
+            #ctime_out = zipped_ct.reshape((2*len(ctime_over),len(ctime_seg[0])))
             
-            zipped_h = np.array(zip(strain_H1_seg[:-1],strain_H1_over))
-            strain_H1_out = zipped_h.reshape(-1, zipped_h.shape[-1])
+            print len(ctime_seg), len(ctime_seg[1])
             
-            zipped_l = np.array(zip(strain_L1_seg[:-1],strain_L1_over))
-            strain_L1_out = zipped_l.reshape(-1, zipped_l.shape[-1])
+            #zipped_h = np.array(zip(strain_H1_seg[:-1],strain_H1_over))
+            #strain_H1_out = zipped_h.reshape(-1, zipped_h.shape[-1])
             
-            if len(strain_H1_seg[-1])<len(strain_H1_seg[0]):
-                strain_H1_seg[-1] = np.append(strain_H1_seg[-1],0.)
-                strain_L1_seg[-1] = np.append(strain_L1_seg[-1],0.)
-                ctime_seg[-1] = np.append(ctime_seg[-1],0.)
-                #print len(strain_H1_seg[-1])
-                
-            strain_H1_out = np.vstack((strain_H1_out,strain_H1_seg[-1]))
-            strain_L1_out = np.vstack((strain_L1_out,strain_L1_seg[-1]))
-            ctime_out = np.vstack((ctime_out,ctime_seg[-1]))
+            #zipped_l = np.array(zip(strain_L1_seg[:-1],strain_L1_over))
+            #strain_L1_out = zipped_l.reshape(-1, zipped_l.shape[-1])
             
-            # print len(zipped_h),len(zipped_h[0]), len(zipped_h[0][0])
-            # print len(strain_H1_out), len(strain_H1_out[0])
-            # print len(zipped_ct),len(zipped_ct[0]), len(zipped_ct[0][0])
-            # print len(ctime_out), len(ctime_out[0])
+            #while len(strain_H1_seg[-1])<len(strain_H1_seg[0]):
+            #    strain_H1_seg[-1] = np.append(strain_H1_seg[-1],0.)
+            #    strain_L1_seg[-1] = np.append(strain_L1_seg[-1],0.)
+            #    ctime_seg[-1] = np.append(ctime_seg[-1],0.)
+            
+            
+            #strain_H1_out = np.vstack((strain_H1_out,strain_H1_seg[-1]))
+            #strain_L1_out = np.vstack((strain_L1_out,strain_L1_seg[-1]))
+            #ctime_out = np.vstack((ctime_out,ctime_seg[-1]))
+            
+            #print len(zipped_h),len(zipped_h[0]), len(zipped_h[0][0])
+            #print len(strain_H1_out), len(strain_H1_out[0])
+            #print len(zipped_ct),len(zipped_ct[0]), len(zipped_ct[0][0])
+            #print len(ctime_out), len(ctime_out[0])
                         
-            return ctime_out, strain_H1_out, strain_L1_out #strain_x
+            return ctime_seg, strain_H1_seg, strain_L1_seg #strain_x
             
         else:
             # add dummy dimension
@@ -676,50 +648,46 @@ class Ligo_Analyse(object):
             strain_L1 = strain_L1[None,...]
             return ctime, strain_H1, strain_L1 #strain_x
     
-    
-    #return ctime, strain_H1, strain_L1 #strain_x
-
 
     # ********* Projector *********
     # returns p = {lm} map of inverse-noise-filtered time-stream
        
-    def summer(self, ct_split, s, freq):     
+    def summer(self, ct_split, s, freq, pix_b, q_n):     
            
         nside=self._nside
         lmax=self._lmax
         
         df = self.fs/4./len(s)
-    
+
         sum_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
         hit_lm = np.zeros_like(sum_lm)
         
-        #if you input s_split = 1, (maybe) it returns simply the projection operator 
+        mask = (freq>self.low_f) & (freq < self.high_f)
+        freq = freq[mask]
+        s = s[mask]
+
+        #geometry 
         
         npix = self.npix
         
         mid_idx = int(len(ct_split)/2)
     
-        # get quaternions for H1->L1 baseline (use as boresight)
-        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
-        # get quaternions for bisector pointing (use as boresight)
-        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
-
-        pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
-        
-        p = pix_b          
-        quat = q_n
-        #s = np.average(s_filt)
-    
-        # polar angles of baseline vector
-        theta_b, phi_b = hp.pix2ang(nside,p)
-        
-        #print theta_b, phi_b
-        
+        # # get quaternions for H1->L1 baseline (use as boresight)
+        # q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
+        # # get quaternions for bisector pointing (use as boresight)
+        # q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
+        # pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
+        #
+        # p = pix_b
+        # quat = q_n
+        # # polar angles of baseline vector
+        theta_b, phi_b = hp.pix2ang(nside,pix_b)
+                
         # rotate gammas
         # TODO: will need to oversample here
         # i.e. use nside > nside final map
         # TODO: pol gammas
-        rot_m_array = self.rotation_pix(np.arange(npix), quat) #rotating around the bisector of the gc 
+        rot_m_array = self.rotation_pix(np.arange(npix), q_n) #rotating around the bisector of the gc 
         gammaI_rot = self.gammaI[rot_m_array]
 
         # Expand rotated gammas into lm
@@ -750,17 +718,12 @@ class Ligo_Analyse(object):
                             #*self.dfreq_factor(f,lpp)*s[idx_f]
                             *np.conj(sph_harm(mpp, lpp, theta_b, phi_b))*
                             glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                            self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])                                                         *np.sum(self.dfreq_factor(freq,lpp)*s)*df    ##freq dependence summed over
+                            self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])*np.sum(self.dfreq_factor(freq,lpp)*s)*df    ##freq dependence summed over
                                                 
-                            hit_lm[idx_lm] += np.conj((-1)**mpp*(0+1.j)**lpp
-                            *self.freq_factor(lpp)
-                            *np.conj(sph_harm(mpp, lpp, theta_b, phi_b))*
-                            glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                            self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
+                            #hit_lm[idx_lm] += np.conj((-1)**mpp*(0+1.j)**lpp*np.sum(self.dfreq_factor(freq,lpp))*df*np.conj(sph_harm(mpp, lpp, theta_b, phi_b))*glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
 
-        norm = np.abs(np.sum(np.abs(hit_lm))) #maybe?
-        #print np.abs(hit_lm/norm), np.sum(np.abs(hit_lm/norm))
-        return sum_lm/norm #np.divide(sum_lm,hit_lm) #
+        #norm = np.abs(np.sum(np.abs(hit_lm)))
+        return sum_lm#/norm
 
 
     def summer_f(self, ct_split, f):        #returns summed element for a specific f
@@ -853,28 +816,22 @@ class Ligo_Analyse(object):
         return sum_lm/hits
     '''
         
-    def projector(self,ctime, strain_H1, strain_H2,freqs):
+    def projector(self,ctime, strain_H1, strain_H2,freqs,pix_bs, q_ns):
         
         print 'proj run'    
         nside=self._nside
         lmax=self._lmax
 
-        npix = self.npix
         data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-        hits = 0.
-        for idx_t, (ct_split, s_1, s_2) in enumerate(zip(ctime, strain_H1, strain_H2)): 
-            
-            #get rid of this weighting; 
-            
-            #weight = np.divide(1.,p_1*p_2)/(60.*float(self.fs)/cf)
-            
+        #hits = 0.
+        for idx_t, (ct_split, s_1, s_2, pix_b, q_n) in enumerate(zip(ctime, strain_H1, strain_H2,pix_bs, q_ns)): 
+                                    
             s = s_1*np.conj(s_2) ##  still fully frequency dependent
-            
-            data_lm += self.summer(ct_split, s, freqs)
+            data_lm += self.summer(ct_split, s, freqs, pix_b, q_n)
                         
-            hits+=1.
+            #hits+=1.
         
-        return data_lm/hits
+        return data_lm#/hits
 
     # ********* Scanner *********
     #to use scanner, re-check l, m ranges and other things. otherwise use scanner_1    
@@ -954,53 +911,131 @@ class Ligo_Analyse(object):
                             
         return (tstream + np.conj(tstream))*np.ones_like(ct_split, dtype = complex)
 
-    def scanner(self,ct_split, p_split_1_t, p_split_2_t,freq,cf=1000,data_lm = 1.): 
+    def M_lm_lpmp_t(self,ct_split, p_split_1_t, p_split_2_t,freq): 
         
         nside=self._nside
         lmax=self._lmax 
+        al = hp.Alm.getidx(lmax,lmax,lmax)+1
             
         npix = self.npix
         
-        scanned_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-        hit_lm = np.zeros(len(scanned_lm), dtype = complex)
-        hits = 0.
-
+        df = self.fs/4./len(p_split_1_t)
+        weight = 1./(p_split_1_t*p_split_2_t) 
+        
+        M_lm_lpmp = np.zeros((al,al), dtype = complex)
+        #integral = np.ndarray(shape = (al,al), dtype = complex)
+        #hit_lm = np.zeros(len(scanned_lm), dtype = complex)
+        #print M_lm_lpmp
+        
+        mask = (freq>self.low_f) & (freq < self.high_f)
+        freq = freq[mask]
+        weight = weight[mask]
+        
+        #geometry
         mid_idx = int(len(ct_split)/2)
         
         q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
         q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
         
         p, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) 
-        
         quat = q_n
-        
         theta_b, phi_b = hp.pix2ang(nside,p)
         
         rot_m_array = self.rotation_pix(np.arange(npix), quat) 
         gammaI_rot = self.gammaI[rot_m_array]
-
         glm = hp.map2alm(gammaI_rot, lmax, pol=False)
+
         
-        weight = np.divide(1.,p_split_1_t*p_split_2_t)/(60.*float(self.fs)/cf) ## #np.ones_like(p_split_1_t) #
-                
         for l in range(lmax+1): #
             for m in range(l+1): #
-                #print l, m
+                
                 idx_lm = hp.Alm.getidx(lmax,l,m)
-                for idx_f, f in enumerate(freq):
-                    for lp in range(lmax+1): #
-                        for mp in range(lp+1): #
-                            # remaining m index
-                            mpp = m+mp
-                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                            lmax_m = l + lp
-                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                                scanned_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*sph_harm(mpp, lpp, theta_b, phi_b)*self.dfreq_factor(f,lpp)
-                                *glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])*data_lm*weight[idx_f]
-                                hit_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*self.dfreq_factor(f,lpp)
-                                *sph_harm(mpp, lpp, theta_b, phi_b)*
-                                                    glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                                    self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
+                #print idx_lm
+                
+                for lt in range(lmax+1): #
+                    for mt in range(lt+1): #
+                
+                        idx_ltmt = hp.Alm.getidx(lmax,lt,mt)
+                        #print '(',idx_lm, idx_ltmt, ')'
+                        
+                        for lp in range(lmax+1): #
+                            for mp in range(lp+1): #
+                                # remaining m index
+                                mpp = m+mp
+                                lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                                lmax_m = l + lp
+                                
+                                for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                                    for lpt in range(lmax+1): #
+                                        for mpt in range(lpt+1): #
+                                            # remaining mt index
+                                            mppt = mt+mpt
+                                            lmin_mt = np.max([np.abs(lt - lpt), np.abs(mt + mpt)])
+                                            lmax_mt = lt + lpt
+                                            
+                                            for idxlt, lppt in enumerate(range(lmin_mt,lmax_mt+1)):
+                                                #integral[idx_lm,idx_ltmt] = np.sum(self.dfreq_factor(freq,lpp)*self.dfreq_factor(freq,lppt)*weight)*df**2
+                                                M_lm_lpmp[idx_lm,idx_ltmt] += np.sum(self.dfreq_factor(freq,lpp)*self.dfreq_factor(freq,lppt)*weight)*df**2
+                                                np.conj(4*np.pi*(0+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b, phi_b))
+                                                *glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])*(4*np.pi*(0+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b, phi_b))
+                                                *glm[hp.Alm.getidx(lmax,lpt,mpt)]*np.sqrt((2*lt+1)*(2*lpt+1)*(2*lppt+1)/4./np.pi)*self.threej_0[lppt,lt,lpt]*self.threej_m[lppt,lt,lpt,mt,mpt])
+            
+            #print M_lm_lpmp[idx_lm,idx_ltmt]                
+                                    #hit_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*np.sum(self.dfreq_factor(freq,lpp))*df*sph_harm(mpp, lpp, theta_b,phi_b)*glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
+        
+        #norm = np.abs(np.sum(np.abs(hit_lm)))
+        return M_lm_lpmp #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
+    
+
+    def scanner(self,ct_split, p_split_1_t, p_split_2_t,freq,data_lm = 1.): 
+        
+        nside=self._nside
+        lmax=self._lmax 
+            
+        npix = self.npix
+        
+        df = self.fs/4./len(p_split_1_t)
+        
+        scanned_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+        hit_lm = np.zeros(len(scanned_lm), dtype = complex)
+        
+        #geometry
+        mid_idx = int(len(ct_split)/2)
+        
+        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1_lon), np.degrees(self.H1_lat), ct_split[mid_idx])
+        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
+        
+        p, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) 
+        quat = q_n
+        theta_b, phi_b = hp.pix2ang(nside,p)
+        
+        rot_m_array = self.rotation_pix(np.arange(npix), quat) 
+        gammaI_rot = self.gammaI[rot_m_array]
+        glm = hp.map2alm(gammaI_rot, lmax, pol=False)
+
+        weight = 1./(p_split_1_t*p_split_2_t) 
+        
+        for l in range(lmax+1): #
+            for m in range(l+1): #
+                
+                idx_lm = hp.Alm.getidx(lmax,l,m)
+
+                for lp in range(lmax+1): #
+                    for mp in range(lp+1): #
+                        # remaining m index
+                        mpp = m+mp
+                        lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                        lmax_m = l + lp
+                        for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+
+                            scanned_lm[idx_lm] += np.conj(4*np.pi*(0+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b, phi_b))
+                            *glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])*np.sum(self.dfreq_factor(freq,lpp)*weight*data_lm)*df
+                            
+                            hit_lm[idx_lm] += ((-1)**mpp*(0+1.j)**lpp*np.sum(self.dfreq_factor(freq,lpp))*df
+                            *sph_harm(mpp, lpp, theta_b, phi_b)*
+                                                glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
+                                                self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
+        
         norm = np.abs(np.sum(np.abs(hit_lm)))
         return scanned_lm/norm #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
         
