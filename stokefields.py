@@ -29,10 +29,10 @@ Ustoke = np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten()
 Vstoke = np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten()
 
 
-fig = plt.figure()
-hp.mollview(Istoke)
+#fig = plt.figure()
+#hp.mollview(Istoke)
 #hp.visufunc.projscatter(hp.pix2ang(nside,pix_bs))
 #hp.visufunc.projscatter(hp.pix2ang(nside,pix_ns))
-plt.savefig('Istoke.pdf' )
+#plt.savefig('Istoke.pdf' )
 
 #test: monopoles, dipoles, with hp.alm2map

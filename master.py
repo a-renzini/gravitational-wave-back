@@ -8,11 +8,51 @@ import readligo as rl
 import ligo_filter as lf
 import matplotlib as mlb
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 import time
 import BigClass as bc
+from mpi4py import MPI
+ISMPI = True
+#if mpi4py not present: ISMPI = False
+
+import os
+import sys
+
+data_path = sys.argv[1]
+out_path =  sys.argv[2]
+
+if os.path.exists(data_path):
+    print 'data is in ' , os.path.basename(data_path)
+    # file exists
+if os.path.exists(out_path):
+    print 'output goes to ' , os.path.basename(out_path)
+
+###############
+
+def split(container, count):
+    """
+    Simple function splitting a container into equal length chunks.
+    Order is not preserved but this is potentially an advantage depending on
+    the use case.
+    """
+    return [container[_i::count] for _i in range(count)]
+
+###############
 
 EPSILON = 1E-24
 
+if ISMPI:
+
+    comm = MPI.COMM_WORLD
+    nproc = comm.Get_size()
+    myid = comm.Get_rank()
+
+else: 
+    comm = None
+    nproc = 1
+    myid = 0
+
+print 'myid: {} of {}'.format(myid,nproc)
 
 ####################################################################
 print '++++++++++++++++++++++++++'
@@ -27,11 +67,12 @@ print '=========================='
 
 # sampling rate:
 fs = 4096
-ligo_data_dir = '/Users/pai/Data/'  #can be defined in the repo
+ligo_data_dir = data_path  #can be defined in the repo
 filelist = rl.FileList(directory=ligo_data_dir)
 
+
 nside = 16
-lmax = 2
+lmax = 4
 sim = False
 
 #INTEGRATING FREQS:
@@ -48,7 +89,13 @@ nbase = int(ndet*(ndet-1)/2)
 
 #create empty lm objects:
 m_lm = np.ones(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-M_lm_lpmp =0.
+
+my_M_lm_lpmp = 0.
+
+if myid == 0: 
+    M_lm_lpmp = 0.
+else:
+    M_lm_lpmp = None
 
 #create object of class:
 run = bc.Telescope(nside,lmax, fs, low_f, high_f)
@@ -67,10 +114,28 @@ segs_begin, segs_end = run.flagger(start,stop,filelist)
 
 print len(segs_begin)
 
-Z_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-S_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+if myid == 0: 
+    my_segs_begin = split(segs_begin, nproc)
+    my_segs_end = split(segs_end, nproc)
+else:
+    my_segs_begin = None
+    my_segs_end = None
 
-for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
+
+if ISMPI:
+    my_segs_begin = comm.scatter(my_segs_begin)
+    my_segs_end = comm.scatter(my_segs_end)
+
+
+if myid == 0:
+    Z_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+    S_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+else:
+    Z_lm = None
+    S_lm = None
+
+
+for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     
     n=sdx+1
     
@@ -182,80 +247,112 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
     
     z_lm = run.projector(ctime,strains_split,freqs,pix_bs, q_ns)
-    Z_lm +=z_lm
     
-   # for idx_t, ct_split in enumerate(ctime):
-   #     ones = [1.]*len(freqs)
-   #     proj_lm[idx_t] = run.summer(ctime[idx_t],ones,freqs) 
+    if myid == 0:
+        z_buffer = np.zeros_like(z_lm)
+    else: 
+        z_buffer = None
     
-    #dirty_map_lm = hp.alm2map(np.sum(dt_lm,axis = 0),nside,lmax=lmax)
-    dirty_map = hp.alm2map(Z_lm,nside,lmax=lmax)
+    if ISMPI:
+        comm.barrier()
+        comm.reduce(z_lm, z_buffer, root = 0, op = MPI.SUM)
     
-    fig = plt.figure()
-    hp.mollview(dirty_map)
-    #hp.visufunc.projscatter(hp.pix2ang(nside,pix_bs))
-    #hp.visufunc.projscatter(hp.pix2ang(nside,pix_ns))
-    plt.savefig('maps_running/dirty_map%s.pdf' % sdx)
-    #dirty_map_lm = hp.alm2map(np.sum(dt_lm,axis = 0),nside,lmax=lmax)
+    else: 
+        z_buffer += z_lm
 
-    print 'saved: dirty_map.pdf'
+    if myid == 0: 
+        Z_lm += z_buffer
+
+        #Z_lm +=z_lm
     
     
-    ####################################################################
+        # for idx_t, ct_split in enumerate(ctime):
+        #     ones = [1.]*len(freqs)
+        #     proj_lm[idx_t] = run.summer(ctime[idx_t],ones,freqs) 
     
-    print 'building M^-1:'
+        #dirty_map_lm = hp.alm2map(np.sum(dt_lm,axis = 0),nside,lmax=lmax)
+        dirty_map = hp.alm2map(Z_lm,nside,lmax=lmax)
+    
+        fig = plt.figure()
+        hp.mollview(dirty_map)
+        #hp.visufunc.projscatter(hp.pix2ang(nside,pix_bs))
+        #hp.visufunc.projscatter(hp.pix2ang(nside,pix_ns))
+        plt.savefig('maps_running/dirty_map%s.pdf' % sdx)
+        #dirty_map_lm = hp.alm2map(np.sum(dt_lm,axis = 0),nside,lmax=lmax)
+
+        print 'saved: dirty_map.pdf'
+    
+    
+        ####################################################################
+    
+        print 'building M^-1:'
     
     for idx_t in range(len(ctime)):
         print idx_t
-        M_lm_lpmp += run.M_lm_lpmp_t(ctime[idx_t], psds_split[idx_t],freqs,pix_bs[idx_t],q_ns[idx_t])
-        #exit()
+        my_M_lm_lpmp += run.M_lm_lpmp_t(ctime[idx_t], psds_split[idx_t],freqs,pix_bs[idx_t],q_ns[idx_t])
 
-    print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
+    if myid == 0:
+        M_lm_lpmp_buffer = np.zeros_like(my_M_lm_lpmp)
+    else: 
+        M_lm_lpmp_buffer = None
     
     
-    f = open('Ms_running/M%s.txt' % sdx, 'w')
-    print >>f, M_lm_lpmp
-    print >>f, '===='
-    print >>f, np.linalg.eigh(M_lm_lpmp)
-    print >>f, '===='
-    print >>f, np.linalg.cond(M_lm_lpmp)
-    f.close
+    if ISMPI:
+        comm.barrier()
+        comm.reduce(my_M_lm_lpmp, M_lm_lpmp_buffer, root = 0, op = MPI.SUM)
     
-    print '3. inverting...'
+    else: 
+        M_lm_lpmp_buffer += my_M_lm_lpmp
 
-    M_inv = np.linalg.inv(M_lm_lpmp)
 
-    print 'the matrix has been inverted!'
+    if myid == 0: 
+        M_lm_lpmp += M_lm_lpmp_buffer
     
-    #exit()
 
-    #print M_inv
-
-    ####################################################################
-
-    #s_lm = []
-    S_p = []
-
-    S_lm = np.array(np.dot(M_inv,Z_lm)) #fully accumulated maps!
-    #S_lm+= s_lm
-    S_p = hp.alm2map(S_lm,nside,lmax=lmax)
-    #print len(s_lm)
-    #print s_lm
+        print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
     
-    print np.mean(S_p)
     
-    #dt_tot = np.sum(dt_lm,axis = 0)
-    #print 'dt total:' , len(dt_tot.real)
-    #print dt_tot
+        f = open('Ms_running/M%s.txt' % sdx, 'w')
+        print >>f, M_lm_lpmp
+        print >>f, '===='
+        print >>f, np.linalg.eigh(M_lm_lpmp)
+        print >>f, '===='
+        print >>f, np.linalg.cond(M_lm_lpmp)
+        f.close
+    
+        print '3. inverting...'
 
-    hp.mollview(S_p)
-    plt.savefig('maps_running/S_p%s.pdf' % sdx)
+        M_inv = np.linalg.inv(M_lm_lpmp)
+
+        print 'the matrix has been inverted!'
+    
+    
+
+        ################################################################
+
+        #s_lm = []
+        S_p = []
         
-hp.mollview(hp.alm2map(Z_lm/len(ctime),nside,lmax=lmax))
-plt.savefig('Z_p%s.pdf' % sdx)
+        S_lm = np.array(np.dot(M_inv,Z_lm)) #fully accumulated maps!
+        #S_lm+= s_lm
+        S_p = hp.alm2map(S_lm,nside,lmax=lmax)
+        #print len(s_lm)
+        #print s_lm
+    
+        #dt_tot = np.sum(dt_lm,axis = 0)
+        #print 'dt total:' , len(dt_tot.real)
+        #print dt_tot
 
-hp.mollview(hp.alm2map(S_lm/len(ctime),nside,lmax=lmax))
-plt.savefig('S_p%s.pdf' % sdx)
+        hp.mollview(S_p)
+        plt.savefig('maps_running/S_p%s.pdf' % sdx)
+
+if myid == 0:
+
+    hp.mollview(hp.alm2map(Z_lm/len(ctime),nside,lmax=lmax))
+    plt.savefig('Z_p%s.pdf' % sdx)
+
+    hp.mollview(hp.alm2map(S_lm/len(ctime),nside,lmax=lmax))
+    plt.savefig('S_p%s.pdf' % sdx)
     
 exit()
     
