@@ -291,7 +291,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         hp.mollview(dirty_map)
         #hp.visufunc.projscatter(hp.pix2ang(nside,pix_bs))
         #hp.visufunc.projscatter(hp.pix2ang(nside,pix_ns))
-        plt.savefig('maps_running/dirty_map%s.pdf' % sdx)
+        plt.savefig(os.path.basename(out_path)%s%s % 'dirty_map%s.pdf', essdx)
         #dirty_map_lm = hp.alm2map(np.sum(dt_lm,axis = 0),nside,lmax=lmax)
 
         print 'saved: dirty_map.pdf'
