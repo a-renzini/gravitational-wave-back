@@ -162,7 +162,6 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
 
     '''
 
-    counter = len(ctime)
 
     ####################################################################
 
@@ -256,27 +255,14 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     
     if ISMPI:
         comm.barrier()
-        comm.Reduce(z_lm, z_buffer, root = 0, op = MPI.SUM)
-        comm.reduce(counter, root = 0, op = MPI.SUM)
+        comm.reduce(z_lm, z_buffer, root = 0,gravitational-wave-bkg/master.py op = MPI.SUM,)
     
     else: 
         z_buffer += z_lm
 
-    print '----'
-    print z_lm
-    print counter
-    print '----'
-
-
     if myid == 0: 
         Z_lm += z_buffer
-        
-        print '+++'
-        print Z_lm
-        print counter
-        print '+++'
 
-        
         #Z_lm +=z_lm
     
     
