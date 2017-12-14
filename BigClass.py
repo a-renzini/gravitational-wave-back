@@ -528,7 +528,7 @@ class Telescope(object):
         freqs = np.fft.rfftfreq(2*Nt, dt)
         freqs = freqs[:Nt/2+1]
         
-        print '+sim+'
+        #print '+sim+'
     
         psds = []
         faketot = []
@@ -590,7 +590,7 @@ class Telescope(object):
         
                 faketot.append(fake_inv)
         
-        print '=\sim='
+        #print '=\sim='
         
         return faketot, psds
         

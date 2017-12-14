@@ -161,8 +161,8 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         stream.append(run.scan(ct_split, low_f, high_f, m_lm))
 
     '''
-    import copy
-    counter = copy.deepcopy(len(ctime))
+
+    counter = len(ctime)
 
     ####################################################################
 
@@ -251,17 +251,13 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     
     if myid == 0:
         z_buffer = np.zeros_like(z_lm)
-        y = np.asarray(0)
     else: 
         z_buffer = None
-        y = None
-    
-    counter = np.asarray(counter) 
-    print y
-    print counter, z_lm
     
     if ISMPI:
         comm.barrier()
+        counter = np.asarray(counter) 
+        y = np.asarray(0)
         comm.Reduce(z_lm, z_buffer, root = 0, op = MPI.SUM)
         comm.Reduce(counter, y , root = 0, op = MPI.SUM)
     
@@ -282,7 +278,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         
         print '+++'
         print Z_lm
-        print y
+        print counter
         print '+++'
 
         
@@ -307,67 +303,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     
         
         ####################################################################
-    
-        print 'building M^-1:'
-    
-    for idx_t in range(len(ctime)):
-        print idx_t
-        my_M_lm_lpmp += run.M_lm_lpmp_t(ctime[idx_t], psds_split[idx_t],freqs,pix_bs[idx_t],q_ns[idx_t])
 
-    if myid == 0:
-        M_lm_lpmp_buffer = np.zeros_like(my_M_lm_lpmp)
-    else: 
-        M_lm_lpmp_buffer = None
-    
-    
-    if ISMPI:
-        comm.barrier()
-        comm.Reduce(my_M_lm_lpmp, M_lm_lpmp_buffer, root = 0, op = MPI.SUM)
-    
-    else: 
-        M_lm_lpmp_buffer += my_M_lm_lpmp
-
-
-    if myid == 0: 
-        M_lm_lpmp += M_lm_lpmp_buffer
-    
-
-        print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
-    
-        
-        f = open('%s/M%s.txt' % (out_path,sdx), 'w')
-        print >>f, M_lm_lpmp
-        print >>f, '===='
-        print >>f, np.linalg.eigh(M_lm_lpmp)
-        print >>f, '===='
-        print >>f, np.linalg.cond(M_lm_lpmp)
-        f.close
-    
-        print '3. inverting...'
-
-        M_inv = np.linalg.inv(M_lm_lpmp)
-
-        print 'the matrix has been inverted!'
-    
-    
-
-        ################################################################
-
-        #s_lm = []
-        S_p = []
-        
-        S_lm = np.array(np.dot(M_inv,Z_lm)) #fully accumulated maps!
-        #S_lm+= s_lm
-        S_p = hp.alm2map(S_lm,nside,lmax=lmax)
-        #print len(s_lm)
-        #print s_lm
-    
-        #dt_tot = np.sum(dt_lm,axis = 0)
-        #print 'dt total:' , len(dt_tot.real)
-        #print dt_tot
-
-        hp.mollview(S_p)
-        plt.savefig('%s/S_p%s.pdf' % (out_path,sdx))
 
 if myid == 0:
 
