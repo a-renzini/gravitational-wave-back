@@ -13,8 +13,6 @@ a_lm[0] = 1.
 
 cls = hp.sphtfunc.alm2cl(a_lm)
 
-print cls 
-
 # cls=[1]*nside
 # i=0
 # while i<nside:
