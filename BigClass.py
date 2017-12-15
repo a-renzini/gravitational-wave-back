@@ -533,7 +533,7 @@ class Telescope(object):
         psds = []
         faketot = []
         
-        if sim == True:
+        if sim == True:     #simulates streams for all detectors called when T.scope was initialised
             fakestreams = self.sim_tstreams(freqs)
         
         for (idx_det,strain_in) in enumerate(strains_in):
@@ -605,6 +605,9 @@ class Telescope(object):
             for f in freqs:
                 integral = (1./self.npix)*np.sqrt(self.E_f(f))* np.sum( (self.hp*dect.get_Fplus()+self.hc*dect.get_Fcross())*np.exp(2*np.pi/c*1.j*f*dect.get_dott())  )
                 resp.append(integral ) # NORM?
+            #plt.figure()
+            #plt.plot(resp)
+            #plt.savefig('fakestream.png')
             resps.append(np.array(resp))
                 
         return resps

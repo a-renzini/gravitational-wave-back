@@ -81,7 +81,7 @@ ligo_data_dir = data_path  #can be defined in the repo
 filelist = rl.FileList(directory=ligo_data_dir)
 
 
-nside = 16
+nside = 8
 lmax = 2
 sim = True
 
@@ -378,6 +378,10 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
 
         hp.mollview(S_p)
         plt.savefig('%s/S_p%s.pdf' % (out_path,sdx))
+        
+        np.savez('%s/checkfile%s.npz' % (out_path,sdx), sdx=sdx, Z_lm=Z_lm, M_lm_lpmp=M_lm_lpmp )
+    
+        exit()
 
 if myid == 0:
 
@@ -386,6 +390,8 @@ if myid == 0:
 
     hp.mollview(hp.alm2map(S_lm/len(ctime),nside,lmax=lmax))
     plt.savefig('S_p%s.pdf' % sdx)
+    
+
     
 exit()
     
@@ -415,7 +421,7 @@ exit()
     #plt.savefig('datapow.png')
 
 
-'''
+''' 
 print 'building M^-1:'
 
 M_lm_lpmp =[]
