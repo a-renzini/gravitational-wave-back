@@ -73,7 +73,7 @@ filelist = rl.FileList(directory=ligo_data_dir)
 
 nside = 16
 lmax = 4
-sim = False
+sim = True
 
 #INTEGRATING FREQS:
 low_f = 80.
@@ -112,7 +112,7 @@ print 'flagging the good data...'
 
 segs_begin, segs_end = run.flagger(start,stop,filelist)
 
-print len(segs_begin)
+#print len(segs_begin)
 
 if myid == 0: 
     my_segs_begin = split(segs_begin, nproc)

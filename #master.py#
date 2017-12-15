@@ -22,10 +22,10 @@ data_path = sys.argv[1]
 out_path =  sys.argv[2]
 
 if os.path.exists(data_path):
-    print 'data is in ' , os.path.basename(data_path)
+    print 'data is in ' , data_path
     # file exists
 if os.path.exists(out_path):
-    print 'output goes to ' , os.path.basename(out_path)
+    print 'output goes to ' , out_path
 
 ###############
 
@@ -47,7 +47,7 @@ if ISMPI:
     nproc = comm.Get_size()
     myid = comm.Get_rank()
 
-else: 
+e lse: 
     comm = None
     nproc = 1
     myid = 0
@@ -73,7 +73,7 @@ filelist = rl.FileList(directory=ligo_data_dir)
 
 nside = 16
 lmax = 4
-sim = False
+sim = True
 
 #INTEGRATING FREQS:
 low_f = 80.
@@ -112,7 +112,7 @@ print 'flagging the good data...'
 
 segs_begin, segs_end = run.flagger(start,stop,filelist)
 
-print len(segs_begin)
+#print len(segs_begin)
 
 if myid == 0: 
     my_segs_begin = split(segs_begin, nproc)
@@ -161,7 +161,8 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         stream.append(run.scan(ct_split, low_f, high_f, m_lm))
 
     '''
-
+    import copy
+    counter = copy.deepcopy(len(ctime))
 
     ####################################################################
 
@@ -250,19 +251,41 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     
     if myid == 0:
         z_buffer = np.zeros_like(z_lm)
+        y = np.asarray(0)
     else: 
         z_buffer = None
+        y = None
+    
+    counter = np.asarray(counter) 
+    print y
+    print counter, z_lm
     
     if ISMPI:
         comm.barrier()
-        comm.reduce(z_lm, z_buffer, root = 0,gravitational-wave-bkg/master.py op = MPI.SUM,)
+        comm.Reduce(z_lm, z_buffer, root = 0, op = MPI.SUM)
+        comm.Reduce(counter, y , root = 0, op = MPI.SUM)
     
     else: 
         z_buffer += z_lm
 
-    if myid == 0: 
-        Z_lm += z_buffer
+    #print '----'
+    #print 'z_lm', z_lm
+    #print 'buffer', z_buffer
+    #print 'counter',counter
+    #print '----'
 
+
+    if myid == 0: 
+        
+        print 'this is id 0'
+        Z_lm += z_buffer
+        
+        print '+++'
+        print Z_lm
+        print y
+        print '+++'
+
+        
         #Z_lm +=z_lm
     
     
@@ -277,12 +300,12 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         hp.mollview(dirty_map)
         #hp.visufunc.projscatter(hp.pix2ang(nside,pix_bs))
         #hp.visufunc.projscatter(hp.pix2ang(nside,pix_ns))
-        plt.savefig('maps_running/dirty_map%s.pdf' % sdx)
+        plt.savefig('%s/dirty_map%s.pdf' % (out_path, sdx))
         #dirty_map_lm = hp.alm2map(np.sum(dt_lm,axis = 0),nside,lmax=lmax)
 
         print 'saved: dirty_map.pdf'
     
-    
+        
         ####################################################################
     
         print 'building M^-1:'
@@ -299,7 +322,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     
     if ISMPI:
         comm.barrier()
-        comm.reduce(my_M_lm_lpmp, M_lm_lpmp_buffer, root = 0, op = MPI.SUM)
+        comm.Reduce(my_M_lm_lpmp, M_lm_lpmp_buffer, root = 0, op = MPI.SUM)
     
     else: 
         M_lm_lpmp_buffer += my_M_lm_lpmp
@@ -311,8 +334,8 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
 
         print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
     
-    
-        f = open('Ms_running/M%s.txt' % sdx, 'w')
+        
+        f = open('%s/M%s.txt' % (out_path,sdx), 'w')
         print >>f, M_lm_lpmp
         print >>f, '===='
         print >>f, np.linalg.eigh(M_lm_lpmp)
@@ -344,7 +367,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         #print dt_tot
 
         hp.mollview(S_p)
-        plt.savefig('maps_running/S_p%s.pdf' % sdx)
+        plt.savefig('%s/S_p%s.pdf' % (out_path,sdx))
 
 if myid == 0:
 

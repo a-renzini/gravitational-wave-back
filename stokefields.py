@@ -3,7 +3,7 @@ import numpy as np
 import healpy as hp
 import matplotlib.pyplot as plt
 
-nside = 4
+nside = 16
 lmax = nside
 
 a_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
