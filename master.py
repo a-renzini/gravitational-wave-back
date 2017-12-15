@@ -21,23 +21,32 @@ import sys
 data_path = sys.argv[1]
 out_path =  sys.argv[2]
 
+try:
+    sys.argv[3]
+except NameError:
+    checkpoint = None
+else:
+    checkpoint = True
+    checkfile_path = sys.argv[3]
+
+    
 if os.path.exists(data_path):
     print 'data is in ' , data_path
-    # file exists
+    # file exists                                                                                                             
 if os.path.exists(out_path):
     print 'output goes to ' , out_path
-
-###############
+    
+###############                                                                                                               
 
 def split(container, count):
-    """
-    Simple function splitting a container into equal length chunks.
-    Order is not preserved but this is potentially an advantage depending on
-    the use case.
+    """                                                                                                                       
+    Simple function splitting a container into equal length chunks.                                                           
+    Order is not preserved but this is potentially an advantage depending on                                                  
+    the use case.                                                                                                             
     """
     return [container[_i::count] for _i in range(count)]
 
-###############
+###############                                                                                                               
 
 EPSILON = 1E-24
 
@@ -47,14 +56,15 @@ if ISMPI:
     nproc = comm.Get_size()
     myid = comm.Get_rank()
 
-else: 
+
+else:
     comm = None
     nproc = 1
     myid = 0
 
 print 'myid: {} of {}'.format(myid,nproc)
 
-####################################################################
+####################################################################                                                          
 print '++++++++++++++++++++++++++'
 print '=========================='
 print '++++++++++++++++++++++++++'
@@ -65,38 +75,33 @@ print '=========================='
 print '++++++++++++++++++++++++++'
 print '=========================='
 
-# sampling rate:
+# sampling rate:                                                                                                              
 fs = 4096
-ligo_data_dir = data_path  #can be defined in the repo
+ligo_data_dir = data_path  #can be defined in the repo                                                                        
 filelist = rl.FileList(directory=ligo_data_dir)
 
 
 nside = 16
+<<<<<<< HEAD
 lmax = 4
 sim = True
+=======
+lmax = 2
+sim = False
+>>>>>>> b990ab05b50845f209f5c66ff056e15a8cc7eaeb
 
-#INTEGRATING FREQS:
+#INTEGRATING FREQS:                                                                                                           
 low_f = 80.
 high_f = 300.
 low_cut = 80.
 high_cut = 300.
 
+    
 #DETECTORS
 dects = ['H1','L1']#,'V1']
 ndet = len (dects)
 nbase = int(ndet*(ndet-1)/2)
-
-
-#create empty lm objects:
-m_lm = np.ones(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-
-my_M_lm_lpmp = 0.
-
-if myid == 0: 
-    M_lm_lpmp = 0.
-else:
-    M_lm_lpmp = None
-
+ 
 #create object of class:
 run = bc.Telescope(nside,lmax, fs, low_f, high_f)
 
@@ -126,14 +131,27 @@ if ISMPI:
     my_segs_begin = comm.scatter(my_segs_begin)
     my_segs_end = comm.scatter(my_segs_end)
 
+#create empty lm objects:
+m_lm = np.ones(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
 
+my_M_lm_lpmp = 0.
+    
 if myid == 0:
     Z_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
     S_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
+    M_lm_lpmp = 0.
+    if checkpoint  = True:
+        checkdata = np.load(checkfile_path)
+        Z_lm += checkdata['Z_lm']
+        S_lm += checkdata['S_lm']
+        M_lm_lpmp += checkdata['M_lm_lpmp'] 
+    
 else:
     Z_lm = None
     S_lm = None
+    M_lm_lpmp = None
 
+counter = 0
 
 for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     
@@ -162,7 +180,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
 
     '''
     import copy
-    counter = copy.deepcopy(len(ctime))
+    count = copy.deepcopy(len(ctime))
 
     ####################################################################
 
@@ -256,14 +274,12 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         z_buffer = None
         y = None
     
-    counter = np.asarray(counter) 
-    print y
-    print counter, z_lm
+    count = np.asarray(count) 
     
     if ISMPI:
         comm.barrier()
         comm.Reduce(z_lm, z_buffer, root = 0, op = MPI.SUM)
-        comm.Reduce(counter, y , root = 0, op = MPI.SUM)
+        comm.Reduce(count, y , root = 0, op = MPI.SUM)
     
     else: 
         z_buffer += z_lm
@@ -279,10 +295,9 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         
         print 'this is id 0'
         Z_lm += z_buffer
-        
+        counter += y 
         print '+++'
-        print Z_lm
-        print y
+        print counter 'mins analysed.'
         print '+++'
 
         
