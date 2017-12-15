@@ -138,15 +138,15 @@ if myid == 0:
     if checkpoint  == True:
         checkdata = np.load(checkfile_path)
         Z_lm += checkdata['Z_lm']
-        S_lm += checkdata['S_lm']
         M_lm_lpmp += checkdata['M_lm_lpmp'] 
+        S_lm = None
+        counter = checkdata['counter']
     
 else:
     Z_lm = None
     S_lm = None
     M_lm_lpmp = None
-
-counter = 0
+    counter = 0
 
 for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     
@@ -379,17 +379,17 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         hp.mollview(S_p)
         plt.savefig('%s/S_p%s.pdf' % (out_path,sdx))
         
-        np.savez('%s/checkfile%s.npz' % (out_path,sdx), sdx=sdx, Z_lm=Z_lm, M_lm_lpmp=M_lm_lpmp )
+        np.savez('%s/checkfile%s.npz' % (out_path,sdx), sdx=sdx, Z_lm=Z_lm, M_lm_lpmp=M_lm_lpmp, counter = counter )
     
         exit()
 
 if myid == 0:
 
     hp.mollview(hp.alm2map(Z_lm/len(ctime),nside,lmax=lmax))
-    plt.savefig('Z_p%s.pdf' % sdx)
+    plt.savefig('%sZ_p%s.pdf' % (out_path,sdx))
 
     hp.mollview(hp.alm2map(S_lm/len(ctime),nside,lmax=lmax))
-    plt.savefig('S_p%s.pdf' % sdx)
+    plt.savefig('%sS_p%s.pdf' % (out_path,sdx))
     
 
     
