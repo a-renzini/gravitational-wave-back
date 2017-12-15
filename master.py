@@ -23,7 +23,7 @@ out_path =  sys.argv[2]
 
 try:
     sys.argv[3]
-except NameError:
+except (NameError, IndexError):
     checkpoint = None
 else:
     checkpoint = True
@@ -82,13 +82,8 @@ filelist = rl.FileList(directory=ligo_data_dir)
 
 
 nside = 16
-<<<<<<< HEAD
-lmax = 4
-sim = True
-=======
 lmax = 2
-sim = False
->>>>>>> b990ab05b50845f209f5c66ff056e15a8cc7eaeb
+sim = True
 
 #INTEGRATING FREQS:                                                                                                           
 low_f = 80.
@@ -140,7 +135,7 @@ if myid == 0:
     Z_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
     S_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
     M_lm_lpmp = 0.
-    if checkpoint  = True:
+    if checkpoint  == True:
         checkdata = np.load(checkfile_path)
         Z_lm += checkdata['Z_lm']
         S_lm += checkdata['S_lm']
@@ -297,7 +292,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         Z_lm += z_buffer
         counter += y 
         print '+++'
-        print counter 'mins analysed.'
+        print counter, 'mins analysed.'
         print '+++'
 
         
