@@ -135,6 +135,7 @@ if myid == 0:
     Z_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
     S_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
     M_lm_lpmp = 0.
+    counter = 0
     if checkpoint  == True:
         checkdata = np.load(checkfile_path)
         Z_lm += checkdata['Z_lm']
@@ -278,7 +279,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     
     else: 
         z_buffer += z_lm
-
+        y += count
     #print '----'
     #print 'z_lm', z_lm
     #print 'buffer', z_buffer
@@ -381,7 +382,6 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         
         np.savez('%s/checkfile%s.npz' % (out_path,sdx), sdx=sdx, Z_lm=Z_lm, M_lm_lpmp=M_lm_lpmp, counter = counter )
     
-        exit()
 
 if myid == 0:
 
