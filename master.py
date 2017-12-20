@@ -217,7 +217,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
             l1_in = l1.copy()
             strains = (h1_in,l1_in)
             strains = run.injector(strains,low_cut,high_cut, sim)[0]
-
+            strains_copy = np.copy(strains)
 
         psds = run.injector(strains_copy,low_cut,high_cut)[1]
         
@@ -232,6 +232,19 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         
         strains_split.append(strains_w)
         psds_split.append(psds_f)
+
+
+        #mask = (freqs>low_f) & (freqs < high_f)
+        
+        #plt.figure()                                                                                                 
+        #plt.loglog(freqs[mask],psds_f[1][mask])                                                                                               
+        #plt.savefig('fakestream_psd.png')
+        
+        #plt.figure()                                                                                                 
+        #plt.loglog(freqs[mask],abs(strains_f[1][mask])**2)                                                                                               
+        #plt.savefig('fakestream_w.png')   
+        
+        #print 'saved figs'
         
         '''
         now strain_x is a segment of 60 seconds of correlated signal, in frequency space.
@@ -241,7 +254,6 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     #print '+++'
     #print run.sim_tstream(ctime[0],1.,1.,freqs)
     print 'filtering done'
-    
     #Integrate over frequency in the projector
         
     ####################################################################
