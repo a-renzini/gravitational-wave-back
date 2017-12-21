@@ -200,14 +200,17 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         
         #datah1 = 'datah1'
         #np.savez(datah1,h1)
-        
+        print len(h1)
         
         freqs = np.fft.rfftfreq(2*Nt, 1./fs)
         freqs = freqs[:Nt/2+1]
         
+        mask = (freqs>low_f) & (freqs < high_f)
+
+        
         # use a copy of the strains so that the filtering works smoothly
         strains = (h1,l1)
-        strains_copy = (h1.copy(),l1.copy())
+        strains_copy = (h1.copy(),l1.copy()) #calcualte psds from these
         
         ###########################
         
@@ -215,10 +218,15 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         if sim == True:
             h1_in = h1.copy()
             l1_in = l1.copy()
-            strains = (h1_in,l1_in)
-            strains = run.injector(strains,low_cut,high_cut, sim)[0]
-            strains_copy = np.copy(strains)
+            strains_in = (h1_in,l1_in)
+            strains = run.injector(strains_in,low_cut,high_cut, sim)[0]
+            
 
+            #plt.figure()
+            #plt.plot(freqs[mask],strains[1][mask])
+            #plt.savefig('fakestream.pdf')
+
+            
         psds = run.injector(strains_copy,low_cut,high_cut)[1]
         
         strains_f = []
@@ -233,16 +241,17 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         strains_split.append(strains_w)
         psds_split.append(psds_f)
 
-
-        #mask = (freqs>low_f) & (freqs < high_f)
+        plt.figure()                                                                                             
+        plt.loglog(freqs[mask],psds_f[1][mask])
+        plt.savefig('fakestream_psd.png')
         
-        #plt.figure()                                                                                                 
-        #plt.loglog(freqs[mask],psds_f[1][mask])                                                                                               
-        #plt.savefig('fakestream_psd.png')
+        plt.figure()                                                                                              
+        plt.loglog(freqs[mask],strains_f[1][mask])
+        plt.savefig('fakestream_f1.png')
         
-        #plt.figure()                                                                                                 
-        #plt.loglog(freqs[mask],abs(strains_f[1][mask])**2)                                                                                               
-        #plt.savefig('fakestream_w.png')   
+        plt.figure()                                                                                                 
+        plt.plot(freqs[mask],np.abs(strains_f[1][mask]/psds_f[1][mask] ))                                                                                               
+        plt.savefig('fakestream_white.pdf')   
         
         #print 'saved figs'
         
