@@ -535,7 +535,6 @@ class Telescope(object):
         
         if sim == True:     #simulates streams for all detectors called when T.scope was initialised
             fakestreams = self.sim_tstreams(freqs)
-            print 'fake', len(fakestreams)
             
         for (idx_det,strain_in) in enumerate(strains_in):
         

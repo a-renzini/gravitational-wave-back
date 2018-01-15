@@ -31,7 +31,7 @@ else:
 
     
 if os.path.exists(data_path):
-    print 'data is in ' , data_path
+    print 'the data its in the ' , data_path
     # file exists                                                                                                             
 if os.path.exists(out_path):
     print 'output goes to ' , out_path
@@ -136,12 +136,14 @@ if myid == 0:
     S_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
     M_lm_lpmp = 0.
     counter = 0
+    conds = []
     if checkpoint  == True:
         checkdata = np.load(checkfile_path)
         Z_lm += checkdata['Z_lm']
         M_lm_lpmp += checkdata['M_lm_lpmp'] 
         S_lm = None
         counter = checkdata['counter']
+        conds = checkdata['conds']
     
 else:
     Z_lm = None
@@ -200,7 +202,6 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         
         #datah1 = 'datah1'
         #np.savez(datah1,h1)
-        print len(h1)
         
         freqs = np.fft.rfftfreq(2*Nt, 1./fs)
         freqs = freqs[:Nt/2+1]
@@ -226,8 +227,21 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
             #plt.plot(freqs[mask],strains[1][mask])
             #plt.savefig('fakestream.pdf')
 
-            
+        #pass the noisy strains to injector got the psds
         psds = run.injector(strains_copy,low_cut,high_cut)[1]
+        
+        # plt.figure()
+        # plt.loglog(freqs,psds[1](freqs)*fs**2)
+        # plt.savefig('%s/fakestream_psd_pre.png' % out_path)
+        #
+        # plt.figure()
+        # plt.plot(strains[1])
+        # plt.savefig('%s/fakestream_1_pre.png' % out_path)
+        #
+        # plt.figure()
+        # plt.loglog(freqs,np.abs(np.fft.rfft(strains[1], Nt)))
+        # plt.savefig('%s/fakestream_f_pre.png' % out_path)
+
         
         strains_f = []
         psds_f = []
@@ -241,19 +255,20 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         strains_split.append(strains_w)
         psds_split.append(psds_f)
 
-        plt.figure()                                                                                             
-        plt.loglog(freqs[mask],psds_f[1][mask])
-        plt.savefig('fakestream_psd.png')
+        #plt.figure()
+        # plt.loglog(freqs[mask],psds_f[1][mask])
+        # plt.savefig('fakestream_psd.png')
+        #
+        # plt.figure()
+        # plt.loglog(freqs[mask],np.abs(strains_f[1][mask]))
+        # plt.savefig('fakestream_f1.png')
+        #
+        # plt.figure()
+        # plt.plot(freqs[mask],np.abs(strains_f[1][mask]/psds_f[1][mask] ))
+        # plt.savefig('fakestream_white.pdf')
+        #
+        # exit()
         
-        plt.figure()                                                                                              
-        plt.loglog(freqs[mask],strains_f[1][mask])
-        plt.savefig('fakestream_f1.png')
-        
-        plt.figure()                                                                                                 
-        plt.plot(freqs[mask],np.abs(strains_f[1][mask]/psds_f[1][mask] ))                                                                                               
-        plt.savefig('fakestream_white.pdf')   
-        
-        #print 'saved figs'
         
         '''
         now strain_x is a segment of 60 seconds of correlated signal, in frequency space.
@@ -362,27 +377,31 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
 
     if myid == 0: 
         M_lm_lpmp += M_lm_lpmp_buffer
+        
+        cond = np.linalg.cond(M_lm_lpmp)
+        conds.append(cond)
+        #print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
     
-
-        print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
-    
+        
+        print 'Inverting...'
+        
+        #### SVD
+        
+        M_lm_lpmp = np.real(M_lm_lpmp)
+        M_inv = np.linalg.pinv(M_lm_lpmp)   #default:  for cond < 1E15 
+        
+        print 'the matrix has been inverted!'
         
         f = open('%s/M%s.txt' % (out_path,sdx), 'w')
         print >>f, M_lm_lpmp
         print >>f, '===='
         print >>f, np.linalg.eigh(M_lm_lpmp)
         print >>f, '===='
-        print >>f, np.linalg.cond(M_lm_lpmp)
+        print >>f, cond
+        print >>f, '===='
+        print >>f, np.allclose(np.dot(M_lm_lpmp,M_inv),np.identity(len(M_lm_lpmp)))
         f.close
     
-        print '3. inverting...'
-
-        M_inv = np.linalg.inv(M_lm_lpmp)
-
-        print 'the matrix has been inverted!'
-    
-    
-
         ################################################################
 
         #s_lm = []
@@ -390,6 +409,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         
         S_lm = np.array(np.dot(M_inv,Z_lm)) #fully accumulated maps!
         #S_lm+= s_lm
+        
         S_p = hp.alm2map(S_lm,nside,lmax=lmax)
         #print len(s_lm)
         #print s_lm
