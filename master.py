@@ -360,26 +360,29 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
     for idx_t in range(len(ctime)):
         print idx_t
         my_M_lm_lpmp += run.M_lm_lpmp_t(ctime[idx_t], psds_split[idx_t],freqs,pix_bs[idx_t],q_ns[idx_t])
+    
+    cond = np.linalg.cond(my_M_lm_lpmp)
 
     if myid == 0:
         M_lm_lpmp_buffer = np.zeros_like(my_M_lm_lpmp)
+        conds_array = []
     else: 
         M_lm_lpmp_buffer = None
-    
+        conds_array = None
     
     if ISMPI:
         comm.barrier()
         comm.Reduce(my_M_lm_lpmp, M_lm_lpmp_buffer, root = 0, op = MPI.SUM)
-    
+        comm.gather(cond, conds_array , root = 0)
+
     else: 
         M_lm_lpmp_buffer += my_M_lm_lpmp
-
+        conds.append(cond)
 
     if myid == 0: 
         M_lm_lpmp += np.real(M_lm_lpmp_buffer)
-        
-        cond = np.linalg.cond(M_lm_lpmp)
-        conds.append(cond)
+        conds.append(conds_array)
+
         #print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
     
         
