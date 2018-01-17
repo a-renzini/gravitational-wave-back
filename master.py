@@ -15,6 +15,8 @@ from mpi4py import MPI
 ISMPI = True
 #if mpi4py not present: ISMPI = False
 
+#why u no worki?
+
 import os
 import sys
 
