@@ -106,25 +106,92 @@ start = 931079472    #931079472: 31 segs   931158100: 69 segs  931168100: 7 segs
 stop  = 931622015 #971622015 #931622015 #931086336 #
 
 
+###########################UNCOMMENT ME#########################################
+
+# print 'flagging the good data...'
+#
+# segs_begin, segs_end = run.flagger(start,stop,filelist)
+#
+# ctime_tot = []
+# strain_1_tot = []
+# strain_2_tot = []
+#
+# print 'segmenting the data...'
+#
+# for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
+#
+#     n=sdx+1
+#
+#     ctime, strain_H1, strain_L1 = run.segmenter(begin,end,filelist)
+#
+#     if len(ctime)<2 :
+#         print 'too short!'
+#         continue
+#
+#     ctime_tot.append(ctime)
+#     strain_1_tot.append(strain_H1)
+#     strain_2_tot.append(strain_L1)
+#
+# ctime_flat = []
+# strain_1_flat = []
+# strain_2_flat = []
+#
+# for a in range(len(ctime_tot)):
+#     for b in range(len(ctime_tot[a])):
+#         ctime_flat.append(ctime_tot[a][b])
+#         strain_1_flat.append(strain_1_tot[a][b])
+#         strain_2_flat.append(strain_2_tot[a][b])
+#
+#
+# np.savez('%s/datafile_tot.npz' % (out_path), ctime_flat = ctime_flat, strain_1_flat = strain_1_flat, strain_2_flat = strain_2_flat )
+
 ####################################################################
 
-print 'flagging the good data...'
+flat_data = np.load('%s/datafile_tot.npz' % (out_path))
 
-segs_begin, segs_end = run.flagger(start,stop,filelist)
+ctime_flat = flat_data['ctime_flat']
+#strain_1_flat = flat_data['strain_1_flat']
+#strain_2_flat = flat_data['strain_2_flat']
 
 #print len(segs_begin)
 
+idx_list = np.arange(len(ctime_flat))
+
 if myid == 0: 
-    my_segs_begin = split(segs_begin, nproc)
-    my_segs_end = split(segs_end, nproc)
+    my_idx = np.split(idx_list, nproc)
+    
 else:
-    my_segs_begin = None
-    my_segs_end = None
+    my_idx = None
 
 
 if ISMPI:
-    my_segs_begin = comm.scatter(my_segs_begin)
-    my_segs_end = comm.scatter(my_segs_end)
+        
+    my_idx = comm.scatter(my_idx)
+
+
+my_ctime_flat = ctime_flat[my_idx]
+
+if myid == 3:
+    print myid, my_ctime_flat[0], my_ctime_flat[-1]
+
+exit()
+
+############## EOF
+############## EOF
+############## EOF
+############## EOF
+############## EOF
+############## EOF
+############## EOF
+############## EOF
+############## EOF
+############## EOF
+############## EOF
+
+
+
+my_strain_1_flat = None
+my_strain_2_flat = None
 
 #create empty lm objects:
 m_lm = np.ones(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
@@ -151,34 +218,11 @@ else:
     M_lm_lpmp = None
     counter = 0
 
-for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
+for sdx, (ctime, h1, l1) in enumerate(zip(my_ctime_flat,my_strain_1_flat,my_strain_2_flat)):
     
-    n=sdx+1
+    print sdx
     
-    print 'analysing segment number %s' % n
-
-    print 'segmenting the data...'
-
-    ctime, strain_H1, strain_L1 = run.segmenter(begin,end,filelist)
-    stream = []
-    
-    
-    if len(ctime)<2 : 
-        print 'too short!'
-        continue
-
-    print 'segmenting done: ', len(ctime), ' segments'
-    
-    #SCANNING -> BUILDING FAKE TSTREAM
-
-    '''
-    
-    for idx_t, ct_split in enumerate(ctime):
-        stream.append(run.scan(ct_split, low_f, high_f, m_lm))
-
-    '''
-    import copy
-    count = copy.deepcopy(len(ctime))
+    exit()
 
     ####################################################################
 
@@ -341,7 +385,6 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
         #     proj_lm[idx_t] = run.summer(ctime[idx_t],ones,freqs) 
     
         #dirty_map_lm = hp.alm2map(np.sum(dt_lm,axis = 0),nside,lmax=lmax)
-        
         dirty_map = hp.alm2map(Z_lm,nside,lmax=lmax)
     
         fig = plt.figure()
@@ -366,7 +409,7 @@ for sdx, (begin, end) in enumerate(zip(my_segs_begin,my_segs_end)):
 
     if myid == 0:
         M_lm_lpmp_buffer = np.zeros_like(my_M_lm_lpmp)
-        conds_array = np.zeros(nproc)
+        conds_array = []
     else: 
         M_lm_lpmp_buffer = None
         conds_array = None
