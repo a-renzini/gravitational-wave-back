@@ -82,7 +82,7 @@ filelist = rl.FileList(directory=ligo_data_dir)
 
 
 nside = 8
-lmax = 2
+lmax = 4
 sim = True
 
 #INTEGRATING FREQS:                                                                                                           
@@ -102,8 +102,8 @@ run = mb.Telescope(nside,lmax, fs, low_f, high_f)
 
 # define start and stop time to search
 # in GPS seconds
-start = 931079472    #931079472: 31 segs   931158100: 69 segs  931168100: 7 segs
-stop  = 931622015 #971622015 #931622015 #931086336 #
+start = 931035615 #S6 start GPS
+stop  = 971622015  #S6 end GPS
 
 
 ###########################UNCOMMENT ME#########################################
@@ -337,7 +337,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc*5) == 0:
+                if counter % (nproc*ˇ10) == 0:
                     
                     dirty_map = hp.alm2map(Z_lm,nside,lmax=lmax)
                     S_p = hp.alm2map(S_lm,nside,lmax=lmax)
