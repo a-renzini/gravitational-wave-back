@@ -10,7 +10,7 @@ import matplotlib as mlb
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import time
-import MapBack as mb
+import MapBackM0 as mb  #################
 from mpi4py import MPI
 ISMPI = True
 #if mpi4py not present: ISMPI = False
@@ -82,14 +82,14 @@ filelist = rl.FileList(directory=ligo_data_dir)
 
 
 nside = 8
-lmax = 4
-sim = True
+lmax = 2
+sim = False#True
 
 #INTEGRATING FREQS:                                                                                                           
-low_f = 80.
-high_f = 300.
-low_cut = 80.
-high_cut = 300.
+low_f = 50.
+high_f = 100.
+low_cut = 50.
+high_cut = 100.
 
     
 #DETECTORS
@@ -137,6 +137,8 @@ else:
     counter = 0
 
 print 'segmenting the data...'
+
+mlm = []
 
 for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
@@ -236,11 +238,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             print pix_bs
             
 
-            
             z_lm = run.projector(my_ctime,strains_w,freqs,pix_bs, q_ns)
             
-            
-            #
 
             if myid == 0:
                 z_buffer = np.zeros_like(z_lm)
@@ -315,15 +314,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
                 print 'the matrix has been inverted!'
 
-                f = open('%s/M%s.txt' % (out_path,counter), 'w')
-                print >>f, M_lm_lpmp
-                print >>f, '===='
-                print >>f, np.linalg.eigh(M_lm_lpmp)
-                print >>f, '===='
-                print >>f, cond
-                print >>f, '===='
-                print >>f, np.allclose(np.dot(M_lm_lpmp,M_inv),np.identity(len(M_lm_lpmp)))
-                f.close
 
                 ################################################################
 
@@ -337,7 +327,17 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc*ˇ10) == 0:
+                if counter % (nproc*30) == 0:    ## *10000
+                    
+                    f = open('%s/M%s.txt' % (out_path,counter), 'w')
+                    print >>f, M_lm_lpmp
+                    print >>f, '===='
+                    print >>f, np.linalg.eigh(M_lm_lpmp)
+                    print >>f, '===='
+                    print >>f, cond
+                    print >>f, '===='
+                    print >>f, np.allclose(np.dot(M_lm_lpmp,M_inv),np.identity(len(M_lm_lpmp)))
+                    f.close()
                     
                     dirty_map = hp.alm2map(Z_lm,nside,lmax=lmax)
                     S_p = hp.alm2map(S_lm,nside,lmax=lmax)
@@ -353,6 +353,20 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_lm=Z_lm, M_lm_lpmp=M_lm_lpmp, counter = counter, conds = conds )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
+                    falm = open('%s/alms%s.txt' % (out_path,counter), 'w')
+                    print >> falm, S_lm  
+                    for l in range(lmax+1):
+                        idxl0 =  hp.Alm.getidx(lmax,l,0)
+                        print 'idxl0 ', idxl0 
+                        almbit = 0.
+                        for m in range(l+1):
+                            idxlm =  hp.Alm.getidx(lmax,l,m)
+                            almbit +=(2*S_lm[idxlm])*np.conj(S_lm[idxlm])/(2*l+1)
+                            print 'idxlm ',idxlm
+                        print 'almbit ', almbit
+                        print 'Sl0 ', S_lm[idxl0]*np.conj(S_lm[idxl0])/(2*l+1)
+                        print >> falm, almbit - S_lm[idxl0]*np.conj(S_lm[idxl0])/(2*l+1)
+                    f.close()
                 #################################################    
                 #################################################    
                 #################################################    

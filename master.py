@@ -466,7 +466,10 @@ exit()
     #plt.ylabel('')
     #plt.legend()
     #plt.savefig('datapow.png')
-
+    
+    #plt.figure()
+    #plt.plot(fitted,label = 'fitted psd')
+    #plt.savefig('datapow.png')
 
 ''' 
 print 'building M^-1:'
