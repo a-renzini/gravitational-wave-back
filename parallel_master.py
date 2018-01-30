@@ -357,14 +357,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     print >> falm, S_lm  
                     for l in range(lmax+1):
                         idxl0 =  hp.Alm.getidx(lmax,l,0)
-                        print 'idxl0 ', idxl0 
+                         
                         almbit = 0.
                         for m in range(l+1):
                             idxlm =  hp.Alm.getidx(lmax,l,m)
                             almbit +=(2*S_lm[idxlm])*np.conj(S_lm[idxlm])/(2*l+1)
-                            print 'idxlm ',idxlm
-                        print 'almbit ', almbit
-                        print 'Sl0 ', S_lm[idxl0]*np.conj(S_lm[idxl0])/(2*l+1)
+                        
                         print >> falm, almbit - S_lm[idxl0]*np.conj(S_lm[idxl0])/(2*l+1)
                     f.close()
                 #################################################    
@@ -386,7 +384,6 @@ if myid == 0:
     
 
     
-exit()
     
     ############# using the decorrelator instead: #########
     #
