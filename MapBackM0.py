@@ -1017,8 +1017,8 @@ class Telescope(object):
         # p = pix_b
         # quat = q_n
         # # polar angles of baseline vector
+
         theta_b, phi_b = hp.pix2ang(nside,pix_b)
-        
 
         # rotate gammas
         # TODO: will need to oversample here
@@ -1054,16 +1054,19 @@ class Telescope(object):
                     lmax_m = 0 + lp
                     for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
 
-                        m0 += np.conj(4*np.pi*(0+1.j)**lpp
+                        m0 += 4*np.pi*(0+1.j)**lpp
                         #*self.dfreq_factor(f,lpp)*s[idx_f]
                         *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
                         glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*0+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                        self.threej_0[lpp,0,lp]*self.threej_m[lpp,0,lp,0,mp])*self.dfreq_factor(freq,lpp)    
+                        self.threej_0[lpp,0,lp]*self.threej_m[lpp,0,lp,0,mp]*self.dfreq_factor(freq,lpp)    
                                                         
             #print m0
-            #plt.figure()
-            #plt.plot(freq,m0)
-            #plt.savefig('m0.pdf')
+            plt.figure()
+            plt.plot(freq,np.real(m0))
+            plt.plot(freq,np.imag(m0))
+            plt.savefig('m0.pdf')
+            
+            exit()
             
             for l in range(lmax+1):
                 for m in range(l+1):
