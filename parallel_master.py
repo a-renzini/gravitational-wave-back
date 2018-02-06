@@ -86,10 +86,10 @@ lmax = 2
 sim = False#True
 
 #INTEGRATING FREQS:                                                                                                           
-low_f = 50.
-high_f = 100.
-low_cut = 50.
-high_cut = 100.
+low_f = 80.
+high_f = 300.
+low_cut = 80.
+high_cut = 300.
 
     
 #DETECTORS
@@ -115,6 +115,7 @@ segs_begin, segs_end = run.flagger(start,stop,filelist)
 ctime_nproc = []
 strain1_nproc = []
 strain2_nproc = []
+b_pixes = []
 
 if myid == 0:
     Z_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
@@ -187,9 +188,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             freqs = np.fft.rfftfreq(2*Nt, 1./fs)
             freqs = freqs[:Nt/2+1]
-
+            
             mask = (freqs>low_f) & (freqs < high_f)
-
+            
             strains = (my_h1,my_l1)
             strains_copy = (my_h1.copy(),my_l1.copy()) #calcualte psds from these
 
@@ -236,8 +237,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             pix_ns = run.geometry(my_ctime)[2]
             
             print pix_bs
+                        
+            for i in range(len(pix_bs)):
+                b_pixes.append(pix_bs[i])
             
-
+            
             z_lm = run.projector(my_ctime,strains_w,freqs,pix_bs, q_ns)
             
 
@@ -310,7 +314,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #### SVD
 
                 M_lm_lpmp = np.real(M_lm_lpmp)
-                M_inv = np.linalg.pinv(M_lm_lpmp)   #default:  for cond < 1E15
+                M_inv = np.linalg.pinv(M_lm_lpmp, rcond = 1.E-10)   #default:  for cond < 1E15
 
                 print 'the matrix has been inverted!'
 
@@ -327,7 +331,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc*30) == 0:    ## *10000
+                if counter % (nproc*10) == 0:    ## *10000
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, M_lm_lpmp
@@ -350,6 +354,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     hp.mollview(S_p)
                     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                     
+                    
+                    fig = plt.figure()
+                    hp.mollview(np.zeros_like(dirty_map))
+                    hp.visufunc.projscatter(hp.pix2ang(nside,b_pixes))
+                    plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
+                    
                     np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_lm=Z_lm, M_lm_lpmp=M_lm_lpmp, counter = counter, conds = conds )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
@@ -364,7 +374,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                             almbit +=(2*S_lm[idxlm])*np.conj(S_lm[idxlm])/(2*l+1)
                         
                         print >> falm, almbit - S_lm[idxl0]*np.conj(S_lm[idxl0])/(2*l+1)
+                        print >> falm, np.average(S_p)
                     f.close()
+                    
+                    #if counter == 40:  exit()
                 #################################################    
                 #################################################    
                 #################################################    
