@@ -420,7 +420,7 @@ class Telescope(object):
 
     def iir_bandstops(self, fstops, fs, order=4):
         """ellip notch filter
-        fstops is a list of entries of the form [frequency (Hz), df, df2]                           
+        fstops is a list of entries of the form [frequency (Hz), df, df2f]                           
         where df is the pass width and df2 is the stop width (narrower                              
         than the pass width). Use caution if passing more than one freq at a time,                  
         because the filter response might behave in ways you don't expect.
@@ -1002,7 +1002,7 @@ class Telescope(object):
         mask = (freq>self.low_f) & (freq < self.high_f)
         freq = freq[mask]
 
-        df = self.fs/2./len(freq)/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
+        df = self.fs/2./len(freq)#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         
         #geometry 
         
@@ -1327,7 +1327,7 @@ class Telescope(object):
         mask = (freq>self.low_f) & (freq < self.high_f)
         freq = freq[mask]
         
-        df = self.fs/2./len(freq)/len(psds_split_t[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
+        df = self.fs/2./len(freq)#/len(psds_split_t[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         
         #geometry
         
