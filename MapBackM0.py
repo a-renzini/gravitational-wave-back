@@ -1042,6 +1042,7 @@ class Telescope(object):
             for lp in range(lmax+1):
                 for mp in range(lp+1):
                     # remaining m index
+                    Nmp = lp+1
                     mpp = 0+mp
                     lmin_m = np.max([np.abs(0 - lp), np.abs(0 + mp)])
                     lmax_m = 0 + lp
