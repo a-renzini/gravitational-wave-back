@@ -329,8 +329,8 @@ class Telescope(object):
     def E_f(self,f,alpha=3.,f0=1.):
         return (f/f0)**(alpha-3.)
     
-    def coupK(self,l,lp,lpp,m,mp,mpp):
-        return np.sqrt((2*l+1)(2*lp+1)(2*lpp+1)/4./np.pi)*self.threej_0[l,lp,lpp]*self.threej_m[l,lp,lpp,m,mp]
+    def coupK(self,l,lp,lpp,m,mp):
+        return np.sqrt((2*l+1.)*(2*lp+1.)*(2*lpp+1.)/4./np.pi)*self.threej_0[l,lp,lpp]*self.threej_m[l,lp,lpp,m,mp]
 
     def dfreq_factor(self,f,ell,H0=68.0,f0=100.):
         # f : frequency (Hz)
@@ -912,7 +912,7 @@ class Telescope(object):
         #norm = np.abs(np.sum(np.abs(hit_lm)))
         
 
-    def summer(self, ct_split, strain, freq, pix_b, q_n ):     
+    def oldsummer(self, ct_split, strain, freq, pix_b, q_n ):     
            
         nside=self._nside
         lmax=self._lmax
@@ -991,7 +991,7 @@ class Telescope(object):
         return sum_lm#/norm
 
 
-    def summerm0fullms(self, ct_split, strain, freq, pix_b, q_n ):     
+    def summer(self, ct_split, strain, freq, pix_b, q_n ):     
            
         nside=self._nside
         lmax=self._lmax
@@ -1038,7 +1038,7 @@ class Telescope(object):
             s = strain[idx_b][mask]
             
             m0 = 0.
-            
+
             for lp in range(lmax+1):
                 for mp in range(lp+1):
                     # remaining m index
@@ -1053,13 +1053,13 @@ class Telescope(object):
                                 glm[hp.Alm.getidx(lmax,lp,mp)]*self.coupK(lp,0,lpp,mp,0)+
                                 np.conj(glm[hp.Alm.getidx(lmax,lp,mp)])*(-1.)**mp*self.coupK(lp,0,lpp,-mp,0)+
                                 glm[hp.Alm.getidx(lmax,lp,0)]*self.coupK(lp,0,lpp,0,0)/Nmp
-                                )*self.dfreq_factor(freq,lpp))  
-                                                        
+                                )*self.dfreq_factor(freq,lpp))
+
             #print m0
-            plt.figure()
-            plt.plot(freq,np.real(m0))
-            plt.plot(freq,np.imag(m0))
-            plt.savefig('m0.pdf')
+            # plt.figure()
+            # plt.plot(freq,np.real(m0))
+            # plt.plot(freq,np.imag(m0))
+            # # plt.savefig('m0.pdf')
             
             
             for l in range(lmax+1):
@@ -1092,124 +1092,6 @@ class Telescope(object):
         return sum_lm#/norm
  
 
-
-    def summerm0(self, ct_split, strain, freq, pix_b, q_n ):     
-           
-        nside=self._nside
-        lmax=self._lmax
-        
-        df = self.fs/4./len(strain[0])
-        
-        sum_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-        m_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-        
-        mask = (freq>self.low_f) & (freq < self.high_f)
-        freq = freq[mask]
-
-        #geometry 
-        
-        npix = self.npix
-        
-        mid_idx = int(len(ct_split)/2)
-    
-        # # get quaternions for H1->L1 baseline (use as boresight)
-        # q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1.lon()), np.degrees(self.H1.lat()), ct_split[mid_idx])
-        # # get quaternions for bisector pointing (use as boresight)
-        # q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
-        # pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
-        #
-        # p = pix_b
-        # quat = q_n
-        # # polar angles of baseline vector
-
-        theta_b, phi_b = hp.pix2ang(nside,pix_b)
-
-        # rotate gammas
-        # TODO: will need to oversample here
-        # i.e. use nside > nside final map
-        # TODO: pol gammas
-
-        # Expand rotated gammas into lm
-                    
-        
-        '''
-        
-        insert integral over frequency in the sum; integrate.quad(self.dfreq_factor*s,fmin,fmax,args=(ell))[0]
-        s needs to be turned into a function of frequency(?)
-        
-        '''
-
-        # sum over lp, mp
-        for idx_b in range(self._nbase):
-            
-            rot_m_array = self.rotation_pix(np.arange(npix), q_n[idx_b]) #rotating around the bisector of the gc 
-            gammaI_rot = self.gammaI[idx_b][rot_m_array]
-            
-            glm = hp.map2alm(gammaI_rot, lmax, pol=False)  
-            
-            # for ell in range(lmax+1):
-            #     idxl0 =  hp.Alm.getidx(lmax,ell,0)
-            #
-            #     almbit = 0.
-            #     for em in range(ell+1):
-            #         idxlm =  hp.Alm.getidx(lmax,ell,em)
-            #         almbit +=(2*glm[idxlm])*np.conj(glm[idxlm])/(2*ell+1)
-            #
-            #     print almbit - glm[idxl0]*np.conj(glm[idxl0])/(2*ell+1)
-            
-            # out :
-            # (0.00779142015605+0j)
-            # (1.40045923051e-35+0j)
-            # (0.0013366737491+0j)
-                        
-            s = strain[idx_b][mask]
-            
-            m0 = 0.
-            
-            for lp in range(lmax+1):
-                for mp in range(lp+1):
-                    # remaining m index
-                    mpp = 0+mp
-                    lmin_m = np.max([np.abs(0 - lp), np.abs(0 + mp)])
-                    lmax_m = 0 + lp
-                    for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-
-                        m0 += (4*np.pi*(0+1.j)**lpp
-                        #*self.dfreq_factor(f,lpp)*s[idx_f]
-                        *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
-                        glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*0+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                        self.threej_0[lpp,0,lp]*self.threej_m[lpp,0,lp,0,mp])*self.dfreq_factor(freq,lpp)    
-                                                        
-            #print m0
-            plt.figure()
-            plt.plot(freq,np.real(m0))
-            plt.plot(freq,np.imag(m0))
-            plt.savefig('m0.pdf')
-            
-            
-            for l in range(lmax+1):
-                for m in range(l+1):
-
-                    idx_lm = hp.Alm.getidx(lmax,l,m)
-
-                    for lp in range(lmax+1):
-                        for mp in range(lp+1):
-                            # remaining m index
-                            mpp = m+mp
-                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                            lmax_m = l + lp
-                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-
-                                sum_lm[idx_lm] += np.conj(4*np.pi*(0+1.j)**lpp
-                                #*self.dfreq_factor(f,lpp)*s[idx_f]
-                                *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
-                                glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])*np.sum(self.dfreq_factor(freq,lpp)*m0)*df    ##freq dependence summed over
-                                                                
-                            #hit_lm[idx_lm] += np.conj((-1)**mpp*(0+1.j)**lpp*np.sum(self.dfreq_factor(freq,lpp))*df*np.conj(sph_harm(mpp, lpp, theta_b, phi_b))*glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
-        #norm = np.abs(np.sum(np.abs(hit_lm)))
-        return sum_lm#/norm
- 
     def projector(self,ctime, s_tuple,freqs,pix_bs, q_ns):
         
         #just a summer wrapper really
@@ -1226,7 +1108,7 @@ class Telescope(object):
             a, b = self.combo_tuples[i]
             s.append(s_tuple[a]*np.conj(s_tuple[b]))
             
-        data_lm += self.summerm0(ctime, s, freqs, pix_bs, q_ns)
+        data_lm += self.summer(ctime, s, freqs, pix_bs, q_ns)
         
         #print np.mean(data_lm)          
         

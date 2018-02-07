@@ -83,7 +83,7 @@ filelist = rl.FileList(directory=ligo_data_dir)
 
 nside = 8
 lmax = 2
-sim = False#True
+sim = False
 
 #INTEGRATING FREQS:                                                                                                           
 low_f = 80.
@@ -331,7 +331,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc*30) == 0:    ## *10000
+                if counter % (nproc*10) == 0:    ## *10000
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, M_lm_lpmp
