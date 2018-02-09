@@ -279,11 +279,11 @@ class Telescope(object):
         self.hp = np.array(np.sqrt(np.abs(sfs.Istoke)/2))
         self.hc = np.array(np.sqrt(np.abs(sfs.Istoke)/2))
 
-        plt.figure()
-        hp.mollview(self.hp)
-        #plt.loglog(freqs,np.sqrt(hf_psd(freqs)), color = 'g') #(freqs)
-        #plt.ylim([-100.,100.])
-        plt.savefig('hp.png' )
+        # plt.figure()
+        # hp.mollview(self.hp)
+        # #plt.loglog(freqs,np.sqrt(hf_psd(freqs)), color = 'g') #(freqs)
+        # #plt.ylim([-100.,100.])
+        # plt.savefig('hp.png' )
                         
         
     # ********* Basic Tools *********
@@ -1037,26 +1037,40 @@ class Telescope(object):
                         
             s = strain[idx_b][mask]
 
-            #m0 = 0.
-            #
-            # for lp in range(lmax+1):
-            #     for mp in range(lp+1):
-            #         # remaining m index
-            #         Nmp = lp+1
-            #         mpp = 0+mp
-            #         lmin_m = np.max([np.abs(0 - lp), np.abs(0 + mp)])
-            #         lmax_m = 0 + lp
-            #         for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-            #
-            #             m0 += (4*np.pi*(0+1.j)**lpp
-            #                 *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
-            #                     (
-            #                     glm[hp.Alm.getidx(lmax,lp,mp)]*self.coupK(lp,0,lpp,mp,0)+
-            #                     np.conj(glm[hp.Alm.getidx(lmax,lp,mp)])*(-1.)**mp*self.coupK(lp,0,lpp,-mp,0)+
-            #                     glm[hp.Alm.getidx(lmax,lp,0)]*self.coupK(lp,0,lpp,0,0)/Nmp
-            #                     )*self.dfreq_factor(freq,lpp))
+            m0 = 0.
 
-            # print m0
+            for l in range(1):
+                for m in range(l+1):
+
+                    for lp in range(lmax+1):
+                        for mp in range(-lp, lp+1):
+                            # remaining m index
+                            #Nmp = lp+1.
+                            mpp = - (m+mp)
+                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                            lmax_m = l + lp
+                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                                if mp>0 :
+
+                                    m0 +=  (
+                        
+                                    4.*np.pi*(0+1.j)**lpp
+                                    #*self.dfreq_factor(f,lpp)*s[idx_f]
+                                    *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
+                                    (
+                                    glm[hp.Alm.getidx(lmax,lp,mp)]*self.coupK(lp,l,lpp,mp,m)
+                                    ))*np.sum(self.dfreq_factor(freq,lpp))    ##freq dependence summed over
+                            
+                                else:
+                                    m0 += (
+                        
+                                     4.*np.pi*(0+1.j)**lpp
+                                     *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
+                                     (
+                                     (-1.)**(mp)*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])*self.coupK(lp,l,lpp,mp,m)
+                                     ))*np.sum(self.dfreq_factor(freq,lpp))
+
+            print m0
             # plt.figure()
             # plt.plot(freq,np.real(m0))
             # plt.plot(freq,np.imag(m0))
@@ -1085,7 +1099,7 @@ class Telescope(object):
                                     *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
                                     (
                                     glm[hp.Alm.getidx(lmax,lp,mp)]*self.coupK(lp,l,lpp,mp,m)
-                                    ))*np.sum(self.dfreq_factor(freq,lpp)*s)*df    ##freq dependence summed over
+                                    ))*np.sum(self.dfreq_factor(freq,lpp)*m0)*df    ##freq dependence summed over
                             
                                 else:
                                     sum_lm[idx_lm] += (
@@ -1094,7 +1108,7 @@ class Telescope(object):
                                      *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
                                      (
                                      (-1.)**(mp)*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])*self.coupK(lp,l,lpp,mp,m)
-                                     ))*np.sum(self.dfreq_factor(freq,lpp)*s)*df                           
+                                     ))*np.sum(self.dfreq_factor(freq,lpp)*m0)*df                           
         return sum_lm#/norm
  
 
@@ -1238,7 +1252,7 @@ class Telescope(object):
             #print '==', idx_b, '++'
             
             a, b = self.combo_tuples[idx_b]
-            weight = np.ones_like(psds_split_t[a])/(psds_split_t[a]*psds_split_t[b])
+            weight = np.ones_like(psds_split_t[a])#/(psds_split_t[a]*psds_split_t[b])
             weight = weight[mask]           #so we're only integrating on the interesting freqs
             
             rot_m_array = self.rotation_pix(np.arange(npix), q_n[idx_b]) #rotating around the bisector of the gc 
