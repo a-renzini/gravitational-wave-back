@@ -77,13 +77,14 @@ print '=========================='
 
 # sampling rate:                                                                                                              
 fs = 4096
+
 ligo_data_dir = data_path  #can be defined in the repo                                                                        
 filelist = rl.FileList(directory=ligo_data_dir)
 
 
 nside = 8
 lmax = 2
-sim = False
+sim = True  
 
 #INTEGRATING FREQS:                                                                                                           
 low_f = 80.
@@ -99,6 +100,7 @@ nbase = int(ndet*(ndet-1)/2)
  
 #create object of class:
 run = mb.Telescope(nside,lmax, fs, low_f, high_f)
+
 
 # define start and stop time to search
 # in GPS seconds
@@ -244,7 +246,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             z_lm = run.projector(my_ctime,strains_w,freqs,pix_bs, q_ns)
             
-
+            
             if myid == 0:
                 z_buffer = np.zeros_like(z_lm)
             else:
@@ -314,7 +316,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #### SVD
 
                 M_lm_lpmp = np.real(M_lm_lpmp)
-                M_inv = np.linalg.pinv(M_lm_lpmp, rcond = 1.E-10)   #default:  for cond < 1E15
+                M_inv = np.linalg.pinv(M_lm_lpmp)   #default:  for cond < 1E15
 
                 print 'the matrix has been inverted!'
 
@@ -331,20 +333,25 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc*10) == 0:    ## *10000
+                if counter % (nproc*20) == 0:    ## *10000
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
+                    print >>f, 'sim = ', sim
                     print >>f, M_lm_lpmp
                     print >>f, '===='
+                    print >>f, M_inv
+                    print >>f, '===='                    
                     print >>f, np.linalg.eigh(M_lm_lpmp)
                     print >>f, '===='
                     print >>f, cond
                     print >>f, '===='
-                    print >>f, np.allclose(np.dot(M_lm_lpmp,M_inv),np.identity(len(M_lm_lpmp)))
+                    print >>f, np.dot(M_lm_lpmp,M_inv),np.identity(len(M_lm_lpmp))
                     f.close()
+                    
                     
                     dirty_map = hp.alm2map(Z_lm,nside,lmax=lmax)
                     S_p = hp.alm2map(S_lm,nside,lmax=lmax)
+                    
                     
                     fig = plt.figure()
                     hp.mollview(dirty_map)
@@ -354,11 +361,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     hp.mollview(S_p)
                     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                     
-                    
-                    fig = plt.figure()
-                    hp.mollview(np.zeros_like(dirty_map))
-                    hp.visufunc.projscatter(hp.pix2ang(nside,b_pixes))
-                    plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
                     
                     np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_lm=Z_lm, M_lm_lpmp=M_lm_lpmp, counter = counter, conds = conds )
                     
@@ -375,7 +377,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         
                         print >> falm, almbit - S_lm[idxl0]*np.conj(S_lm[idxl0])/(2*l+1)
                         print >> falm, np.average(S_p)
+                    print >> falm, 'end.'
                     f.close()
+                    
+                    fig = plt.figure()
+                    hp.mollview(np.zeros_like(dirty_map))
+                    hp.visufunc.projscatter(hp.pix2ang(nside,b_pixes))
+                    plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
                     
                     #if counter == 40:  exit()
                 #################################################    
