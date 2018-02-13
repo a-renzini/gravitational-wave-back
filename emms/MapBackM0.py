@@ -1059,7 +1059,7 @@ class Telescope(object):
                                     *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
                                     (
                                     glm[hp.Alm.getidx(lmax,lp,mp)]*self.coupK(lp,l,lpp,mp,m)
-                                    ))*np.sum(self.dfreq_factor(freq,lpp))    ##freq dependence summed over
+                                    ))*self.dfreq_factor(freq,lpp)    ##freq dependence summed over
                             
                                 else:
                                     m0 += (
@@ -1068,15 +1068,19 @@ class Telescope(object):
                                      *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
                                      (
                                      (-1.)**(mp)*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])*self.coupK(lp,l,lpp,mp,m)
-                                     ))*np.sum(self.dfreq_factor(freq,lpp))
+                                     ))*self.dfreq_factor(freq,lpp)
 
-            print m0
+            # print np.average(np.abs(m0))
+            #
+            #
+            #
             # plt.figure()
             # plt.plot(freq,np.real(m0))
             # plt.plot(freq,np.imag(m0))
             # plt.savefig('m0.pdf')
+            #
+            # exit()
 
-            
             for l in range(lmax+1):
                 for m in range(l+1):
 

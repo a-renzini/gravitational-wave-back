@@ -10,7 +10,7 @@ import matplotlib as mlb
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import time
-import MapBackM0 as mb  #################
+import MapBack as mb  #################
 from mpi4py import MPI
 ISMPI = True
 #if mpi4py not present: ISMPI = False
@@ -217,7 +217,16 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 psds_f.append(psds[i](freqs)*fs**2 )
                 strains_w.append(strains_f[i]/(psds_f[i]))
 
-
+            #print (strains_f[0]*np.conj(strains_f[1]))[mask]
+            print np.average(np.abs((strains_f[0]*np.conj(strains_f[1]))[mask]))
+            
+            plt.figure()
+            plt.plot(freqs[mask],np.real((strains_f[0]*np.conj(strains_f[1]))[mask]))
+            plt.plot(freqs[mask],np.imag((strains_f[0]*np.conj(strains_f[1]))[mask]))
+            plt.savefig('ssconj.pdf')
+            
+            exit()
+            
             '''
             now strains_w, etc are pairs of 60s segments of signal, in frequency space.
             '''
