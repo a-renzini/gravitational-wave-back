@@ -81,8 +81,8 @@ fs = 4096
 ligo_data_dir = data_path  #can be defined in the repo                                                                        
 filelist = rl.FileList(directory=ligo_data_dir)
 
-
-nside = 8
+nside_in = 16
+nside_out = 8
 lmax = 2
 sim = True  
 
@@ -99,7 +99,7 @@ ndet = len (dects)
 nbase = int(ndet*(ndet-1)/2)
  
 #create object of class:
-run = mb.Telescope(nside,lmax, fs, low_f, high_f)
+run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f)
 
 
 # define start and stop time to search
@@ -214,19 +214,18 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             for i in range(ndet):
                 strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i]))
-                psds_f.append(psds[i](freqs)*fs**2 )
+                psds_f.append(psds[i](freqs)*fs**2) 
                 strains_w.append(strains_f[i]/(psds_f[i]))
-
+            
+                
             #print (strains_f[0]*np.conj(strains_f[1]))[mask]
-            print np.average(np.abs((strains_f[0]*np.conj(strains_f[1]))[mask]))
-            
-            plt.figure()
-            plt.plot(freqs[mask],np.real((strains_f[0]*np.conj(strains_f[1]))[mask]))
-            plt.plot(freqs[mask],np.imag((strains_f[0]*np.conj(strains_f[1]))[mask]))
-            plt.savefig('ssconj.pdf')
-            
-            exit()
-            
+            # print np.average(np.abs((strains_f[0]*np.conj(strains_f[1]))[mask]))
+            #
+            # plt.figure()
+            # plt.plot(freqs[mask],np.real((strains_f[0])[mask]))
+            # plt.plot(freqs[mask],np.imag((strains_f[0])[mask]))
+            # plt.savefig('fakestreams2.pdf')
+
             '''
             now strains_w, etc are pairs of 60s segments of signal, in frequency space.
             '''

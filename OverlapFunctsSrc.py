@@ -128,37 +128,37 @@ def gammaUHL(theta,phi):
 #########################
 
 def m(theta, phi):  #unit vector
-    return [cos(phi)*cos(theta),sin(phi)*cos(theta),sin(theta)] #defined in the ra, dec range
+    return [cos(phi)*sin(theta),sin(phi)*sin(theta),cos(theta)] #defined in range: 0<th<pi
     
-def vect_diff_pix(pixm,pixn,nsd): #you give it 2 pixs, it returns the pixel of their difference (psi ang info is thus lost - but may be recovered with some work)
-    decn, ran = hp.pix2ang(nsd,pixn)   #these are in hp conventions: decn goes from 0 to pi
-    decm, ram = hp.pix2ang(nsd,pixm)
-    n_vect = m(decn-np.pi*0.5, ran) #to fit *my* convention
-    m_vect = m(decm-np.pi*0.5, ram)
-    m_minus_n = np.array(m_vect)-np.array(n_vect)
-    norm = np.sqrt(np.dot(m_minus_n,m_minus_n))
-    sina = m_minus_n[2]/norm  #a is m-n dec, b is m-n ra
-    cosa = np.sqrt(1-sina**2)  #as a is in the range -pi/2:+pi/2
-    cosb = m_minus_n[0]/(norm*cosa)
-    sinb = m_minus_n[1]/(norm*cosa)
-    a = np.arctan2(sina,cosa)
-    b = np.arctan2(sinb,cosb)
-    pix_m_minus_n = hp.ang2pix(nsd,a+np.pi*0.5,b) #
-    return pix_m_minus_n
+# def vect_diff_pix(pixm,pixn,nsd): #you give it 2 pixs, it returns the pixel of their difference (psi ang info is thus lost - but may be recovered with some work)
+#     decn, ran = hp.pix2ang(nsd,pixn)   #these are in hp conventions: decn goes from 0 to pi
+#     decm, ram = hp.pix2ang(nsd,pixm)
+#     n_vect = m(decn-np.pi*0.5, ran) #to fit *my* convention
+#     m_vect = m(decm-np.pi*0.5, ram)
+#     m_minus_n = np.array(m_vect)-np.array(n_vect)
+#     norm = np.sqrt(np.dot(m_minus_n,m_minus_n))
+#     sina = m_minus_n[2]/norm  #a is m-n dec, b is m-n ra
+#     cosa = np.sqrt(1-sina**2)  #as a is in the range -pi/2:+pi/2
+#     cosb = m_minus_n[0]/(norm*cosa)
+#     sinb = m_minus_n[1]/(norm*cosa)
+#     a = np.arctan2(sina,cosa)
+#     b = np.arctan2(sinb,cosb)
+#     pix_m_minus_n = hp.ang2pix(nsd,a+np.pi*0.5,b) #
+#     return pix_m_minus_n
     
-def vect_sum_pix(pixn,pixm,nsd): #you give it 2 pixs, it returns the pixel of their difference (psi ang info is thus lost - but may be recovered with some work)
-    decn, ran = hp.pix2ang(nsd,pixn)   #these are in hp conventions: decn goes from 0 to pi
-    decm, ram = hp.pix2ang(nsd,pixm)
-    n_vect = m(decn-np.pi*0.5, ran) #to fit *my* convention
-    m_vect = m(decm-np.pi*0.5, ram)
-    m_plus_n = np.array(m_vect)+np.array(n_vect)
-    norm = np.sqrt(m_plus_n.dot(m_plus_n))
-    sina = m_plus_n[2]/norm  #a is m-n dec, b is m-n ra
-    cosa = np.sqrt(1-sina**2)  #as a is in the range -pi/2:+pi/2
-    cosb = m_plus_n[0]/(norm*cosa)
-    sinb = m_plus_n[1]/(norm*cosa)
-    a = np.arctan2(sina,cosa)
-    b = np.arctan2(sinb,cosb)
-    pix_m_plus_n = hp.ang2pix(nsd,a+np.pi*0.5,b)  #
-    return pix_m_plus_n
-
+# def vect_sum_pix(pixn,pixm,nsd): #you give it 2 pixs, it returns the pixel of their difference (psi ang info is thus lost - but may be recovered with some work)
+#     decn, ran = hp.pix2ang(nsd,pixn)   #these are in hp conventions: decn goes from 0 to pi
+#     decm, ram = hp.pix2ang(nsd,pixm)
+#     n_vect = m(decn-np.pi*0.5, ran) #to fit *my* convention
+#     m_vect = m(decm-np.pi*0.5, ram)
+#     m_plus_n = np.array(m_vect)+np.array(n_vect)
+#     norm = np.sqrt(m_plus_n.dot(m_plus_n))
+#     sina = m_plus_n[2]/norm  #a is m-n dec, b is m-n ra
+#     cosa = np.sqrt(1-sina**2)  #as a is in the range -pi/2:+pi/2
+#     cosb = m_plus_n[0]/(norm*cosa)
+#     sinb = m_plus_n[1]/(norm*cosa)
+#     a = np.arctan2(sina,cosa)
+#     b = np.arctan2(sinb,cosb)
+#     pix_m_plus_n = hp.ang2pix(nsd,a+np.pi*0.5,b)  #
+#     return pix_m_plus_n
+#

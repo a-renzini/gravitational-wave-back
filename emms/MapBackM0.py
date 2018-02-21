@@ -606,13 +606,12 @@ class Telescope(object):
         for dect in self.detectors:
             resp = []
             for f in freqs:
-                integral = (1./self.npix)*np.sqrt(self.E_f(f))* np.sum( (self.hp*dect.get_Fplus()+self.hc*dect.get_Fcross())*np.exp(2*np.pi/c*1.j*f*dect.get_dott())  )
-                resp.append(integral ) # NORM?
+                integral = (4.*np.pi/self.npix)*np.sqrt(self.E_f(f))* np.sum( (self.hp*dect.get_Fplus()+self.hc*dect.get_Fcross())*(np.cos((2*np.pi/c*f*dect.get_dott()))+1.j*np.sin((2*np.pi/c*f*dect.get_dott())))  )
+                # NORM?
             #plt.figure()
             #plt.plot(resp)
             #plt.savefig('fakestream.png')
             resps.append(np.array(resp))
-                
         return resps
     
     

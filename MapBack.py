@@ -36,6 +36,35 @@ LIGO ANALYSIS ROUTINES
 
 '''
 
+class Generator(object):
+    
+    def __init__(self,nside, sig_name):     #use nside_in! 
+        
+        self.nside = nside
+        self.lmax = self.nside/2
+        
+        if sig_name == 'mono':    
+
+            self.a_lm = np.zeros(hp.Alm.getidx(self.lmax,self.lmax,self.lmax)+1,dtype=complex)
+
+            self.a_lm[0] = 1.
+
+            #cls = hp.sphtfunc.alm2cl(a_lm)
+
+            # cls=[1]*nside
+            # i=0
+            # while i<nside:
+            #     cls[i]=1./(i+1.)**2.
+            #     i+=1
+
+            Istoke = hp.sphtfunc.alm2map(self.a_lm, nside)
+        else:
+            self.a_lm = np.zeros(hp.Alm.getidx(self.lmax,self.lmax,self.lmax)+1,dtype=complex)
+            
+            
+    def get_a_lm(self):
+        return self.a_lm
+
 class Dect(object):
     
     def __init__(self,nside, dect_name):
@@ -43,6 +72,8 @@ class Dect(object):
         self.R_earth=6378137
         self.beta = 27.2*np.pi/180.
         self._nside = nside
+        lmax = nside/2
+        self.lmax = lmax
         
         # Configuration: radians and metres, Earth-centered frame
         if dect_name =='H1':
@@ -88,11 +119,29 @@ class Dect(object):
             self._u = self.u_vec(self._lat,self._lon,alpha)
             self._v = self.v_vec(self._lat,self._lon,alpha)
         
+        
         self.npix = hp.nside2npix(self._nside)
-        theta, phi = hp.pix2ang(self._nside,np.arange(self.npix)) 
+        theta, phi = hp.pix2ang(self._nside,np.arange(self.npix))
         self.Fplus = self.Fplus(theta,phi)
         self.Fcross = self.Fcross(theta,phi)
         self.dott = self.dott(self._vec)
+        
+        if lmax>0:
+        # cache 3j symbols
+            self.threej_0 = np.zeros((2*lmax+1,2*lmax+1,2*lmax+1))
+            self.threej_m = np.zeros((2*lmax+1,2*lmax+1,2*lmax+1,2*lmax+1,2*lmax+1))
+            for l in range(lmax+1):
+                for m in range(-l,l+1):
+                    for lp in range(lmax+1):
+                        lmin0 = np.abs(l - lp)
+                        lmax0 = l + lp
+                        self.threej_0[lmin0:lmax0+1,l,lp] = threej(l, lp, 0, 0)
+                        for mp in range(-lp,lp+1):
+                            # remaining m index
+                            mpp = -(m+mp)
+                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                            lmax_m = l + lp
+                            self.threej_m[lmin_m:lmax_m+1,l,lp,m,mp] = threej(lp, l, mp, m) ###
         
         
     def lon(self):
@@ -129,9 +178,7 @@ class Dect(object):
         return 0.5*(np.outer(self._u,self._u)-np.outer(self._v,self._v))   
         
     def Fplus(self,theta,phi):            
-    
         d_t = self.d_tens()
-
         res=0
         i=0
         while i<3:
@@ -140,6 +187,7 @@ class Dect(object):
                 res=res+d_t[i,j]*ofs.eplus(theta,phi,i,j)
                 j=j+1
             i=i+1
+            
         return res
         
     def Fcross(self,theta,phi): 
@@ -156,12 +204,19 @@ class Dect(object):
             i=i+1
         return res
 
+    def get_Fplus_lm(self):
+        return hp.map2alm(self.Fplus,self.lmax, pol=False) 
+    
+    def get_Fcross_lm(self):
+        return hp.map2alm(self.Fcross,self.lmax, pol=False)
+
     def dott(self,x_vect):
 
         m = hp.pix2ang(self._nside,np.arange(self.npix))
-        m_vect = np.array(ofs.m(m[0]-np.pi*0.5, m[1])) #to fit *my* convention
-        
-        return self.R_earth*np.dot(m_vect.T,x_vect)
+        m_vect = np.array(ofs.m(m[0], m[1])) #fits *my* convention: 0<th<pi, like for hp
+        #print self.R_earth*np.dot(m_vect.T,x_vect)
+
+        return np.dot(m_vect.T,x_vect)  #Rearth is in x_vect!
     
     def get_Fplus(self):
         return self.Fplus
@@ -172,17 +227,82 @@ class Dect(object):
     def get_dott(self):
         return self.dott
 
+    def coupK(self,l,lp,lpp,m,mp):
+        return np.sqrt((2*l+1.)*(2*lp+1.)*(2*lpp+1.)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]
 
+    def simulate(self,freqs,typ = 'mono'):
+        sim = []
+        nside = self._nside
+        gen = Generator(nside,typ)
+        lmax = self.lmax
+        
+        hplm = gen.get_a_lm()
+        hclm = gen.get_a_lm()
+        Fplm = self.get_Fplus_lm()
+        Fclm = self.get_Fcross_lm()
+        
+        c = 3.e8
+        
+        if typ == 'mono':
+            lmaxl = 0
+        else: lmaxl = lmax 
+        
+        for f in freqs:
+            print f
+            sim_f = 0.
+            for l in range(lmaxl+1): #
+                for m in range(-l,l+1): #
+                    
+                    idx_lm = hp.Alm.getidx(lmax,l,abs(m))
+        
+                    for lp in range(lmax+1): #
+                        for mp in range(-lp,lp+1): #
+        
+                            idx_lpmp = hp.Alm.getidx(lmax,lp,abs(mp))
+                            #print '(',idx_lm, idx_ltmt, ')'
 
+                            # remaining m index
+                            mpp = -(m+mp)
+                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
+                            lmax_m = l + lp
+                    
+                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
+                        
+                                if m>0:
+                                    if mp>0:
+                                        sim_f+=4*np.pi*(0.+1.j)*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        *np.conj(sph_harm(mpp, lpp, self._lat,self._lon))*self.coupK(lp,l,lpp,mp,m)
+                                        *(hplm[idx_lm]*Fplm[idx_lpmp]+hclm[idx_lm]*Fclm[idx_lpmp]) )
+                            
+                                    else:
+                                        sim_f+=4*np.pi*(0.+1.j)*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        *np.conj(sph_harm(mpp, lpp, self._lat,self._lon))*self.coupK(lp,l,lpp,mp,m)
+                                        *(hplm[idx_lm]*np.conj(Fplm[idx_lpmp])+hclm[idx_lm]*np.conj(Fclm[idx_lpmp])) )*(-1)**mp
+                                
+                                else:
+                                    if mp>0:
+                                        sim_f+=4*np.pi*(0.+1.j)*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        *np.conj(sph_harm(mpp, lpp, self._lat,self._lon))*self.coupK(lp,l,lpp,mp,m)
+                                        *(np.conj(hplm[idx_lm])*Fplm[idx_lpmp]+np.conj(hclm[idx_lm])*Fclm[idx_lpmp]) )*(-1)**m
+                            
+                                    else:
+                                        sim_f+=4*np.pi*(0.+1.j)*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        *np.conj(sph_harm(mpp, lpp, self._lat,self._lon))*self.coupK(lp,l,lpp,mp,m)
+                                        *(np.conj(hplm[idx_lm])*np.conj(Fplm[idx_lpmp])+np.conj(hclm[idx_lm])*np.conj(Fclm[idx_lpmp])) )*(-1)**m*(-1)**mp
+                                        
+            #print sim_f
+            sim.append(sim_f)
+        return sim
 
 class Telescope(object):
 
-    def __init__(self, nside, lmax, fs, low_f, high_f, input_map = None): #Dect list
+    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, input_map = None): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
         self.R_earth = 6378137
-        self._nside = nside
+        self._nside_in = nside_in
+        self._nside_out = nside_out
         self._lmax = lmax
         self.fs = fs
         self.low_f = low_f
@@ -196,13 +316,13 @@ class Telescope(object):
         dects = ['H1','L1']#,'V1']
         self.detectors = np.array([])
         for d in dects: 
-            self.detectors = np.append(self.detectors,Dect(nside,d))
+            self.detectors = np.append(self.detectors,Dect(nside_in,d))
         
         self.ndet = len(self.detectors)
         
-        self.H1 = Dect(nside,'H1')
-        self.L1 = Dect(nside, 'L1')
-        self.V1 = Dect(nside, 'V1')
+        self.H1 = Dect(nside_in,'H1')
+        self.L1 = Dect(nside_in, 'L1')
+        self.V1 = Dect(nside_in, 'V1')
         
         '''
         make these into lists probably:
@@ -240,11 +360,12 @@ class Telescope(object):
             self.az_b[i], self.el_b[i], self.baseline_length[i] = self.vec2azel(self.detectors[a].vec(),self.detectors[b].vec())
             self.latMid[i], self.lonMid[i], self.azMid[i] = self.midpoint(self.detectors[a].lat(),self.detectors[a].lon(),self.detectors[b].lat(),self.detectors[b].lon())
         # gamma functs
-        self.npix = hp.nside2npix(self._nside)
+        self.npix_in = hp.nside2npix(self._nside_in)
+        self.npix_out = hp.nside2npix(self._nside_out)
 
         # calculate overlap functions
         # TODO: integrate this with general detector table
-        theta, phi = hp.pix2ang(self._nside,np.arange(self.npix)) 
+        #theta, phi = hp.pix2ang(self._nside,np.arange(self.npix)) 
         
         self.gammaI = []
         
@@ -316,14 +437,14 @@ class Telescope(object):
 
     def rotation_pix(self,m_array,n): #rotates string of pixels m around QUATERNION n
         nside = hp.npix2nside(len(m_array))
-        dec_quatmap,ra_quatmap = hp.pix2ang(self._nside,m_array) #
+        dec_quatmap,ra_quatmap = hp.pix2ang(nside,m_array) #
         quatmap = self.Q.radecpa2quat(np.rad2deg(ra_quatmap), np.rad2deg(dec_quatmap-np.pi*0.5), 0.*np.ones_like(ra_quatmap)) #but maybe orientation here is actually the orientation of detector a, b? in which case, one could input it as a variable!
         quatmap_rotated = np.ones_like(quatmap)
         i = 0
         while i < len(m_array): 
             quatmap_rotated[i] = qr.quat_mult(n,quatmap[i])
             i+=1
-        quatmap_rot_pix = self.Q.quat2pix(quatmap_rotated,self._nside)[0] #rotated pixel list (polarizations are in [1])
+        quatmap_rot_pix = self.Q.quat2pix(quatmap_rotated,nside)[0] #rotated pixel list (polarizations are in [1])
         return quatmap_rot_pix
 
     def E_f(self,f,alpha=3.,f0=1.):
@@ -389,7 +510,7 @@ class Telescope(object):
     def geometry(self,ct_split, pol = False):		#ct_split = ctime_i
         
         #returns the baseline pixel p and the boresight quaternion q_n
-        nside = self._nside
+        nside = self._nside_out
         mid_idx = int(len(ct_split)/2)
         
         q_b = []
@@ -525,20 +646,30 @@ class Telescope(object):
     def injector(self,strains_in,low_f,high_f, sim = False):
         fs=self.fs        
         dt=1./fs
+
         
         Nt = len(strains_in[0])
         Nt = lf.bestFFTlength(Nt)
         freqs = np.fft.rfftfreq(2*Nt, dt)
         freqs = freqs[:Nt/2+1]
-
+        
+        mask = (freqs>low_f) & (freqs < high_f)
         #print '+sim+'
     
         psds = []
         faketot = []
         
         if sim == True:     #simulates streams for all detectors called when T.scope was initialised
-            fakestreams = self.sim_tstreams(freqs)
-            
+            fakestreams = []
+            for dect in self.detectors:
+                fakestream = dect.simulate(freqs) 
+                fakestreams.append(fakestream)
+                plt.figure()
+                plt.plot(freqs,np.real(fakestream), c = 'red') 
+                plt.plot(freqs,np.imag(fakestream), c = 'blue') 
+                plt.savefig('fstreams.pdf' )
+                
+                
         for (idx_det,strain_in) in enumerate(strains_in):
         
             '''WINDOWING & RFFTING.'''
@@ -575,11 +706,8 @@ class Telescope(object):
             #Pxx, frexx = mlab.psd(strain_in_win[:Nt], Fs = fs, NFFT = 4*fs, window = mlab.window_none)
             
             # plt.figure()
-            # plt.loglog(freqs,np.sqrt(hf_psd_data), color = 'r')
-            # plt.loglog(frexx,np.sqrt(Pxx), alpha = 0.5)
-            # #plt.loglog(freqs,np.sqrt(hf_psd(freqs)), color = 'g') #(freqs)
-            # #plt.ylim([-100.,100.])
-            # plt.savefig('pxx.png' )
+            # #plt.plot(freqs,) 
+            # plt.savefig('.png' )
 
             if sim == True:
                 rands = [np.random.normal(loc = 0., scale = 1. , size = len(hf_psd_data)),np.random.normal(loc = 0., scale = 1. , size = len(hf_psd_data))] 
@@ -587,7 +715,11 @@ class Telescope(object):
                 fake_psd = hf_psd(freqs)*self.fs**2
                 fakenoise = np.array(fakenoise*np.sqrt(fake_psd/2.))#np.sqrt(self.fs/2.)#part of the normalization
 
+                
                 fake = np.sum([fakenoise,fakestreams[idx_det]], axis=0)
+                
+
+                
                 fake_inv = np.fft.irfft(fake , n=2*Nt)[:Nt]
                 #print fakestreams[idx_det]
         
@@ -597,24 +729,29 @@ class Telescope(object):
         
         return faketot, psds
         
-    
+        '''    
     def sim_tstreams(self,freqs): #hplus and hcross should be pixel maps - frequency dependence?
         #check FREQUENCY DEPENDENCE HERE
         resps = []
         c = 3.e8
-        
+
         for dect in self.detectors:
             resp = []
             for f in freqs:
-                integral = (1./self.npix)*np.sqrt(self.E_f(f))* np.sum( (self.hp*dect.get_Fplus()+self.hc*dect.get_Fcross())*np.exp(2*np.pi/c*1.j*f*dect.get_dott())  )
-                resp.append(integral ) # NORM?
-            #plt.figure()
-            #plt.plot(resp)
-            #plt.savefig('fakestream.png')
+                #print np.sum(dect.get_Fplus())*4.*np.pi/self.npix
+                print np.sum(np.cos(1000.*(dect.get_dott()*2*np.pi/c)))*(4.*np.pi/self.npix)
+                print np.sum(np.sin(1000.*(dect.get_dott()*2*np.pi/c)))*(4.*np.pi/self.npix)
+
+
+                integral = (4.*np.pi/self.npix)*np.sqrt(self.E_f(f))* np.sum( (self.hp*dect.get_Fplus()+self.hc*dect.get_Fcross())*(np.cos((2*np.pi/c*f*dect.get_dott()))+1.j*np.sin((2*np.pi/c*f*dect.get_dott())))   )
+                print integral
+                exit()
+                resp.append(integral )
+
             resps.append(np.array(resp))
-                
+        exit()
         return resps
-    
+        '''
     
     def filter(self,strain_in,low_f,high_f, hf_psd, simulate = False):
         fs=self.fs        
@@ -842,76 +979,6 @@ class Telescope(object):
     # ********* Projector *********
     # returns p = {lm} map of inverse-noise-filtered time-stream
 
-    def m_lm(self, ct_split, freq, pix_b, q_n):     
-           
-        nside=self._nside
-        lmax=self._lmax
-        
-        df = 0.00823462240557
-        
-        m_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-        
-        mask = (freq>self.low_f) & (freq < self.high_f)
-        freq = freq[mask]
-
-        #geometry 
-        
-        npix = self.npix
-        
-        mid_idx = int(len(ct_split)/2)
-
-        theta_b, phi_b = hp.pix2ang(nside,pix_b)
-        
-
-        # rotate gammas
-        # TODO: will need to oversample here
-        # i.e. use nside > nside final map
-        # TODO: pol gammas
-
-        # Expand rotated gammas into lm
-                    
-        
-        '''
-        
-        insert integral over frequency in the sum; integrate.quad(self.dfreq_factor*s,fmin,fmax,args=(ell))[0]
-        s needs to be turned into a function of frequency(?)
-        
-        '''
-
-        # sum over lp, mp
-        for idx_b in range(self._nbase):
-            
-            rot_m_array = self.rotation_pix(np.arange(npix), q_n[idx_b]) #rotating around the bisector of the gc 
-            gammaI_rot = self.gammaI[idx_b][rot_m_array]
-            glm = hp.map2alm(gammaI_rot, lmax, pol=False)  
-            
-            
-            for l in range(lmax+1):
-                for m in range(l+1):
-                    
-                    idx_lm = hp.Alm.getidx(lmax,l,m)
-                    
-                    #print 'l ', l, ' m ', m, ' idx_lm ', idx_lm
-                    
-                    for lp in range(lmax+1):
-                        for mp in range(lp+1):
-                            # remaining m index
-                            mpp = m+mp
-                            lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                            lmax_m = l + lp
-                            for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                                
-                                m_lm[idx_lm] += np.conj(4*np.pi*(0+1.j)**lpp
-                                #*self.dfreq_factor(f,lpp)*s[idx_f]
-                                *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
-                                glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])*np.sum(self.dfreq_factor(freq,lpp))*df
-                                
-                            #hit_lm[idx_lm] += np.conj((-1)**mpp*(0+1.j)**lpp*np.sum(self.dfreq_factor(freq,lpp))*df*np.conj(sph_harm(mpp, lpp, theta_b, phi_b))*glm[hp.Alm.getidx(lmax,lp,mp)]*np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp])
-        return m_lm
-        #norm = np.abs(np.sum(np.abs(hit_lm)))
-        
-
     def oldsummer(self, ct_split, strain, freq, pix_b, q_n ):     
            
         nside=self._nside
@@ -993,7 +1060,7 @@ class Telescope(object):
 
     def summer(self, ct_split, strain, freq, pix_b, q_n ):     
            
-        nside=self._nside
+        nside=self._nside_out
         lmax=self._lmax
                 
         sum_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
@@ -1006,7 +1073,7 @@ class Telescope(object):
         
         #geometry 
         
-        npix = self.npix
+        npix = self.npix_out
         
         mid_idx = int(len(ct_split)/2)
     
@@ -1104,7 +1171,7 @@ class Telescope(object):
         
         print 'proj run'
             
-        nside=self._nside
+        nside=self._nside_out
         lmax=self._lmax
 
         data_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
@@ -1125,9 +1192,9 @@ class Telescope(object):
 
     def scan(self, ct_split, low_f, high_f, m_lm): 
 
-        nside=self._nside
+        nside=self._nside_out
         lmax=self._lmax 
-        npix = self.npix
+        npix = self.npix_out
         
         tstream = 0.+0.j
         t00 = 0.+0.j
@@ -1200,11 +1267,11 @@ class Telescope(object):
 
     def M_lm_lpmp_t(self,ct_split, psds_split_t,freq,pix_b,q_n): 
         
-        nside=self._nside
+        nside=self._nside_out
         lmax=self._lmax 
         al = hp.Alm.getidx(lmax,lmax,lmax)+1
             
-        npix = self.npix        
+        npix = self.npix_out       
         
         
         M_lm_lpmp = np.zeros((al,al), dtype = complex)
@@ -1258,7 +1325,7 @@ class Telescope(object):
                             #print '(',idx_lm, idx_ltmt, ')'
                         
                             for lp in range(lmax+1): #
-                                for mp in range(lp+1): #
+                                for mp in range(-lp,lp+1): #
                                     # remaining m index
                                     mpp = -(m+mp)
                                     lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
@@ -1266,7 +1333,7 @@ class Telescope(object):
                                 
                                     for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
                                         for lpt in range(lmax+1): #
-                                            for mpt in range(lpt+1): #
+                                            for mpt in range(-lpt,lpt+1): #
                                                 # remaining mt index
                                                 mppt = mt+mpt
                                                 lmin_mt = np.max([np.abs(lt - lpt), np.abs(mt + mpt)])
@@ -1321,7 +1388,7 @@ class Telescope(object):
         nside=self._nside
         lmax=self._lmax 
             
-        npix = self.npix
+        npix = self.npix_out
         
         df = self.fs/4./len(p_split_1_t)
         
@@ -1371,7 +1438,7 @@ class Telescope(object):
         
     def mbuilder(self, ct_split, strain, freq, pix_b, q_n ):     
            
-        nside=self._nside
+        nside=self._nside_out
         lmax=self._lmax
                 
         sum_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
