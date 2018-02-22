@@ -248,7 +248,7 @@ class Dect(object):
         else: lmaxl = lmax 
         
         for f in freqs:
-            print f
+            #print f
             sim_f = 0.
             for l in range(lmaxl+1): #
                 for m in range(-l,l+1): #
@@ -664,10 +664,10 @@ class Telescope(object):
             for dect in self.detectors:
                 fakestream = dect.simulate(freqs) 
                 fakestreams.append(fakestream)
-                plt.figure()
-                plt.plot(freqs,np.real(fakestream), c = 'red') 
-                plt.plot(freqs,np.imag(fakestream), c = 'blue') 
-                plt.savefig('fstreams.pdf' )
+                #plt.figure()
+                #plt.plot(freqs,np.real(fakestream), c = 'red') 
+                #plt.plot(freqs,np.imag(fakestream), c = 'blue') 
+                #plt.savefig('fstreams.pdf' )
                 
                 
         for (idx_det,strain_in) in enumerate(strains_in):
