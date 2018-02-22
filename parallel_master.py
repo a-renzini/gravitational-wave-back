@@ -357,8 +357,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     f.close()
                     
                     
-                    dirty_map = hp.alm2map(Z_lm,nside,lmax=lmax)
-                    S_p = hp.alm2map(S_lm,nside,lmax=lmax)
+                    dirty_map = hp.alm2map(Z_lm,nside_out,lmax=lmax)
+                    S_p = hp.alm2map(S_lm,nside_out,lmax=lmax)
                     
                     
                     fig = plt.figure()
@@ -390,7 +390,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     fig = plt.figure()
                     hp.mollview(np.zeros_like(dirty_map))
-                    hp.visufunc.projscatter(hp.pix2ang(nside,b_pixes))
+                    hp.visufunc.projscatter(hp.pix2ang(nside_out,b_pixes))
                     plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
                     
                     #if counter == 40:  exit()
@@ -405,10 +405,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
 if myid == 0:
 
-    hp.mollview(hp.alm2map(Z_lm/len(ctime),nside,lmax=lmax))
+    hp.mollview(hp.alm2map(Z_lm/len(ctime),nside_out,lmax=lmax))
     plt.savefig('%sZ_p%s.pdf' % (out_path,counter))
 
-    hp.mollview(hp.alm2map(S_lm/len(ctime),nside,lmax=lmax))
+    hp.mollview(hp.alm2map(S_lm/len(ctime),nside_out,lmax=lmax))
     plt.savefig('%sS_p%s.pdf' % (out_path,counter))
     
 

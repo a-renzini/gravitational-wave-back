@@ -717,12 +717,20 @@ class Telescope(object):
 
                 
                 fake = np.sum([fakenoise,fakestreams[idx_det]], axis=0)
-                
+
+                # plt.figure()
+                # plt.plot(freqs,np.real(fake), c = 'red')
+                # plt.plot(freqs,np.imag(fake), c = 'blue')
+                # plt.savefig('fstreamplusnoise.pdf' )
 
                 
                 fake_inv = np.fft.irfft(fake , n=2*Nt)[:Nt]
-                #print fakestreams[idx_det]
-        
+                
+                # plt.figure()
+                # plt.plot(fake_inv, c = 'red')
+                # #plt.plot(freqs,np.imag(fake_inv), c = 'blue')
+                # plt.savefig('fstreamplusnoiseinv.pdf' )
+
                 faketot.append(fake_inv)
         
         #print '=\sim='
