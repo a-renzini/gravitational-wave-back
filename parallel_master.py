@@ -200,13 +200,20 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
 
             if sim == True:
+                print 'generating...'
                 h1_in = my_h1.copy()
                 l1_in = my_l1.copy()
                 strains_in = (h1_in,l1_in)
-                strains = run.injector(strains_in,low_cut,high_cut, sim)[0]
-                
+                strains = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
+                # plt.figure()
+                # plt.plot((strains[0]))
+                # plt.savefig('fakestreamsinv.pdf')
+                # f = open('fakestreamsinv.txt', 'w')
+                # for (i,x) in enumerate(strains[0]):
+                #     print >>f, i, '     ', x
+                # f.close()
                 #pass the noisy strains to injector got the psds
-            psds = run.injector(strains_copy,low_cut,high_cut)[1]
+            psds = run.injector(strains_copy,my_ctime,low_cut,high_cut)[1]
 
             strains_f = []
             psds_f = []
@@ -215,16 +222,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             for i in range(ndet):
                 strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i]))
                 psds_f.append(psds[i](freqs)*fs**2) 
+                psds_f[i] = np.ones_like(psds_f[i])
                 strains_w.append(strains_f[i]/(psds_f[i]))
             
                 
             #print (strains_f[0]*np.conj(strains_f[1]))[mask]
             # print np.average(np.abs((strains_f[0]*np.conj(strains_f[1]))[mask]))
             #
-            # plt.figure()
-            # plt.plot(freqs[mask],np.real((strains_f[0])[mask]))
-            # plt.plot(freqs[mask],np.imag((strains_f[0])[mask]))
-            # plt.savefig('fakestreams2.pdf')
 
             '''
             now strains_w, etc are pairs of 60s segments of signal, in frequency space.
@@ -341,7 +345,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc*20) == 0:    ## *10000
+                if counter % (nproc) == 0:    ## *10000
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, 'sim = ', sim
@@ -373,6 +377,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_lm=Z_lm, M_lm_lpmp=M_lm_lpmp, counter = counter, conds = conds )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
+                    
                     falm = open('%s/alms%s.txt' % (out_path,counter), 'w')
                     print >> falm, S_lm  
                     for l in range(lmax+1):
@@ -386,7 +391,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         print >> falm, almbit - S_lm[idxl0]*np.conj(S_lm[idxl0])/(2*l+1)
                         print >> falm, np.average(S_p)
                     print >> falm, 'end.'
-                    f.close()
+                    falm.close()
                     
                     fig = plt.figure()
                     hp.mollview(np.zeros_like(dirty_map))

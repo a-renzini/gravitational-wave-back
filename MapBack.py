@@ -58,6 +58,7 @@ class Generator(object):
             #     i+=1
 
             Istoke = hp.sphtfunc.alm2map(self.a_lm, nside)
+            
         else:
             self.a_lm = np.zeros(hp.Alm.getidx(self.lmax,self.lmax,self.lmax)+1,dtype=complex)
             
@@ -72,8 +73,10 @@ class Dect(object):
         self.R_earth=6378137
         self.beta = 27.2*np.pi/180.
         self._nside = nside
-        lmax = nside/2
+        lmax = nside/2                                                                                                          
         self.lmax = lmax
+        
+        self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
         # Configuration: radians and metres, Earth-centered frame
         if dect_name =='H1':
@@ -103,7 +106,7 @@ class Dect(object):
             self._elev = 51.884
             self._vec = np.array([4.54637409900e+06, 8.42989697626e+05, 4.37857696241e+06])
             
-            alpha = 116.5*np.pi/180         #np.radians()
+            alpha = 116.5*np.pi/180.         #np.radians()
             self._u = self.u_vec(self._lat,self._lon,alpha)
             self._v = self.v_vec(self._lat,self._lon,alpha)
         
@@ -125,6 +128,10 @@ class Dect(object):
         self.Fplus = self.Fplus(theta,phi)
         self.Fcross = self.Fcross(theta,phi)
         self.dott = self.dott(self._vec)
+        print 'fplus ', dect_name
+        print np.sum(self.Fplus)*4.*np.pi/self.npix 
+        print 'fcross ', dect_name
+        print np.sum(self.Fcross)*4.*np.pi/self.npix 
         
         if lmax>0:
         # cache 3j symbols
@@ -210,6 +217,18 @@ class Dect(object):
     def get_Fcross_lm(self):
         return hp.map2alm(self.Fcross,self.lmax, pol=False)
 
+    def rot_Fplus_lm(self,q_x):
+        rot_m_array = self.rotation_pix(np.arange(self.npix), q_x) #rotating around the bisector of the gc 
+        
+        Fplus_rot = self.Fplus[rot_m_array]
+        return hp.map2alm(Fplus_rot,self.lmax, pol=False) 
+    
+    def rot_Fcross_lm(self,q_x):
+        rot_m_array = self.rotation_pix(np.arange(self.npix), q_x) #rotating around the bisector of the gc 
+        
+        Fcross_rot = self.Fcross[rot_m_array]
+        return hp.map2alm(Fcross_rot,self.lmax, pol=False)
+
     def dott(self,x_vect):
 
         m = hp.pix2ang(self._nside,np.arange(self.npix))
@@ -230,25 +249,44 @@ class Dect(object):
     def coupK(self,l,lp,lpp,m,mp):
         return np.sqrt((2*l+1.)*(2*lp+1.)*(2*lpp+1.)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]
 
-    def simulate(self,freqs,typ = 'mono'):
+    def rotation_pix(self,m_array,n): #rotates string of pixels m around QUATERNION n
+        nside = hp.npix2nside(len(m_array))
+        dec_quatmap,ra_quatmap = hp.pix2ang(nside,m_array) #
+        quatmap = self.Q.radecpa2quat(np.rad2deg(ra_quatmap), np.rad2deg(dec_quatmap-np.pi*0.5), 0.*np.ones_like(ra_quatmap)) #but maybe orientation here is actually the orientation of detector a, b? in which case, one could input it as a variable!
+        quatmap_rotated = np.ones_like(quatmap)
+        i = 0
+        while i < len(m_array): 
+            quatmap_rotated[i] = qr.quat_mult(n,quatmap[i])
+            i+=1
+        quatmap_rot_pix = self.Q.quat2pix(quatmap_rotated,nside)[0] #rotated pixel list (polarizations are in [1])
+        return quatmap_rot_pix
+
+    def simulate(self,freqs,q_x,typ = 'mono'):
         sim = []
         nside = self._nside
         gen = Generator(nside,typ)
         lmax = self.lmax
         
+        print q_x
+        
+        pix_x = self.Q.quat2pix(q_x, nside=nside, pol=True)[0]
+        th_x, ph_x = hp.pix2ang(nside,pix_x)
+        
         hplm = gen.get_a_lm()
         hclm = gen.get_a_lm()
-        Fplm = self.get_Fplus_lm()
-        Fclm = self.get_Fcross_lm()
+        Fplm = self.rot_Fplus_lm(q_x)
+        Fclm = self.rot_Fcross_lm(q_x)
         
         c = 3.e8
         
         if typ == 'mono':
             lmaxl = 0
         else: lmaxl = lmax 
-        
-        for f in freqs:
-            #print f
+        sample_freqs = freqs[::500]
+        sample_freqs = np.append(sample_freqs,freqs[-1])
+
+        for f in sample_freqs:     #NEEDS TO CALL GEOMETRY METHINKS
+
             sim_f = 0.
             for l in range(lmaxl+1): #
                 for m in range(-l,l+1): #
@@ -270,29 +308,37 @@ class Dect(object):
                         
                                 if m>0:
                                     if mp>0:
-                                        sim_f+=4*np.pi*(0.+1.j)*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
-                                        *np.conj(sph_harm(mpp, lpp, self._lat,self._lon))*self.coupK(lp,l,lpp,mp,m)
+                                        sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(hplm[idx_lm]*Fplm[idx_lpmp]+hclm[idx_lm]*Fclm[idx_lpmp]) )
                             
                                     else:
-                                        sim_f+=4*np.pi*(0.+1.j)*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
-                                        *np.conj(sph_harm(mpp, lpp, self._lat,self._lon))*self.coupK(lp,l,lpp,mp,m)
+                                        sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(hplm[idx_lm]*np.conj(Fplm[idx_lpmp])+hclm[idx_lm]*np.conj(Fclm[idx_lpmp])) )*(-1)**mp
                                 
                                 else:
                                     if mp>0:
-                                        sim_f+=4*np.pi*(0.+1.j)*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
-                                        *np.conj(sph_harm(mpp, lpp, self._lat,self._lon))*self.coupK(lp,l,lpp,mp,m)
+                                        sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(np.conj(hplm[idx_lm])*Fplm[idx_lpmp]+np.conj(hclm[idx_lm])*Fclm[idx_lpmp]) )*(-1)**m
                             
                                     else:
-                                        sim_f+=4*np.pi*(0.+1.j)*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
-                                        *np.conj(sph_harm(mpp, lpp, self._lat,self._lon))*self.coupK(lp,l,lpp,mp,m)
+                                        sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(np.conj(hplm[idx_lm])*np.conj(Fplm[idx_lpmp])+np.conj(hclm[idx_lm])*np.conj(Fclm[idx_lpmp])) )*(-1)**m*(-1)**mp
                                         
             #print sim_f
             sim.append(sim_f)
-        return sim
+        sim_func = interp1d(sample_freqs,sim)
+
+        phases = np.exp(1.j*np.random.random_sample(len(freqs))*2.*np.pi)/np.sqrt(2.)
+
+        sim = np.array(sim_func(freqs))*np.array(phases)
+        
+        return sim#len(freqs)*4         #for the correct normalisation
+
+
 
 class Telescope(object):
 
@@ -533,7 +579,27 @@ class Telescope(object):
         
         if pol == False: return p, q_n, n
         else : return p, s2p, c2p, q_n, n
-    
+
+    def geometry_sim(self,ct_split, pol = False):		#ct_split = ctime_i
+        
+        #returns the baseline pixel p and the boresight quaternion q_n
+        nside = self._nside_in
+        mid_idx = int(len(ct_split)/2)
+        
+        q_xes = []
+        p = np.zeros(self._nbase, dtype = int)
+
+        
+        for i in range(self.ndet):
+            q_xes.append(self.Q.rotate_quat(self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.detectors[i].lon()), np.degrees(self.detectors[i].lat()), ct_split[mid_idx])[0]))
+            
+            #n[i] = self.Q.quat2pix(q_n[i], nside=nside, pol=True)[0]
+        
+        #p, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True)
+        #n, s2n, c2n = self.Q.quat2pix(q_n, nside=nside, pol=True)  
+        #theta_b, phi_b = hp.pix2ang(nside,p)
+        
+        return q_xes
 
         
                 
@@ -643,7 +709,7 @@ class Telescope(object):
 
  #   def cutout(self,x, freqs,low = 20, high = 300):
 
-    def injector(self,strains_in,low_f,high_f, sim = False):
+    def injector(self,strains_in,ct_split,low_f,high_f, sim = False):
         fs=self.fs        
         dt=1./fs
 
@@ -661,14 +727,19 @@ class Telescope(object):
         
         if sim == True:     #simulates streams for all detectors called when T.scope was initialised
             fakestreams = []
-            for dect in self.detectors:
-                fakestream = dect.simulate(freqs) 
+            q_xes = self.geometry_sim(ct_split)
+            
+            for (idx_det,dect) in enumerate(self.detectors):
+                print idx_det
+                q_x = q_xes[idx_det]
+                fakestream = dect.simulate(freqs,q_x) 
                 fakestreams.append(fakestream)
                 #plt.figure()
                 #plt.plot(freqs,np.real(fakestream), c = 'red') 
                 #plt.plot(freqs,np.imag(fakestream), c = 'blue') 
                 #plt.savefig('fstreams.pdf' )
-                
+            print np.std(fakestreams[0])
+            print np.std(fakestreams[1])
                 
         for (idx_det,strain_in) in enumerate(strains_in):
         
@@ -714,22 +785,20 @@ class Telescope(object):
                 fakenoise = rands[0]+1.j*rands[1]
                 fake_psd = hf_psd(freqs)*self.fs**2
                 fakenoise = np.array(fakenoise*np.sqrt(fake_psd/2.))#np.sqrt(self.fs/2.)#part of the normalization
-
+                
                 
                 fake = np.sum([fakenoise,fakestreams[idx_det]], axis=0)
 
-                # plt.figure()
-                # plt.plot(freqs,np.real(fake), c = 'red')
-                # plt.plot(freqs,np.imag(fake), c = 'blue')
-                # plt.savefig('fstreamplusnoise.pdf' )
+                plt.figure()
+                plt.plot(freqs,np.real(fake), c = 'red')
+                plt.plot(freqs,np.imag(fake), c = 'blue')
+                plt.savefig('fstreamplusnoise.pdf' )
 
                 
-                fake_inv = np.fft.irfft(fake , n=2*Nt)[:Nt]
-                
-                # plt.figure()
-                # plt.plot(fake_inv, c = 'red')
-                # #plt.plot(freqs,np.imag(fake_inv), c = 'blue')
-                # plt.savefig('fstreamplusnoiseinv.pdf' )
+                fake_inv = np.fft.irfft(fake , n=2*Nt,norm = 'ortho')[:Nt]
+                print np.std(fake_inv)
+                print 'average fakeinv'
+                print np.average(fake_inv)
 
                 faketot.append(fake_inv)
         
@@ -1077,7 +1146,7 @@ class Telescope(object):
         mask = (freq>self.low_f) & (freq < self.high_f)
         freq = freq[mask]
 
-        df = self.fs/2./len(freq)#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
+        df = self.fs/2./(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         
         #geometry 
         
