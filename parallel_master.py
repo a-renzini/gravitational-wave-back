@@ -222,7 +222,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             for i in range(ndet):
                 strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i]))
                 psds_f.append(psds[i](freqs)*fs**2) 
-                psds_f[i] = np.ones_like(psds_f[i])
+                #psds_f[i] = np.ones_like(psds_f[i])
                 strains_w.append(strains_f[i]/(psds_f[i]))
             
                 
@@ -345,7 +345,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc) == 0:    ## *10000
+                if counter % (nproc*20) == 0:    ## *10000
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, 'sim = ', sim
