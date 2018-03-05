@@ -105,7 +105,7 @@ run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f)
 # define start and stop time to search
 # in GPS seconds
 start = 931035615 #S6 start GPS
-stop  = 971622015  #S6 end GPS
+stop  = 931135615 #971622015  #S6 end GPS
 
 
 ###########################UNCOMMENT ME#########################################
@@ -224,11 +224,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 psds_f.append(psds[i](freqs)*fs**2) 
                 #psds_f[i] = np.ones_like(psds_f[i])
                 strains_w.append(strains_f[i]/(psds_f[i]))
-            
-                
-            #print (strains_f[0]*np.conj(strains_f[1]))[mask]
-            # print np.average(np.abs((strains_f[0]*np.conj(strains_f[1]))[mask]))
-            #
+                    
 
             '''
             now strains_w, etc are pairs of 60s segments of signal, in frequency space.
@@ -345,7 +341,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc*20) == 0:    ## *10000
+                if counter % (nproc) == 0:    ## *10000
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, 'sim = ', sim

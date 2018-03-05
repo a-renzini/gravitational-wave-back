@@ -845,7 +845,7 @@ class Telescope(object):
         freqs = np.fft.rfftfreq(2*Nt, dt)
         #print '=rfft='
         hf = np.fft.rfft(strain_in, n=2*Nt)#, norm = 'ortho') 
-        hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt)#, norm = 'ortho') 
+        hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
         #print '++'
         
         hf = hf[:Nt/2+1]
