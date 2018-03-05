@@ -446,11 +446,11 @@ class Telescope(object):
         self.hp = np.array(np.sqrt(np.abs(sfs.Istoke)/2))
         self.hc = np.array(np.sqrt(np.abs(sfs.Istoke)/2))
 
-        plt.figure()
-        hp.mollview(self.hp)
+        #plt.figure()
+        #hp.mollview(self.hp)
         #plt.loglog(freqs,np.sqrt(hf_psd(freqs)), color = 'g') #(freqs)
         #plt.ylim([-100.,100.])
-        plt.savefig('hp.png' )
+        #plt.savefig('hp.png' )
                         
         
     # ********* Basic Tools *********
@@ -788,11 +788,11 @@ class Telescope(object):
                 
                 
                 fake = np.sum([fakenoise,fakestreams[idx_det]], axis=0)
-
-                plt.figure()
-                plt.plot(freqs,np.real(fake), c = 'red')
-                plt.plot(freqs,np.imag(fake), c = 'blue')
-                plt.savefig('fstreamplusnoise.pdf' )
+                    
+                # plt.figure()
+                # plt.plot(freqs,np.real(fake), c = 'red')
+                # plt.plot(freqs,np.imag(fake), c = 'blue')
+                # plt.savefig('fstreamplusnoise.pdf' )
 
                 
                 fake_inv = np.fft.irfft(fake , n=2*Nt,norm = 'ortho')[:Nt]
