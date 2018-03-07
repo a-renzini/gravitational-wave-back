@@ -94,12 +94,12 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1']#,'V1']
-ndet = len (dects)
+dects = ['H1','L1','V1']
+ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
 #create object of class:
-run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f)
+run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects)
 
 
 # define start and stop time to search
@@ -204,7 +204,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 h1_in = my_h1.copy()
                 l1_in = my_l1.copy()
                 strains_in = (h1_in,l1_in)
+                #print strains_in
                 strains = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
+                #print len(strains)
                 # plt.figure()
                 # plt.plot((strains[0]))
                 # plt.savefig('fakestreamsinv.pdf')
@@ -214,7 +216,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # f.close()
                 #pass the noisy strains to injector got the psds
             psds = run.injector(strains_copy,my_ctime,low_cut,high_cut)[1]
-
+            
+            print len(psds)
+            
+            
             strains_f = []
             psds_f = []
             strains_w = []
@@ -394,6 +399,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     hp.visufunc.projscatter(hp.pix2ang(nside_out,b_pixes))
                     plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
                     
+                    #exit()
+                    
                     #if counter == 40:  exit()
                 #################################################    
                 #################################################    
@@ -406,10 +413,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
 if myid == 0:
 
-    hp.mollview(hp.alm2map(Z_lm/len(ctime),nside_out,lmax=lmax))
+    hp.mollview(hp.alm2map(Z_lm,nside_out,lmax=lmax))
     plt.savefig('%sZ_p%s.pdf' % (out_path,counter))
 
-    hp.mollview(hp.alm2map(S_lm/len(ctime),nside_out,lmax=lmax))
+    hp.mollview(hp.alm2map(S_lm,nside_out,lmax=lmax))
     plt.savefig('%sS_p%s.pdf' % (out_path,counter))
     
 
