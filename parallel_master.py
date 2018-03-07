@@ -320,7 +320,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             if myid == 0:
                 M_lm_lpmp += np.real(M_lm_lpmp_buffer)
-                conds.append(conds_array)
+                np.append(conds,conds_array)
 
                 #print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
 
