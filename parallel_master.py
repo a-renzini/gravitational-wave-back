@@ -105,7 +105,7 @@ run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects)
 # define start and stop time to search
 # in GPS seconds
 start = 931035615 #S6 start GPS
-stop  = 931135615 #971622015  #S6 end GPS
+stop  = 971622015  #S6 end GPS
 
 
 ###########################UNCOMMENT ME#########################################
