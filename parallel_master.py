@@ -152,6 +152,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     if len(ctime)<2 : continue
     
     idx_block = 0
+    S = 0
+    N = 0
     while idx_block < len(ctime):
         ctime_nproc.append(ctime[idx_block])
         strain1_nproc.append(strain_H1[idx_block])
@@ -187,7 +189,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             Nt = len(my_h1)
             Nt = lf.bestFFTlength(Nt)
-
+            
             freqs = np.fft.rfftfreq(2*Nt, 1./fs)
             freqs = freqs[:Nt/2+1]
             
@@ -216,6 +218,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # f.close()
                 #pass the noisy strains to injector got the psds
             psds = run.injector(strains_copy,my_ctime,low_cut,high_cut)[1]
+            #strains are the new generated strains
+            #aver = np.sqrt(np.abs(np.average(strains[0]*strains[1])))
+            #print aver
+            #S += aver
+            #N += 1
+            
             
             print len(psds)
             
@@ -408,8 +416,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             ctime_nproc = []
             strain1_nproc = []
             strain2_nproc = []
-            
+        
+        #print idx_block    
         idx_block += 1
+        #if idx_block == 1400: print S/N
 
 if myid == 0:
 

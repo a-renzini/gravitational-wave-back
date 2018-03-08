@@ -84,21 +84,18 @@ class Dect(object):
             self._lon = -2.08405676917
             self._lat = 0.81079526383
             self._elev = 142.554
-            self._vec = np.array([-2.16141492636e+06, -3.83469517889e+06, 4.60035022664e+06])
-            
-            alpha = (171.8)*np.pi/180.
-            self._u = self.u_vec(self._lat,self._lon,alpha)
-            self._v = self.v_vec(self._lat,self._lon,alpha)
+            self._vec = np.array([-2.16141492636e+06, -3.83469517889e+06, 4.60035022664e+06])            
+            self._alpha = (171.8)*np.pi/180.
+
         
         elif dect_name =='L1':
             self._lon = -1.58430937078
-            self._lat = 0.53342313506
+            self._lat = 0.53342313506           
             self._elev = -6.574
             self._vec = np.array([-7.42760447238e+04, -5.49628371971e+06, 3.22425701744e+06])
             
-            alpha = (243.0)*np.pi/180.
-            self._u = self.u_vec(self._lat,self._lon,alpha)
-            self._v = self.v_vec(self._lat,self._lon,alpha)
+            self._alpha = (243.0)*np.pi/180.
+
       
         elif dect_name =='V1':
             self._lon = 0.18333805213
@@ -106,9 +103,7 @@ class Dect(object):
             self._elev = 51.884
             self._vec = np.array([4.54637409900e+06, 8.42989697626e+05, 4.37857696241e+06])
             
-            alpha = 116.5*np.pi/180.         #np.radians()
-            self._u = self.u_vec(self._lat,self._lon,alpha)
-            self._v = self.v_vec(self._lat,self._lon,alpha)
+            self._alpha = 116.5*np.pi/180.         #np.radians()
         
         else:
             dect_name = __import__(dect_name)
@@ -117,10 +112,14 @@ class Dect(object):
             self._lat = dect_name.lat
             self._elev = dect_name.elev
             self._vec = dect_name.vec
-            
-            alpha = np.pi/180.
-            self._u = self.u_vec(self._lat,self._lon,alpha)
-            self._v = self.v_vec(self._lat,self._lon,alpha)
+        
+        
+        self._ph = self._lon + 2.*np.pi;
+        self._th = self._lat + np.pi/2.
+        
+        self._alpha = np.pi/180.
+        self._u = self.u_vec()
+        self._v = self.v_vec()
         
         
         self.npix = hp.nside2npix(self._nside)
@@ -128,10 +127,19 @@ class Dect(object):
         self.Fplus = self.Fplus(theta,phi)
         self.Fcross = self.Fcross(theta,phi)
         self.dott = self.dott(self._vec)
-        #print 'fplus ', dect_name
-        #print np.sum(self.Fplus)*4.*np.pi/self.npix 
-        #print 'fcross ', dect_name
-        #print np.sum(self.Fcross)*4.*np.pi/self.npix 
+        print 'fplus ', dect_name
+        print np.sum(self.Fplus)*4.*np.pi/self.npix 
+        print 'fcross ', dect_name
+        print np.sum(self.Fcross)*4.*np.pi/self.npix 
+        print 'fplusfplus ', dect_name
+        print np.sum(self.Fplus*self.Fplus+self.Fcross*self.Fcross)*4.*np.pi/self.npix
+        #print np.sum(self.Fcross*self.Fcross)*4.*np.pi/self.npix
+        
+        hp.mollview(self.Fplus)
+        plt.savefig('Fp.pdf')
+        
+        hp.mollview(self.Fcross)
+        plt.savefig('Fc.pdf')
         
         if lmax>0:
         # cache 3j symbols
@@ -155,31 +163,44 @@ class Dect(object):
         return self._lon
     def lat(self):
         return self._lat
+    def th(self):
+        return self._th
+    def ph(self):
+        return self._ph
     def elev(self):
         return self._elev
     def vec(self):
         return self._vec
     
-    def u_vec(self,lat,lon,alpha):
-        
-        a_p = alpha - np.pi/4.
-        a = -cos(lat)*cos(a_p)*sin(lon) - sin(lat)*sin(a_p)*cos(lon)
-        b = cos(lat)*cos(a_p)*cos(lon) - sin(lat)*sin(a_p)*sin(lon)
-        c = cos(lat)*sin(a_p)
+    def u_(self):
+        th = self._th
+        ph = self._ph
+        a = -cos(th)*cos(ph)
+        b = -cos(th)*sin(ph)
+        c = sin(th)
         norm = np.sqrt(a**2+b**2+c**2)
         
         return 1./norm * np.array([a,b,c])
         
-    def v_vec(self,lat,lon,alpha):
-        
-        a_p = alpha - np.pi/4.
-        a = -cos(lat)*sin(a_p)*sin(lon) - sin(lat)*cos(a_p)*cos(lon)
-        b = cos(lat)*sin(a_p)*cos(lon) - sin(lat)*cos(a_p)*sin(lon)
-        c = cos(lat)*cos(a_p)
+    def v_(self):
+        th = self._th
+        ph = self._ph
+        a = -sin(th)*sin(ph)
+        b = sin(th)*cos(ph)
+        c = 0.
         norm = np.sqrt(a**2+b**2+c**2)
         
         return 1./norm * np.array([a,b,c])    
         
+    def u_vec(self):
+        a_p = self._alpha - np.pi/4.
+        print np.linalg.norm(self.u_()*cos(a_p) - self.v_()*sin(a_p))
+        return self.u_()*cos(a_p) - self.v_()*sin(a_p)
+        
+    def v_vec(self):
+        a_p = self._alpha - np.pi/4.
+        print np.linalg.norm(self.u_()*sin(a_p) + self.v_()*cos(a_p))
+        return self.u_()*sin(a_p) + self.v_()*cos(a_p)
         
     def d_tens(self):
         return 0.5*(np.outer(self._u,self._u)-np.outer(self._v,self._v))   
@@ -271,6 +292,7 @@ class Dect(object):
         
         pix_x = self.Q.quat2pix(q_x, nside=nside, pol=True)[0]
         th_x, ph_x = hp.pix2ang(nside,pix_x)
+        
         
         hplm = gen.get_a_lm()
         hclm = gen.get_a_lm()
@@ -845,12 +867,10 @@ class Telescope(object):
 
                 integral = (4.*np.pi/self.npix)*np.sqrt(self.E_f(f))* np.sum( (self.hp*dect.get_Fplus()+self.hc*dect.get_Fcross())*(np.cos((2*np.pi/c*f*dect.get_dott()))+1.j*np.sin((2*np.pi/c*f*dect.get_dott())))   )
                 print integral
-                exit()
                 resp.append(integral )
 
             resps.append(np.array(resp))
-        exit()
-        return resps
+                return resps
         '''
     
     def filter(self,strain_in,low_f,high_f, hf_psd, simulate = False):

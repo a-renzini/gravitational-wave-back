@@ -12,11 +12,11 @@ import matplotlib.image as mpimg
 
 def etheta(theta,phi,i):
     if i==0:
-        return sin(theta)*cos(phi)
+        return cos(theta)*cos(phi)
     elif i==1:
-        return sin(theta)*sin(phi)
+        return cos(theta)*sin(phi)
     elif i==2:
-        return cos(theta)
+        return -sin(theta)
     else:
         print 'error'
         return;
