@@ -73,7 +73,7 @@ class Dect(object):
         self.R_earth=6378137
         self.beta = 27.2*np.pi/180.
         self._nside = nside
-        lmax = nside/2                                                                                                          
+        lmax = nside                                                                                                        
         self.lmax = lmax
         
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
@@ -127,19 +127,22 @@ class Dect(object):
         self.Fplus = self.Fplus(theta,phi)
         self.Fcross = self.Fcross(theta,phi)
         self.dott = self.dott(self._vec)
-        print 'fplus ', dect_name
-        print np.sum(self.Fplus)*4.*np.pi/self.npix 
-        print 'fcross ', dect_name
-        print np.sum(self.Fcross)*4.*np.pi/self.npix 
-        print 'fplusfplus ', dect_name
-        print np.sum(self.Fplus*self.Fplus+self.Fcross*self.Fcross)*4.*np.pi/self.npix
-        #print np.sum(self.Fcross*self.Fcross)*4.*np.pi/self.npix
+        # print 'fplus_int ', dect_name
+        # print np.sum(self.Fplus)*4.*np.pi/self.npix
+        # print 'fcross_int ', dect_name
+        # print np.sum(self.Fcross)*4.*np.pi/self.npix
+        # print 'fplusfplus_int ', dect_name
+        # print np.sum(self.Fplus*self.Fplus+self.Fcross*self.Fcross)*4.*np.pi/self.npix
+        # #print np.sum(self.Fcross*self.Fcross)*4.*np.pi/self.npix
+        #
+        # print 'Fplus[0]'
+        # print hp.map2alm(self.Fplus, lmax = lmax)[0]
+        #
+        #hp.mollview(self.Fplus)
+        #plt.savefig('Fp.pdf')
         
-        hp.mollview(self.Fplus)
-        plt.savefig('Fp.pdf')
-        
-        hp.mollview(self.Fcross)
-        plt.savefig('Fc.pdf')
+        #hp.mollview(self.Fcross)
+        #plt.savefig('Fc.pdf')
         
         if lmax>0:
         # cache 3j symbols
@@ -194,12 +197,10 @@ class Dect(object):
         
     def u_vec(self):
         a_p = self._alpha - np.pi/4.
-        print np.linalg.norm(self.u_()*cos(a_p) - self.v_()*sin(a_p))
         return self.u_()*cos(a_p) - self.v_()*sin(a_p)
         
     def v_vec(self):
         a_p = self._alpha - np.pi/4.
-        print np.linalg.norm(self.u_()*sin(a_p) + self.v_()*cos(a_p))
         return self.u_()*sin(a_p) + self.v_()*cos(a_p)
         
     def d_tens(self):
@@ -288,16 +289,16 @@ class Dect(object):
         gen = Generator(nside,typ)
         lmax = self.lmax
         
-        print q_x
-        
         pix_x = self.Q.quat2pix(q_x, nside=nside, pol=True)[0]
         th_x, ph_x = hp.pix2ang(nside,pix_x)
-        
         
         hplm = gen.get_a_lm()
         hclm = gen.get_a_lm()
         Fplm = self.rot_Fplus_lm(q_x)
         Fclm = self.rot_Fcross_lm(q_x)
+        
+        #print 'Fplusrot[0]'
+        #print Fplm[0]
         
         c = 3.e8
         
@@ -306,7 +307,9 @@ class Dect(object):
         else: lmaxl = lmax 
         sample_freqs = freqs[::500]
         sample_freqs = np.append(sample_freqs,freqs[-1])
-
+        
+        
+        
         for f in sample_freqs:     #NEEDS TO CALL GEOMETRY METHINKS
 
             sim_f = 0.
@@ -330,33 +333,57 @@ class Dect(object):
                         
                                 if m>0:
                                     if mp>0:
+                                        #print l, m, lp, mp, lpp, mpp
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(hplm[idx_lm]*Fplm[idx_lpmp]+hclm[idx_lm]*Fclm[idx_lpmp]) )
+                                        # print self.coupK(lp,l,lpp,mp,m)
+                                        # print spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        # print np.conj(sph_harm(mpp, lpp, th_x, ph_x))
+                                        # print (np.conj(hplm[idx_lm])*Fplm[idx_lpmp])
+                                        # print (np.conj(hclm[idx_lm])*Fclm[idx_lpmp])
                             
                                     else:
+                                        #print l, m, lp, mp, lpp, mpp
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(hplm[idx_lm]*np.conj(Fplm[idx_lpmp])+hclm[idx_lm]*np.conj(Fclm[idx_lpmp])) )*(-1)**mp
+                                        # print self.coupK(lp,l,lpp,mp,m)
+                                        # print spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        # print np.conj(sph_harm(mpp, lpp, th_x, ph_x))
+                                        # print (np.conj(hplm[idx_lm])*Fplm[idx_lpmp])
+                                        # print (np.conj(hclm[idx_lm])*Fclm[idx_lpmp])
                                 
                                 else:
                                     if mp>0:
+                                        #print l, m, lp, mp, lpp, mpp
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(np.conj(hplm[idx_lm])*Fplm[idx_lpmp]+np.conj(hclm[idx_lm])*Fclm[idx_lpmp]) )*(-1)**m
+                                        # print self.coupK(lp,l,lpp,mp,m)
+                                        # print spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        # print np.conj(sph_harm(mpp, lpp, th_x, ph_x))
+                                        # print (np.conj(hplm[idx_lm])*Fplm[idx_lpmp])
+                                        # print (np.conj(hclm[idx_lm])*Fclm[idx_lpmp])
+                                        
                             
                                     else:
+                                        #print l, m, lp, mp, lpp, mpp
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(np.conj(hplm[idx_lm])*np.conj(Fplm[idx_lpmp])+np.conj(hclm[idx_lm])*np.conj(Fclm[idx_lpmp])) )*(-1)**m*(-1)**mp
-                                        
+                                        # print self.coupK(lp,l,lpp,mp,m)
+                                        # print spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
+                                        # print np.conj(sph_harm(mpp, lpp, th_x, ph_x))
+                                        # print (np.conj(hplm[idx_lm])*Fplm[idx_lpmp])
+                                        # print (np.conj(hclm[idx_lm])*Fclm[idx_lpmp])
             #print sim_f
             sim.append(sim_f)
         sim_func = interp1d(sample_freqs,sim)
 
-        phases = np.exp(1.j*np.random.random_sample(len(freqs))*2.*np.pi)/np.sqrt(2.)
+        #phases = np.exp(1.j*np.random.random_sample(len(freqs))*2.*np.pi)/np.sqrt(2.)
 
-        sim = np.array(sim_func(freqs))*np.array(phases)
+        sim = np.array(sim_func(freqs))#*np.array(phases)
         
         return sim#len(freqs)*4         #for the correct normalisation
 
@@ -388,9 +415,9 @@ class Telescope(object):
         
         self.ndet = len(self.detectors)
         
-        self.H1 = Dect(nside_in,'H1')
-        self.L1 = Dect(nside_in, 'L1')
-        self.V1 = Dect(nside_in, 'V1')
+        ##self.H1 = Dect(nside_in,'H1')
+        ##self.L1 = Dect(nside_in, 'L1')
+        ##self.V1 = Dect(nside_in, 'V1')
         
         '''
         make these into lists probably:
@@ -413,7 +440,7 @@ class Telescope(object):
         self.el_b = np.zeros(self._nbase)
         self.baseline_length = np.zeros(self._nbase)
         
-        self.vec2azel(self.H1.vec(),self.L1.vec())
+        #self.vec2azel(self.H1.vec(),self.L1.vec())
         # position of mid point and angle of great circle connecting to observatories
         self.latMid = np.zeros(self._nbase)
         self.lonMid = np.zeros(self._nbase)
@@ -822,7 +849,14 @@ class Telescope(object):
                     fake = np.sum([fakenoise,fakestreams[idx_det]], axis=0)
         
                     fake_inv = np.fft.irfft(fake , n=2*Nt,norm = 'ortho')[:Nt]
-
+                    # print 'fake[0]!'
+                    # print fake[0]
+                    # print 'average fakeinv!'
+                    # print np.average(fake_inv)
+                    # print 'std fakeinv'
+                    # print np.std(fake_inv)
+                    # print 'lens!'
+                    # print len(fake), len(fake_inv)
                     faketot.append(fake_inv)
             else:
                 
@@ -837,7 +871,14 @@ class Telescope(object):
                     fake = np.sum([fakenoise,fakestreams[idx_det]], axis=0)
         
                     fake_inv = np.fft.irfft(fake , n=2*Nt,norm = 'ortho')[:Nt]
-
+                    # print 'fake[0]!'
+                    # print fake[0]
+                    # print 'average fakeinv!'
+                    # print np.average(fake_inv)
+                    # print 'std fakeinv'
+                    # print np.std(fake_inv)
+                    # print 'lens!'
+                    # print len(fake), len(fake_inv)
                     faketot.append(fake_inv)
         
         lenpsds = len(psds)            
@@ -851,51 +892,37 @@ class Telescope(object):
         
         ####
         
-        '''    
-    def sim_tstreams(self,freqs): #hplus and hcross should be pixel maps - frequency dependence?
-        #check FREQUENCY DEPENDENCE HERE
-        resps = []
-        c = 3.e8
+   
 
-        for dect in self.detectors:
-            resp = []
-            for f in freqs:
-                #print np.sum(dect.get_Fplus())*4.*np.pi/self.npix
-                print np.sum(np.cos(1000.*(dect.get_dott()*2*np.pi/c)))*(4.*np.pi/self.npix)
-                print np.sum(np.sin(1000.*(dect.get_dott()*2*np.pi/c)))*(4.*np.pi/self.npix)
-
-
-                integral = (4.*np.pi/self.npix)*np.sqrt(self.E_f(f))* np.sum( (self.hp*dect.get_Fplus()+self.hc*dect.get_Fcross())*(np.cos((2*np.pi/c*f*dect.get_dott()))+1.j*np.sin((2*np.pi/c*f*dect.get_dott())))   )
-                print integral
-                resp.append(integral )
-
-            resps.append(np.array(resp))
-                return resps
-        '''
     
     def filter(self,strain_in,low_f,high_f, hf_psd, simulate = False):
         fs=self.fs        
         dt=1./fs
-
         
         '''WINDOWING & RFFTING.'''
         
         Nt = len(strain_in)
         Nt = lf.bestFFTlength(Nt)
         strain_in = strain_in[:Nt]
+        strain_in_cp = np.copy(strain_in)
         strain_in_nowin = np.copy(strain_in)
-        strain_in_nowin *= signal.tukey(Nt,alpha=0.05)
-        strain_in *= np.blackman(Nt)
+        strain_in_nowin *= signal.tukey(Nt,alpha=0.0001)
+        #strain_in *= np.blackman(Nt)
         freqs = np.fft.rfftfreq(2*Nt, dt)
         #print '=rfft='
-        hf = np.fft.rfft(strain_in, n=2*Nt)#, norm = 'ortho') 
         hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
-
-        #print '++'
         
-        hf = hf[:Nt/2+1]
         hf_nowin = hf_nowin[:Nt/2+1]
         freqs = freqs[:Nt/2+1]
+        
+        #hf_back =  np.fft.irfft(hf_nowin, norm = 'ortho')
+        #print np.average(hf_back), ' , ' , np.std(hf_back), '  ,  ', len(hf_back)
+        
+        
+        hf_copy = np.copy(hf_nowin)
+        
+        #print '++'
+        
                 
         '''the PSD. '''
         #Pxx, frexx = mlab.psd(strain_in_nowin, Fs=fs, NFFT=2*fs,noverlap=fs/2,window=np.blackman(2*fs),scale_by_freq=True)
@@ -916,17 +943,13 @@ class Telescope(object):
         
         '''NOTCHING. '''
         
-        hf_in = hf.copy()
         notch_fs = np.array([14.0,34.70, 35.30, 35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.49, 510.02, 1009.99])
         sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,5.,5.,1.])
         #np.array([0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.5,0.3,0.2])
         
-        samp_hz = fs**2*(len(hf))**(-1.)-6.68 #correction due to?
+        samp_hz = fs**2*(len(hf_copy))**(-1.)-6.68 #correction due to?
                 
-        pixels = np.arange(len(hf))
-
-        #hf_psd = abs(hf_win.copy())**2
-        #hf_psd_in = hf_psd.copy()
+        pixels = np.arange(len(hf_copy))
              
         i = 0
           
@@ -935,26 +958,6 @@ class Telescope(object):
             hf_nowin = hf_nowin*(1.-self.gaussian(pixels,notch_pix,sigma_fs[i]*samp_hz))
             i+=1           
         
-        #FITTING PSD. ffit(self,f,a,b,c,d,e)
-        
-        #cropping:
-        #mask = np.ones(len(freqs),dtype=bool)
-            
-        #for (j,notch) in enumerate(notch_fs):      
-        #    for (i,f) in enumerate(freqs):
-        #        if abs(f-notch) < 1.: mask[i] = False
-        
-        #low_f = 50.
-        #high_f = 350.
-        
-        # for (f,hfi,bo) in zip(freqs[low_f*int(samp_hz):high_f*int(samp_hz)],hf_psd[low_f*int(samp_hz):high_f*int(samp_hz)],mask[low_f*int(samp_hz):high_f*int(samp_hz)]):
-        #      if bo == True:
-        #          freqscut.append(f)
-        #          hf_psdcut.append(hfi)
-
-        #psd_params, psd_cov = curve_fit(self.ffit2,freqscut,hf_psdcut,p0=(40.,200.,3.21777e-44))
-        
-        #fitted = np.array(self.ffit2(freqs[1:],psd_params[0],psd_params[1],psd_params[2]))
         
         #BPING HF
 
@@ -963,22 +966,13 @@ class Telescope(object):
 
         hf_nbped = hf_nowin*(1.-gauss_lo)*(gauss_hi)            ####
         
-    
+        #print 'average of band lim, std of band lim IN T DOMAIN'
         
-        # whitening: transform to freq domain, divide by asd
-        # remember: interp_psd is strain/rtHz
-        # white_hf = hf_nbped/(np.sqrt(hf_psd(freqs)/2./dt))#hf_psd_in[1:]
-        # white_hf[0] = 0.
-        # white_hf[-1:] = 0.
-        #white_hf_bp = white_hf*self.g_butt(freqs,3)
+        #hf_bp_inv= np.fft.irfft(hf_nbped, norm = 'ortho')
         
-        #hf_inv = np.fft.irfft(white_hf, n=Nt)
-        
-        # index = [idx, dect]
-        #
-        #hfm = hf_nbped[mask]
-        #print np.average(abs(hf_nbped)), np.average(abs(hfm)), np.average(abs(hfm[300:-300])), np.average(abs(hfm[1000:-1000]))
-        #print np.std(hf_nbped), np.std(hfm), np.std(hfm[300:-300]), np.std(hfm[1000:-1000])
+        #print np.average(hf_bp_inv), ' , ' , np.std(hf_bp_inv), '  ,  ', len(hf_bp_inv)
+        #print np.average(strain_in_nowin), ' , ' , np.std(strain_in_nowin), '  ,  ', len(strain_in_nowin)
+        #print np.average(strain_in_cp), ' , ' , np.std(strain_in_cp), '  ,  ', len(strain_in_cp)
         
         #plt.figure()
         #plt.plot(freqs,hf_nbped)

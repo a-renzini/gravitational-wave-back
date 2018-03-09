@@ -94,7 +94,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1','V1']
+dects = ['H1','L1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -105,7 +105,7 @@ run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects)
 # define start and stop time to search
 # in GPS seconds
 start = 931035615 #S6 start GPS
-stop  = 971622015 #971622015  #S6 end GPS
+stop  = 931622015 #971622015  #S6 end GPS
 
 
 
@@ -121,23 +121,13 @@ strain2_nproc = []
 b_pixes = []
 
 if myid == 0:
-    Z_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-    S_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-    M_lm_lpmp = 0.
+    Aver = 0.
     counter = 0
     conds = []
-    if checkpoint  == True:
-        checkdata = np.load(checkfile_path)
-        Z_lm += checkdata['Z_lm']
-        M_lm_lpmp += checkdata['M_lm_lpmp']
-        S_lm = None
-        counter = checkdata['counter']
-        conds = checkdata['conds']
+
 
 else:
-    Z_lm = None
-    S_lm = None
-    M_lm_lpmp = None
+    Aver = None
     counter = 0
 
 print 'segmenting the data...'
@@ -153,9 +143,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     if len(ctime)<2 : continue
     
     idx_block = 0
-    S = 0
-    N = 0
-    print N
+
     while idx_block < len(ctime):
         ctime_nproc.append(ctime[idx_block])
         strain1_nproc.append(strain_H1[idx_block])
@@ -221,12 +209,46 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #pass the noisy strains to injector got the psds
             psds = run.injector(strains_copy,my_ctime,low_cut,high_cut)[1]
             #strains are the new generated strains
-            aver = np.sqrt(np.abs(np.average(strains[0]*strains[1])))
-            #print aver
-            S += aver
-            N += 1
-            print 'N = ', N
+            aver1 = np.average(strains[0])
             
+            #aver2 = np.average(strains[0])
+            #print aver
+            #S += aver
+            
+            
+            if myid == 0:
+                a_buffer1 = np.zeros_like(aver1)
+                #a_buffer2 = np.zeros_like(aver1)
+            else:
+                a_buffer1 = None
+                #a_buffer2 = None
+
+            if ISMPI:
+                comm.barrier()
+                comm.Reduce(aver1, a_buffer1, root = 0, op = MPI.SUM)
+                #comm.Reduce(aver2, a_buffer2, root = 0, op = MPI.SUM)
+                if myid ==0: counter += nproc
+
+            else:
+                a_buffer1 += aver1
+                #a_buffer2 += aver2
+                counter += 1
+            #print '----'
+            #print 'z_lm', z_lm
+            #print 'buffer', z_buffer
+            #print 'counter',counter
+            #print '----'
+
+
+            if myid == 0:
+                
+                print '+++'
+                print counter, 'mins analysed.'
+                print '+++'
+                
+                Aver += a_buffer1
+                
+                print 'aver: ' ,  Aver
             
           
             ctime_nproc = []

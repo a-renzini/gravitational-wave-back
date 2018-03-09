@@ -152,8 +152,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     if len(ctime)<2 : continue
     
     idx_block = 0
-    S = 0
-    N = 0
+
     while idx_block < len(ctime):
         ctime_nproc.append(ctime[idx_block])
         strain1_nproc.append(strain_H1[idx_block])
@@ -219,13 +218,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #pass the noisy strains to injector got the psds
             psds = run.injector(strains_copy,my_ctime,low_cut,high_cut)[1]
             #strains are the new generated strains
-            #aver = np.sqrt(np.abs(np.average(strains[0]*strains[1])))
-            #print aver
-            #S += aver
-            #N += 1
             
-            
-            print len(psds)
+            #print 'std of corr. t_stream: ', np.std(strains[0]*strains[1])
             
             
             strains_f = []
@@ -238,6 +232,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #psds_f[i] = np.ones_like(psds_f[i])
                 strains_w.append(strains_f[i]/(psds_f[i]))
                     
+            
+            #print strains_f[0][mask]*np.conj(strains_f[1])[mask]
+            #print np.average(strains_f[0][mask]*np.conj(strains_f[1])[mask])
+            
 
             '''
             now strains_w, etc are pairs of 60s segments of signal, in frequency space.
@@ -354,7 +352,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc*5) == 0:    ## *10000
+                if counter % (nproc*20) == 0:    ## *10000
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, 'sim = ', sim
