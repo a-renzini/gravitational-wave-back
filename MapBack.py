@@ -893,7 +893,6 @@ class Telescope(object):
         ####
         
    
-
     
     def filter(self,strain_in,low_f,high_f, hf_psd, simulate = False):
         fs=self.fs        
@@ -1175,7 +1174,8 @@ class Telescope(object):
                                     (
                                     glm[hp.Alm.getidx(lmax,lp,mp)]*self.coupK(lp,l,lpp,mp,m)
                                     ))*np.sum(self.dfreq_factor(freq,lpp,idx_b)*s)*df    ##freq dependence summed over
-                            
+                                    
+                                    
                                 else:
                                     sum_lm[idx_lm] += (
                         
@@ -1183,7 +1183,8 @@ class Telescope(object):
                                      *np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))*
                                      (
                                      (-1.)**(mp)*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])*self.coupK(lp,l,lpp,mp,m)
-                                     ))*np.sum(self.dfreq_factor(freq,lpp,idx_b)*s)*df                           
+                                     ))*np.sum(self.dfreq_factor(freq,lpp,idx_b)*s)*df
+                                                              
         return sum_lm#/norm
  
 
