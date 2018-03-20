@@ -47,8 +47,8 @@ class Generator(object):
 
             self.a_lm = np.zeros(hp.Alm.getidx(self.lmax,self.lmax,self.lmax)+1,dtype=complex)
 
-            self.a_lm[0] = 1.
-
+            #self.a_lm[4] = 1.
+            self.a_lm[5] = 1.
             #cls = hp.sphtfunc.alm2cl(a_lm)
 
             # cls=[1]*nside
