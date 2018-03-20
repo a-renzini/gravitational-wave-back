@@ -64,21 +64,35 @@ class Generator(object):
             self.a_lm[1] = 1.
         
         elif sig_name == '2pol2':
-
-            #self.a_lm[4] = 1.
-            self.a_lm[1] = 1.
-            self.a_lm[2] = 1.
-            
+            l = 1
+            m = 0
+            idx = hp.Alm.getidx(self.lmax,l,abs(m))
+            self.a_lm[idx] = 1.
+            l = 1
+            m = 1
+            idx = hp.Alm.getidx(self.lmax,l,abs(m))
+            self.a_lm[idx] = 1.  
+                      
         elif sig_name == '4pol1':
 
-            #self.a_lm[4] = 1.
-            self.a_lm[3] = 1.
+            l = 2
+            m = 0
+            idx = hp.Alm.getidx(self.lmax,l,abs(m))
+            self.a_lm[idx] = 1.
+
             
         elif sig_name == '4pol2':
 
-            self.a_lm[4] = 1.
-            self.a_lm[5] = 1.
+            l = 2
+            m = 1
+            idx = hp.Alm.getidx(self.lmax,l,abs(m))
+            self.a_lm[idx] = 1.
+            l = 2
+            m = 2
+            idx = hp.Alm.getidx(self.lmax,l,abs(m))
+            self.a_lm[idx] = 1. 
         
+        print self.a_lm
         Istoke = hp.sphtfunc.alm2map(self.a_lm, nside)
             
             
@@ -324,37 +338,47 @@ class Dect(object):
         if typ == 'mono':
             lminl = 0
             lmaxl = 0
+            lmaxm = 0
         
         elif typ == '2pol1':
             lminl = 1
             lmaxl = 1
+            lmaxm = 0
             
         elif typ == '2pol2':
             lminl = 1
-            lmaxl = 2
+            lmaxl = 1
+            lmaxm = 1
         
         elif typ == '4pol1':
-            lminl = 3
-            lmaxl = 3
+            lminl = 2
+            lmaxl = 2
+            lmaxm = 0
             
         elif typ == '4pol2':
-            lminl = 4
-            lmaxl = 5
+            lminl = 2
+            lmaxl = 2
+            lmaxm = 2
                
-        else: lmaxl = lmax 
+        else: 
+            lmaxl = lmax 
+            lminl = 0
+            lmaxm = 0
         sample_freqs = freqs[::500]
         sample_freqs = np.append(sample_freqs,freqs[-1])
         
-        
+        #fixed poles
         
         for f in sample_freqs:     #NEEDS TO CALL GEOMETRY METHINKS
 
             sim_f = 0.
+
             for l in range(lminl,lmaxl+1): #
-                for m in range(-l,l+1): #
+
+                for m in range(-lmaxm,lmaxm+1): #
                     
                     idx_lm = hp.Alm.getidx(lmax,l,abs(m))
-        
+
                     for lp in range(lmax+1): #
                         for mp in range(-lp,lp+1): #
         
@@ -370,50 +394,32 @@ class Dect(object):
                         
                                 if m>0:
                                     if mp>0:
-                                        #print l, m, lp, mp, lpp, mpp
+                                        #print hclm[idx_lm]
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(hplm[idx_lm]*Fplm[idx_lpmp]+hclm[idx_lm]*Fclm[idx_lpmp]) )
-                                        # print self.coupK(lp,l,lpp,mp,m)
-                                        # print spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
-                                        # print np.conj(sph_harm(mpp, lpp, th_x, ph_x))
-                                        # print (np.conj(hplm[idx_lm])*Fplm[idx_lpmp])
-                                        # print (np.conj(hclm[idx_lm])*Fclm[idx_lpmp])
+
                             
                                     else:
-                                        #print l, m, lp, mp, lpp, mpp
+                                        #print hclm[idx_lm]
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(hplm[idx_lm]*np.conj(Fplm[idx_lpmp])+hclm[idx_lm]*np.conj(Fclm[idx_lpmp])) )*(-1)**mp
-                                        # print self.coupK(lp,l,lpp,mp,m)
-                                        # print spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
-                                        # print np.conj(sph_harm(mpp, lpp, th_x, ph_x))
-                                        # print (np.conj(hplm[idx_lm])*Fplm[idx_lpmp])
-                                        # print (np.conj(hclm[idx_lm])*Fclm[idx_lpmp])
+
                                 
                                 else:
                                     if mp>0:
-                                        #print l, m, lp, mp, lpp, mpp
+                                        #print hclm[idx_lm]
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(np.conj(hplm[idx_lm])*Fplm[idx_lpmp]+np.conj(hclm[idx_lm])*Fclm[idx_lpmp]) )*(-1)**m
-                                        # print self.coupK(lp,l,lpp,mp,m)
-                                        # print spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
-                                        # print np.conj(sph_harm(mpp, lpp, th_x, ph_x))
-                                        # print (np.conj(hplm[idx_lm])*Fplm[idx_lpmp])
-                                        # print (np.conj(hclm[idx_lm])*Fclm[idx_lpmp])
-                                        
+
                             
                                     else:
-                                        #print l, m, lp, mp, lpp, mpp
+                                        #print hclm[idx_lm]
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(np.conj(hplm[idx_lm])*np.conj(Fplm[idx_lpmp])+np.conj(hclm[idx_lm])*np.conj(Fclm[idx_lpmp])) )*(-1)**m*(-1)**mp
-                                        # print self.coupK(lp,l,lpp,mp,m)
-                                        # print spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
-                                        # print np.conj(sph_harm(mpp, lpp, th_x, ph_x))
-                                        # print (np.conj(hplm[idx_lm])*Fplm[idx_lpmp])
-                                        # print (np.conj(hclm[idx_lm])*Fclm[idx_lpmp])
             #print sim_f
             sim.append(sim_f)
         sim_func = interp1d(sample_freqs,sim)
@@ -421,7 +427,7 @@ class Dect(object):
         #phases = np.exp(1.j*np.random.random_sample(len(freqs))*2.*np.pi)/np.sqrt(2.)
 
         sim = np.array(sim_func(freqs))#*np.array(phases)
-        
+        exit()
         return sim#len(freqs)*4         #for the correct normalisation
 
 
