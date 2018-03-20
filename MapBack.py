@@ -70,7 +70,9 @@ class Generator(object):
             self.a_lm[idx] = 1.
             l = 1
             m = 1
+            print self.lmax,l,abs(m)
             idx = hp.Alm.getidx(self.lmax,l,abs(m))
+            print idx
             self.a_lm[idx] = 1.  
                       
         elif sig_name == '4pol1':
@@ -85,14 +87,13 @@ class Generator(object):
 
             l = 2
             m = 1
-            idx = hp.Alm.getidx(self.lmax,l,abs(m))
+            idx = hp.Alm.getidx(self.lmax,l,abs(m)) 
             self.a_lm[idx] = 1.
             l = 2
             m = 2
             idx = hp.Alm.getidx(self.lmax,l,abs(m))
             self.a_lm[idx] = 1. 
         
-        print self.a_lm
         Istoke = hp.sphtfunc.alm2map(self.a_lm, nside)
             
             
@@ -106,7 +107,7 @@ class Dect(object):
         self.R_earth=6378137
         self.beta = 27.2*np.pi/180.
         self._nside = nside
-        lmax = nside                                                                                                        
+        lmax = nside/2                                                                                                        
         self.lmax = lmax
         
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
@@ -330,7 +331,6 @@ class Dect(object):
         Fplm = self.rot_Fplus_lm(q_x)
         Fclm = self.rot_Fcross_lm(q_x)
         
-        #print 'Fplusrot[0]'
         #print Fplm[0]
         
         c = 3.e8
@@ -378,7 +378,6 @@ class Dect(object):
                 for m in range(-lmaxm,lmaxm+1): #
                     
                     idx_lm = hp.Alm.getidx(lmax,l,abs(m))
-
                     for lp in range(lmax+1): #
                         for mp in range(-lp,lp+1): #
         
@@ -394,14 +393,12 @@ class Dect(object):
                         
                                 if m>0:
                                     if mp>0:
-                                        #print hclm[idx_lm]
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(hplm[idx_lm]*Fplm[idx_lpmp]+hclm[idx_lm]*Fclm[idx_lpmp]) )
 
                             
                                     else:
-                                        #print hclm[idx_lm]
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(hplm[idx_lm]*np.conj(Fplm[idx_lpmp])+hclm[idx_lm]*np.conj(Fclm[idx_lpmp])) )*(-1)**mp
@@ -409,14 +406,12 @@ class Dect(object):
                                 
                                 else:
                                     if mp>0:
-                                        #print hclm[idx_lm]
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(np.conj(hplm[idx_lm])*Fplm[idx_lpmp]+np.conj(hclm[idx_lm])*Fclm[idx_lpmp]) )*(-1)**m
 
                             
                                     else:
-                                        #print hclm[idx_lm]
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(np.conj(hplm[idx_lm])*np.conj(Fplm[idx_lpmp])+np.conj(hclm[idx_lm])*np.conj(Fclm[idx_lpmp])) )*(-1)**m*(-1)**mp
@@ -427,7 +422,7 @@ class Dect(object):
         #phases = np.exp(1.j*np.random.random_sample(len(freqs))*2.*np.pi)/np.sqrt(2.)
 
         sim = np.array(sim_func(freqs))#*np.array(phases)
-        exit()
+
         return sim#len(freqs)*4         #for the correct normalisation
 
 
