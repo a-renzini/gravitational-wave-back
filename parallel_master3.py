@@ -85,7 +85,7 @@ nside_in = 16
 nside_out = 8
 lmax = 2
 sim = True  
-simtyp = '2pol1'
+simtyp = '4pol2'
 
 #INTEGRATING FREQS:                                                                                                           
 low_f = 80.
