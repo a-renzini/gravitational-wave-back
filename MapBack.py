@@ -42,13 +42,14 @@ class Generator(object):
         
         self.nside = nside
         self.lmax = self.nside/2
+        self.a_lm = np.zeros(hp.Alm.getidx(self.lmax,self.lmax,self.lmax)+1,dtype=complex)
         
         if sig_name == 'mono':    
 
-            self.a_lm = np.zeros(hp.Alm.getidx(self.lmax,self.lmax,self.lmax)+1,dtype=complex)
+            #self.a_lm = np.zeros(hp.Alm.getidx(self.lmax,self.lmax,self.lmax)+1,dtype=complex)
 
             #self.a_lm[4] = 1.
-            self.a_lm[5] = 1.
+            self.a_lm[0] = 1.
             #cls = hp.sphtfunc.alm2cl(a_lm)
 
             # cls=[1]*nside
@@ -56,11 +57,29 @@ class Generator(object):
             # while i<nside:
             #     cls[i]=1./(i+1.)**2.
             #     i+=1
+        
+        elif sig_name == '2pol1':
 
-            Istoke = hp.sphtfunc.alm2map(self.a_lm, nside)
+            #self.a_lm[4] = 1.
+            self.a_lm[1] = 1.
+        
+        elif sig_name == '2pol2':
+
+            #self.a_lm[4] = 1.
+            self.a_lm[1] = 1.
+            self.a_lm[2] = 1.
             
-        else:
-            self.a_lm = np.zeros(hp.Alm.getidx(self.lmax,self.lmax,self.lmax)+1,dtype=complex)
+        elif sig_name == '4pol1':
+
+            #self.a_lm[4] = 1.
+            self.a_lm[3] = 1.
+            
+        elif sig_name == '4pol2':
+
+            self.a_lm[4] = 1.
+            self.a_lm[5] = 1.
+        
+        Istoke = hp.sphtfunc.alm2map(self.a_lm, nside)
             
             
     def get_a_lm(self):
@@ -303,7 +322,25 @@ class Dect(object):
         c = 3.e8
         
         if typ == 'mono':
+            lminl = 0
             lmaxl = 0
+        
+        elif typ == '2pol1':
+            lminl = 1
+            lmaxl = 1
+            
+        elif typ == '2pol2':
+            lminl = 1
+            lmaxl = 2
+        
+        elif typ == '4pol1':
+            lminl = 3
+            lmaxl = 3
+            
+        elif typ == '4pol2':
+            lminl = 4
+            lmaxl = 5
+               
         else: lmaxl = lmax 
         sample_freqs = freqs[::500]
         sample_freqs = np.append(sample_freqs,freqs[-1])
@@ -313,7 +350,7 @@ class Dect(object):
         for f in sample_freqs:     #NEEDS TO CALL GEOMETRY METHINKS
 
             sim_f = 0.
-            for l in range(lmaxl+1): #
+            for l in range(lminl,lmaxl+1): #
                 for m in range(-l,l+1): #
                     
                     idx_lm = hp.Alm.getidx(lmax,l,abs(m))
@@ -759,7 +796,7 @@ class Telescope(object):
 
  #   def cutout(self,x, freqs,low = 20, high = 300):
 
-    def injector(self,strains_in,ct_split,low_f,high_f, sim = False):
+    def injector(self,strains_in,ct_split,low_f,high_f,sim = False, simtyp = 'mono'):
         fs=self.fs        
         dt=1./fs
         
@@ -784,7 +821,7 @@ class Telescope(object):
             for (idx_det,dect) in enumerate(self.detectors):
                 print idx_det
                 q_x = q_xes[idx_det]
-                fakestream = dect.simulate(freqs,q_x) 
+                fakestream = dect.simulate(freqs,q_x,simtyp) 
                 fakestreams.append(fakestream)
                 #plt.figure()
                 #plt.plot(freqs,np.real(fakestream), c = 'red') 
