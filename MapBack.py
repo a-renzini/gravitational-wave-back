@@ -70,9 +70,9 @@ class Generator(object):
             self.a_lm[idx] = 1.
             l = 1
             m = 1
-            print self.lmax,l,abs(m)
+            #print self.lmax,l,abs(m)
             idx = hp.Alm.getidx(self.lmax,l,abs(m))
-            print idx
+            #print idx
             self.a_lm[idx] = 1.  
                       
         elif sig_name == '4pol1':
@@ -330,9 +330,7 @@ class Dect(object):
         hclm = gen.get_a_lm()
         Fplm = self.rot_Fplus_lm(q_x)
         Fclm = self.rot_Fcross_lm(q_x)
-        
-        #print Fplm[0]
-        
+                        
         c = 3.e8
         
         if typ == 'mono':
@@ -372,7 +370,7 @@ class Dect(object):
         for f in sample_freqs:     #NEEDS TO CALL GEOMETRY METHINKS
 
             sim_f = 0.
-
+            
             for l in range(lminl,lmaxl+1): #
 
                 for m in range(-lmaxm,lmaxm+1): #
@@ -415,7 +413,8 @@ class Dect(object):
                                         sim_f+=4*np.pi*(0.+1.j)**lpp*(spherical_jn(lpp, 2.*np.pi*(f)*self.R_earth/c)
                                         *np.conj(sph_harm(mpp, lpp, th_x, ph_x))*self.coupK(lp,l,lpp,mp,m)
                                         *(np.conj(hplm[idx_lm])*np.conj(Fplm[idx_lpmp])+np.conj(hclm[idx_lm])*np.conj(Fclm[idx_lpmp])) )*(-1)**m*(-1)**mp
-            #print sim_f
+            
+
             sim.append(sim_f)
         sim_func = interp1d(sample_freqs,sim)
 
@@ -505,8 +504,10 @@ class Telescope(object):
         for i in range(self._nbase):
             a, b = self.combo_tuples[i]
             self.gammaI.append((5./(8.*np.pi))*self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross())
-        
-        
+                
+        hp.mollview(self.gammaI[0])
+        plt.savefig('gammaI.pdf')
+
         #self.gammaQ = self.H1.get_Fplus()*self.L1.get_Fcross()-self.H1.get_Fcross()*self.L1.get_Fplus()
         #self.gammaU = self.H1.get_Fplus()*self.L1.get_Fplus()-self.H1.get_Fcross()*self.L1.get_Fcross()
         #self.gammaV = self.H1.get_Fplus()*self.L1.get_Fcross()+self.H1.get_Fcross()*self.L1.get_Fplus()
@@ -569,14 +570,18 @@ class Telescope(object):
         return e*((c/(0.1+f))**(6.)+(f/d)**(2.)+1.)#w*(1.+(f_k*f**(-1.))**1.+(f/h_k)**b)        
 
     def rotation_pix(self,m_array,n): #rotates string of pixels m around QUATERNION n
+        
         nside = hp.npix2nside(len(m_array))
         dec_quatmap,ra_quatmap = hp.pix2ang(nside,m_array) #
-        quatmap = self.Q.radecpa2quat(np.rad2deg(ra_quatmap), np.rad2deg(dec_quatmap-np.pi*0.5), 0.*np.ones_like(ra_quatmap)) #but maybe orientation here is actually the orientation of detector a, b? in which case, one could input it as a variable!
+        
+        quatmap = self.Q.radecpa2quat(np.rad2deg(ra_quatmap), np.rad2deg(dec_quatmap-np.pi*0.5), np.zeros_like(ra_quatmap)) #but maybe orientation here is actually the orientation of detector a, b? in which case, one could input it as a variable!
         quatmap_rotated = np.ones_like(quatmap)
+        
         i = 0
         while i < len(m_array): 
-            quatmap_rotated[i] = qr.quat_mult(n,quatmap[i])
+            quatmap_rotated[i] = qr.quat_mult(n,quatmap[i]) ###
             i+=1
+            
         quatmap_rot_pix = self.Q.quat2pix(quatmap_rotated,nside)[0] #rotated pixel list (polarizations are in [1])
         return quatmap_rot_pix
 
@@ -1167,10 +1172,15 @@ class Telescope(object):
         
         for idx_b in range(self._nbase):
             
-            rot_m_array = self.rotation_pix(np.arange(npix), q_n[idx_b]) #rotating around the bisector of the gc 
+            rot_m_array = self.rotation_pix(np.arange(npix), q_n[idx_b])  
             gammaI_rot = self.gammaI[idx_b][rot_m_array]
             
+            hp.mollview(gammaI_rot)
+            plt.savefig('gammaIrot.pdf')
+            exit()
+            
             glm = hp.map2alm(gammaI_rot, lmax, pol=False)  
+            
             
             # for ell in range(lmax+1):
             #     idxl0 =  hp.Alm.getidx(lmax,ell,0)
