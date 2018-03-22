@@ -1175,9 +1175,6 @@ class Telescope(object):
             rot_m_array = self.rotation_pix(np.arange(npix), q_n[idx_b])  
             gammaI_rot = self.gammaI[idx_b][rot_m_array]
             
-            hp.mollview(gammaI_rot)
-            plt.savefig('gammaIrot.pdf')
-            exit()
             
             glm = hp.map2alm(gammaI_rot, lmax, pol=False)  
             
