@@ -82,7 +82,7 @@ ligo_data_dir = data_path  #can be defined in the repo
 filelist = rl.FileList(directory=ligo_data_dir)
 
 nside_in = 16
-nside_out = 8
+nside_out = 16
 lmax = 2
 sim = True  
 simtyp = '4pol2'
