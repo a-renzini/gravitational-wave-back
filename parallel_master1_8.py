@@ -81,11 +81,11 @@ fs = 4096
 ligo_data_dir = data_path  #can be defined in the repo                                                                        
 filelist = rl.FileList(directory=ligo_data_dir)
 
-nside_in = 16
-nside_out = 16
+nside_in = 8
+nside_out = 8
 lmax = 2
 sim = True  
-simtyp = 'mono'
+simtyp = '2pol2'
 
 #INTEGRATING FREQS:                                                                                                           
 low_f = 80.
@@ -133,8 +133,7 @@ if myid == 0:
         S_lm = None
         counter = checkdata['counter']
         conds = checkdata['conds']
-        print counter
-        
+
 else:
     Z_lm = None
     S_lm = None
@@ -409,10 +408,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     #exit()
                     
-                    #if counter == 40:  
-                ################################################    
-                ################################################    
-                ################################################    
+                    #if counter == 40:  exit()
+                #################################################    
+                #################################################    
+                #################################################    
             ctime_nproc = []
             strain1_nproc = []
             strain2_nproc = []
