@@ -49,8 +49,14 @@ print q
 npix = hp.nside2npix(nside_out)
 print npix
 
+glm = hp.map2alm(gammaI, lmax, pol=False)  
+print glm 
+
 rot_array = run.rotation_pix(np.arange(npix), q)  
 gammaI_rot = gammaI[rot_array]
+
+glm_rot = hp.map2alm(gammaI_rot, lmax, pol=False)  
+print glm_rot 
 
 hp.mollview(gammaI_rot)
 plt.savefig('gammaI_rot.pdf')

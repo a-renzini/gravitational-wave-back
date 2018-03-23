@@ -124,12 +124,14 @@ if myid == 0:
     Z_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
     S_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
     M_lm_lpmp = 0.
+    M_lm_lpmp_2 = 0.
     counter = 0
     conds = []
     if checkpoint  == True:
         checkdata = np.load(checkfile_path)
         Z_lm += checkdata['Z_lm']
         M_lm_lpmp += checkdata['M_lm_lpmp']
+        M_lm_lpmp_2 += checkdata['M_lm_lpmp_2']
         S_lm = None
         counter = checkdata['counter']
         conds = checkdata['conds']
@@ -139,6 +141,7 @@ else:
     Z_lm = None
     S_lm = None
     M_lm_lpmp = None
+    M_lm_lpmp_2 = None
     counter = 0
 
 print 'segmenting the data...'
@@ -185,7 +188,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             #create empty lm objects:
             m_lm = np.ones(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
             my_M_lm_lpmp = 0.
-
+            my_M_lm_lpmp_2 = 0.
+            
             print 'filtering, ffting & saving the strains...'
 
             Nt = len(my_h1)
@@ -231,7 +235,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             for i in range(ndet):
                 strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i]))
                 psds_f.append(psds[i](freqs)*fs**2) 
-                #psds_f[i] = np.ones_like(psds_f[i])
+                psds_f[i] = np.ones_like(psds_f[i])       ######weightless
                 strains_w.append(strains_f[i]/(psds_f[i]))
                     
             
@@ -307,27 +311,35 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 print 'building M^-1:'
 
             my_M_lm_lpmp += run.M_lm_lpmp_t(my_ctime, psds_f,freqs,pix_bs,q_ns)
-
+            my_M_lm_lpmp_2 += run.M_lm_lpmp_t_2(my_ctime, psds_f,freqs,pix_bs,q_ns)
+            
+            print my_M_lm_lpmp-my_M_lm_lpmp_2
+            
             cond = np.linalg.cond(my_M_lm_lpmp)
 
             if myid == 0:
                 M_lm_lpmp_buffer = np.zeros_like(my_M_lm_lpmp)
+                M_lm_lpmp_2_buffer = np.zeros_like(my_M_lm_lpmp)
                 conds_array = np.zeros(nproc)
             else:
                 M_lm_lpmp_buffer = None
+                M_lm_lpmp_2_buffer = None
                 conds_array = None
 
             if ISMPI:
                 comm.barrier()
                 comm.Reduce(my_M_lm_lpmp, M_lm_lpmp_buffer, root = 0, op = MPI.SUM)
+                comm.Reduce(my_M_lm_lpmp_2, M_lm_lpmp_2_buffer, root = 0, op = MPI.SUM)
                 comm.Gather(cond, conds_array, root = 0)
 
             else:
                 M_lm_lpmp_buffer += my_M_lm_lpmp
+                M_lm_lpmp_2_buffer += my_M_lm_lpmp_2
                 conds.append(cond)
 
             if myid == 0:
-                M_lm_lpmp += np.real(M_lm_lpmp_buffer)
+                M_lm_lpmp += M_lm_lpmp_buffer
+                M_lm_lpmp_2 += M_lm_lpmp_2_buffer                
                 np.append(conds,conds_array)
 
                 #print 'M is ', len(M_lm_lpmp), ' by ', len(M_lm_lpmp[0])
@@ -336,15 +348,21 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
                 #### SVD
 
-                M_lm_lpmp = np.real(M_lm_lpmp)
+                print M_lm_lpmp
+                print M_lm_lpmp_2 
                 M_inv = np.linalg.pinv(M_lm_lpmp)   #default:  for cond < 1E15
-
+                M_inv_2 = np.linalg.pinv(M_lm_lpmp_2)   #default:  for cond < 1E15
+                
+                print M_inv, M_inv_2
+                
                 print 'the matrix has been inverted!'
 
 
                 ################################################################
 
-                S_lm = np.array(np.dot(M_inv,Z_lm)) #fully accumulated maps!
+                S_lm = np.array(np.dot(M_inv,Z_lm)+np.dot(M_inv_2,np.conj(Z_lm))) #fully accumulated maps!
+                
+                print S_lm
                 #S_lm+= s_lm
 
                 #print len(s_lm)
@@ -354,7 +372,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc*20) == 0:    ## *10000
+                if counter % (nproc) == 0:    ## *10000
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, 'sim = ', sim
