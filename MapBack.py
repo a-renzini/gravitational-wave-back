@@ -1402,53 +1402,31 @@ class Telescope(object):
                                         for lpt in range(lmax+1): #
                                             for mpt in range(-lpt,lpt+1): #
                                                 # remaining mt index
-                                                mppt = mt+mpt
+                                                mppt = -(mt+mpt)
                                                 lmin_mt = np.max([np.abs(lt - lpt), np.abs(mt + mpt)])
                                                 lmax_mt = lt + lpt
                                             
                                                 for idxlt, lppt in enumerate(range(lmin_mt,lmax_mt+1)):
                                                         
-                                                    if mp > 0:
-                                                        
-                                                        if mpt > 0:
-                                                            
-                                                            M_lm_lpmp[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*self.dfreq_factor(freq,lppt,idx_b)*weight)*df**2
-                                                            *np.conj(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
-                                                            *glm[hp.Alm.getidx(lmax,lp,mp)]*self.coupK(lp,l,lpp,mp,m))*(4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
-                                                            *glm[hp.Alm.getidx(lmax,lpt,mpt)]*self.coupK(lpt,lt,lppt,mpt,mt)))
-                                                                                                                    
-                                                        else:
-                                                            
-                                                            M_lm_lpmp[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*self.dfreq_factor(freq,lppt,idx_b)*weight)*df**2
-                                                            *np.conj(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
-                                                            *glm[hp.Alm.getidx(lmax,lp,mp)]*self.coupK(lp,l,lpp,mp,m))*(4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
-                                                            *(-1)**mpt*np.conj(glm[hp.Alm.getidx(lmax,lpt,-mpt)])*self.coupK(lpt,lt,lppt,mpt,mt)))
-                                                                                                                
-                                                    else:
-                                                        
-                                                        if mpt > 0:
-                                                            
-                                                            M_lm_lpmp[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*self.dfreq_factor(freq,lppt,idx_b)*weight)*df**2
-                                                            *np.conj(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
-                                                            *(-1)**mp*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])*self.coupK(lp,l,lpp,mp,m))*(4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
-                                                            *glm[hp.Alm.getidx(lmax,lpt,mpt)]*self.coupK(lpt,lt,lppt,mpt,mt)))
-                                                                                                                    
-                                                        else:
-                                                            
-                                                            M_lm_lpmp[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*self.dfreq_factor(freq,lppt,idx_b)*weight)*df**2
-                                                            *np.conj(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
-                                                            *(-1)**mp*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])*self.coupK(lp,l,lpp,mp,m))*(4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
-                                                            *(-1)**mpt*np.conj(glm[hp.Alm.getidx(lmax,lpt,-mpt)])*self.coupK(lpt,lt,lppt,mpt,mt)))
-                                                                                                                    
+                                                    if mp > 0: rmp_rglm = glm[hp.Alm.getidx(lmax,lp,mp)] 
+                                                    else: rmp_rglm = (-1)**mp*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])
+                                                    if mpt > 0:rmpt_rgltmt = glm[hp.Alm.getidx(lmax,lpt,mpt)] 
+                                                    else: rmpt_rgltmt = (-1)**mpt*np.conj(glm[hp.Alm.getidx(lmax,lpt,-mpt)] )
                                                     
+                                                    
+                                                    M_lm_lpmp[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*
+                                                    self.dfreq_factor(freq,lppt,idx_b)*weight)*df
+                                                    *np.conj(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
+                                                    *rmp_rglm*self.coupK(lp,l,lpp,mp,m))*
+                                                    (4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
+                                                    *rmpt_rgltmt*self.coupK(lpt,lt,lppt,mpt,mt)))                                                    
                                                     
                                                     
                                                    
             #print M_lm_lpmp[idx_lm,idx_ltmt]                
-        
         #norm = np.abs(np.sum(np.abs(hit_lm)))
         return M_lm_lpmp #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
-    
+
     def M_lm_lpmp_t_2(self,ct_split, psds_split_t,freq,pix_b,q_n): 
         
         nside=self._nside_out
@@ -1458,7 +1436,7 @@ class Telescope(object):
         npix = self.npix_out       
         
         
-        M_lm_lpmp_2 = np.zeros((al,al), dtype = complex)
+        M_lm_lpmp = np.zeros((al,al), dtype = complex)
         #integral = np.ndarray(shape = (al,al), dtype = complex)
         #hit_lm = np.zeros(len(scanned_lm), dtype = complex)
         #print M_lm_lpmp
@@ -1467,7 +1445,7 @@ class Telescope(object):
         freq = freq[mask]
         
         df = self.fs/float(len(freq))#/len(psds_split_t[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
-        
+        print 'df: ', df
         #geometry
         
         mid_idx = int(len(ct_split)/2)
@@ -1519,64 +1497,30 @@ class Telescope(object):
                                         for lpt in range(lmax+1): #
                                             for mpt in range(-lpt,lpt+1): #
                                                 # remaining mt index
-                                                mppt = mt+mpt
+                                                mppt = -(mt+mpt)
                                                 lmin_mt = np.max([np.abs(lt - lpt), np.abs(mt + mpt)])
                                                 lmax_mt = lt + lpt
                                             
                                                 for idxlt, lppt in enumerate(range(lmin_mt,lmax_mt+1)):
                                                         
-                                                    if mp > 0:
-                                                        
-                                                        if mpt > 0:
-                                                            
-                                                            M_lm_lpmp_2[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*self.dfreq_factor(freq,lppt,idx_b)*weight)*df**2
-                                                            *(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
-                                                            *glm[hp.Alm.getidx(lmax,lp,mp)]*self.coupK(lp,l,lpp,mp,m))*(4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
-                                                            *glm[hp.Alm.getidx(lmax,lpt,mpt)]*self.coupK(lpt,lt,lppt,mpt,mt)))
-                                                            
-                                                            if idx_lm == 3 & idx_ltmt ==3 : print M_lm_lpmp_2[idx_lm,idx_ltmt]
-                                                        
-                                                        else:
-                                                            
-                                                            M_lm_lpmp_2[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*self.dfreq_factor(freq,lppt,idx_b)*weight)*df**2
-                                                            *(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
-                                                            *glm[hp.Alm.getidx(lmax,lp,mp)]*self.coupK(lp,l,lpp,mp,m))*(4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
-                                                            *(-1)**mpt*np.conj(glm[hp.Alm.getidx(lmax,lpt,-mpt)])*self.coupK(lpt,lt,lppt,mpt,mt)))
-                                                            
-                                                            if idx_lm == 3 & idx_ltmt ==3 : print M_lm_lpmp_2[idx_lm,idx_ltmt]
-                                                            
+                                                    if mp > 0: rmp_rglm = glm[hp.Alm.getidx(lmax,lp,mp)] 
+                                                    else: rmp_rglm = (-1)**mp*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])
+                                                    if mpt > 0:rmpt_rgltmt = glm[hp.Alm.getidx(lmax,lpt,mpt)] 
+                                                    else: rmpt_rgltmt = (-1)**mpt*np.conj(glm[hp.Alm.getidx(lmax,lpt,-mpt)] )
                                                     
-                                                    else:
-                                                        
-                                                        if mpt > 0:
-                                                            
-                                                            M_lm_lpmp_2[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*self.dfreq_factor(freq,lppt,idx_b)*weight)*df**2
-                                                            *(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
-                                                            *(-1)**mp*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])*self.coupK(lp,l,lpp,mp,m))*(4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
-                                                            *glm[hp.Alm.getidx(lmax,lpt,mpt)]*self.coupK(lpt,lt,lppt,mpt,mt)))
-                                                            
-                                                            if idx_lm == 3 & idx_ltmt ==3 : print M_lm_lpmp_2[idx_lm,idx_ltmt]
-                                                            
-                                                        
-                                                        else:
-                                                            
-                                                            M_lm_lpmp_2[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*self.dfreq_factor(freq,lppt,idx_b)*weight)*df**2
-                                                            *(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
-                                                            *(-1)**mp*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])*self.coupK(lp,l,lpp,mp,m))*(4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
-                                                            *(-1)**mpt*np.conj(glm[hp.Alm.getidx(lmax,lpt,-mpt)])*self.coupK(lpt,lt,lppt,mpt,mt)))
-                                                            
-                                                            if idx_lm == 3 & idx_ltmt ==3 : print M_lm_lpmp_2[idx_lm,idx_ltmt]
-                                                            
-                                                        
                                                     
+                                                    M_lm_lpmp[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*
+                                                    self.dfreq_factor(freq,lppt,idx_b)*weight)*df
+                                                    *(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
+                                                    *rmp_rglm*self.coupK(lp,l,lpp,mp,m))*
+                                                    (4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
+                                                    *rmpt_rgltmt*self.coupK(lpt,lt,lppt,mpt,mt)))                                                    
                                                     
                                                     
                                                    
             #print M_lm_lpmp[idx_lm,idx_ltmt]                
-        
         #norm = np.abs(np.sum(np.abs(hit_lm)))
-        return M_lm_lpmp_2 #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
- 
+        return M_lm_lpmp #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
 
     # ********* Decorrelator *********    
 
