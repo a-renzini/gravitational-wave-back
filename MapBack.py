@@ -144,8 +144,8 @@ class Dect(object):
             #import name
             self._lon = dect_name.lon
             self._lat = dect_name.lat
-            self._elev = dect_name.elev
             self._vec = dect_name.vec
+            self._alpha = dect_name.alpha
         
         
         self._ph = self._lon + 2.*np.pi;

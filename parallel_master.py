@@ -95,7 +95,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1']#,'V1']
+dects = ['H1','L1','V1','A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -419,10 +419,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     print >> falm, 'end.'
                     falm.close()
                     
-                    #fig = plt.figure()
-                    #hp.mollview(np.zeros_like(dirty_map))
-                    #hp.visufunc.projscatter(hp.pix2ang(nside_out,b_pixes))
-                    #plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
+                    fig = plt.figure()
+                    hp.mollview(np.zeros_like(dirty_map))
+                    hp.visufunc.projscatter(hp.pix2ang(nside_out,b_pixes))
+                    plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
                     
                     #exit()
                     
