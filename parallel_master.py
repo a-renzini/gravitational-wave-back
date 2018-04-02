@@ -95,7 +95,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1','V1']
+dects = ['H1','L1','V1','A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -106,7 +106,7 @@ run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects)
 # define start and stop time to search
 # in GPS seconds
 start = 931035615 #S6 start GPS
-stop  = 971622015  #S6 end GPS
+stop  = 931135615 #971622015  #S6 end GPS
 
 
 ###########################UNCOMMENT ME#########################################
@@ -235,7 +235,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             for i in range(ndet):
                 strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i]))
                 psds_f.append(psds[i](freqs)*fs**2) 
-                psds_f[i] = np.ones_like(psds_f[i])       ######weightless
+                #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
                 strains_w.append(strains_f[i]/(psds_f[i]))
                     
             
@@ -313,7 +313,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             my_M_lm_lpmp += run.M_lm_lpmp_t(my_ctime, psds_f,freqs,pix_bs,q_ns)
             my_M_lm_lpmp_2 += run.M_lm_lpmp_t_2(my_ctime, psds_f,freqs,pix_bs,q_ns)
             
-            print my_M_lm_lpmp-my_M_lm_lpmp_2
+            
             
             cond = np.linalg.cond(my_M_lm_lpmp)
 
@@ -348,21 +348,20 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
                 #### SVD
 
-                print M_lm_lpmp
-                print M_lm_lpmp_2 
+                
                 M_inv = np.linalg.pinv(M_lm_lpmp)   #default:  for cond < 1E15
-                M_inv_2 = np.linalg.pinv(M_lm_lpmp_2)   #default:  for cond < 1E15
-                
+
+                M_inv_2 = np.linalg.pinv(M_lm_lpmp_2,rcond = 1e-10)   #default:  for cond < 1E15
+
                 print M_inv, M_inv_2
-                
                 print 'the matrix has been inverted!'
 
 
                 ################################################################
 
                 S_lm = np.array(np.dot(M_inv,Z_lm)+np.dot(M_inv_2,np.conj(Z_lm))) #fully accumulated maps!
-                
                 print S_lm
+                
                 #S_lm+= s_lm
 
                 #print len(s_lm)
@@ -372,7 +371,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
                 
-                if counter % (nproc) == 0:    ## *10000
+                if counter % (nproc*10) == 0:    ## *10000
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, 'sim = ', sim
