@@ -106,7 +106,7 @@ run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects)
 # define start and stop time to search
 # in GPS seconds
 start = 931035615 #S6 start GPS
-stop  = 931135615 #971622015  #S6 end GPS
+stop  = 971622015  #S6 end GPS  test 931135615 #
 
 
 ###########################UNCOMMENT ME#########################################
@@ -403,10 +403,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 if myid == 0:
 
     hp.mollview(Z_p)
-    plt.savefig('%sZ_p%s.pdf' % (out_path,counter))
+    plt.savefig('%s/Z_p%s.pdf' % (out_path,counter))
 
     hp.mollview(S_p)
-    plt.savefig('%sS_p%s.pdf' % (out_path,counter))
+    plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
     
 
     
