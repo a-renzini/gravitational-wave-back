@@ -315,13 +315,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 S_p = np.einsum('...ik,...k->...i', M_p_pp_inv, z_p)
 
                 
-                fig = plt.figure()
-                hp.mollview(Z_p)
-                plt.savefig('%s/dirty_map%s.pdf' % (out_path, counter))
+                #fig = plt.figure()
+                #hp.mollview(Z_p)
+                #plt.savefig('%s/dirty_map%s.pdf' % (out_path, counter))
 
-                fig = plt.figure()
-                hp.mollview(S_p)
-                plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
+                #fig = plt.figure()
+                #hp.mollview(S_p)
+                #plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                 
                 
                 
