@@ -382,7 +382,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # falm.close()
                 
                     fig = plt.figure()
-                    hp.mollview(np.zeros_like(dirty_map))
+                    hp.mollview(np.zeros_like(Z_p))
                     hp.visufunc.projscatter(hp.pix2ang(nside_out,b_pixes))
                     plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
                     
