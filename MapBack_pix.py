@@ -536,7 +536,7 @@ class Telescope(object):
         
     
         alm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=np.complex)
-        idx = hp.Alm.getidx(lmax,0,0)
+        idx = hp.Alm.getidx(lmax,2,2)
         alm[idx] = 1.+ 0.j
         self.map_in = hp.alm2map(alm,nside=self._nside_in)
         
@@ -653,7 +653,7 @@ class Telescope(object):
     def geometry(self,ct_split, pol = False):		#ct_split = ctime_i
         
         #returns the baseline pixel p and the boresight quaternion q_n
-        nside = self._nside_out
+        nside = self._nside_in
         mid_idx = int(len(ct_split)/2)
         
         q_b = []
@@ -797,6 +797,9 @@ class Telescope(object):
         window = np.ones_like(freqs)    #might make sense with a window =/ box
         rot_m_array = self.rotation_pix(np.arange(npix_in), q_n)
         gammaI_rot = self.gammaI[nbase][rot_m_array]
+        
+        hp.mollview(gammaI_rot)
+        plt.savefig('gammaI_rot.pdf')
         
         vec_p_in = hp.pix2vec(self._nside_in,np.arange(npix_in))
         vec_b = hp.pix2vec(self._nside_in,pix_b)
@@ -1167,6 +1170,7 @@ class Telescope(object):
         #geometry 
         
         npix_out = self.npix_out
+        npix_in = self.npix_in
         
         mid_idx = int(len(ct_split)/2)
     
@@ -1178,12 +1182,12 @@ class Telescope(object):
         for idx_b in range(self._nbase):
             
             print idx_b
-            
-            rot_m_array = self.rotation_pix(np.arange(npix_out), q_n[idx_b])  
+
+            rot_m_array = self.rotation_pix(np.arange(npix_in), q_n[idx_b])  
             gammaI_rot = self.gammaI[idx_b][rot_m_array]
-            gammaI_rot_ud = hp.ud_grade(gammaI_rot,nside_out = nside) 
+            gammaI_rot_ud = hp.ud_grade(gammaI_rot,nside_out = self._nside_out) 
             
-            vec_b = hp.pix2vec(self._nside_out,pix_b[idx_b])
+            vec_b = hp.pix2vec(self._nside_in,pix_b[idx_b])
             bdotp = 2.*np.pi*np.dot(vec_b,vec_p_out)*self.R_earth/3.e8
             
             df = strains[idx_b]
@@ -1201,10 +1205,16 @@ class Telescope(object):
                     *(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
                     M_pp[ip,jp] += val
                     if ip!= jp : M_pp[jp,ip] += val
-
-
-
-        print len(z_p)    
+        
+        
+        M_pp_inv = np.linalg.pinv(M_pp,rcond=1.e-5)
+        
+        S_p = np.einsum('...ik,...k->...i', M_pp_inv, z_p)
+        
+        fig = plt.figure()
+        hp.mollview(S_p)
+        plt.savefig('clean.pdf')
+        
         return z_p, M_pp#/norm
  
 

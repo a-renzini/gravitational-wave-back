@@ -81,7 +81,7 @@ fs = 4096
 ligo_data_dir = data_path  #can be defined in the repo                                                                        
 filelist = rl.FileList(directory=ligo_data_dir)
 
-nside_in = 16
+nside_in = 32
 nside_out = 16
 lmax = 2
 sim = True  
@@ -95,7 +95,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1','V1']#,'A1']
+dects = ['H1','L1']#,'V1']#,'A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -258,7 +258,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         
             for i in range(len(pix_bs)):
                 b_pixes.append(pix_bs[i])
-
+            
+            print 'time: ', my_ctime[0]
+            
             z_p, my_M_p_pp = run.projector(my_ctime,strains_corr,psds_f,freqs,pix_bs, q_ns)
             cond = np.linalg.cond(my_M_p_pp)
             
@@ -312,7 +314,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 M_p_pp_inv = np.linalg.pinv(M_p_pp,rcond=1.e-5)
                 print 'the matrix has been inverted!'
                 
-                S_p = np.einsum('...ik,...k->...i', M_p_pp_inv, z_p)
+                S_p = np.einsum('...ik,...k->...i', M_p_pp_inv, Z_p)
 
                 
                 #fig = plt.figure()
@@ -342,7 +344,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     print >>f, 'sim = ', sim
                     print >>f, M_p_pp
                     print >>f, '===='
-                    print >>f,  M_p_pp_inv
+                    print >>f, M_p_pp_inv
                     print >>f, '===='                    
                     print >>f, np.linalg.eigh(M_p_pp)
                     print >>f, '===='
@@ -383,7 +385,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                     fig = plt.figure()
                     hp.mollview(np.zeros_like(Z_p))
-                    hp.visufunc.projscatter(hp.pix2ang(nside_out,b_pixes))
+                    hp.visufunc.projscatter(hp.pix2ang(nside_in,b_pixes))
                     plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
                     
                     #exit()
