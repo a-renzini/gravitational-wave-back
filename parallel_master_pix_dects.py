@@ -342,13 +342,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     print >>f, 'sim = ', sim
                     print >>f, M_p_pp
                     print >>f, '===='
-                    print >>f, M_inv
+                    print >>f, M_p_pp_inv
                     print >>f, '===='                    
                     print >>f, np.linalg.eigh(M_p_pp)
                     print >>f, '===='
                     print >>f, cond
                     print >>f, '===='
-                    print >>f, np.dot(M_p_pp,M_inv),np.identity(len(M_p_pp))
+                    print >>f, np.dot(M_p_pp,M_p_pp_inv),np.identity(len(M_p_pp))
                     f.close()
                     
                                         

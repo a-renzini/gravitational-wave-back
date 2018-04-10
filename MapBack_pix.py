@@ -536,15 +536,13 @@ class Telescope(object):
         
     
         alm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=np.complex)
-        idx = hp.Alm.getidx(lmax,2,2)
+        idx = hp.Alm.getidx(lmax,0,0)
         alm[idx] = 1.+ 0.j
         self.map_in = hp.alm2map(alm,nside=self._nside_in)
         
-        #plt.figure()
-        #hp.mollview(self.hp)
-        #plt.loglog(freqs,np.sqrt(hf_psd(freqs)), color = 'g') #(freqs)
-        #plt.ylim([-100.,100.])
-        #plt.savefig('hp.png' )
+        plt.figure()
+        hp.mollview(self.map_in)
+        plt.savefig('map_in.pdf' )
                         
         
     # ********* Basic Tools *********
