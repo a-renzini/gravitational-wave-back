@@ -312,7 +312,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 M_p_pp_inv = np.linalg.pinv(M_p_pp,rcond=1.e-5)
                 print 'the matrix has been inverted!'
                 
-                S_p = np.einsum('...ik,...k->...i', M_pp_inv, z_p)
+                S_p = np.einsum('...ik,...k->...i', M_p_pp_inv, z_p)
 
                 
                 fig = plt.figure()
