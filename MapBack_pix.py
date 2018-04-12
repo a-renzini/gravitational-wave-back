@@ -541,8 +541,6 @@ class Telescope(object):
         hp.mollview(self.map_in)
         plt.savefig('map_in.pdf' )
         
-        exit()
-    
     # ********* Maps IN *************
 
     def get_map_in(self, maptyp):
@@ -1244,13 +1242,13 @@ class Telescope(object):
                     if ip!= jp : M_pp[jp,ip] += val
         
         
-        M_pp_inv = np.linalg.pinv(M_pp,rcond=1.e-5)
+        #M_pp_inv = np.linalg.pinv(M_pp,rcond=1.e-5)
         
-        S_p = np.einsum('...ik,...k->...i', M_pp_inv, z_p)
+        #S_p = np.einsum('...ik,...k->...i', M_pp_inv, z_p)
         
-        fig = plt.figure()
-        hp.mollview(S_p)
-        plt.savefig('clean.pdf')
+        #fig = plt.figure()
+        #hp.mollview(S_p)
+        #plt.savefig('clean.pdf')
         
         return z_p, M_pp#/norm
  
@@ -1273,9 +1271,6 @@ class Telescope(object):
         z_p, M_pp = self.summer(ctime, s, pows, freqs, pix_bs, q_ns)
         
         #print np.mean(data_lm)          
-        
-        hp.mollview(z_p)
-        plt.savefig('z_p.pdf')
         
         return z_p, M_pp
 
