@@ -103,6 +103,11 @@ nbase = int(ndet*(ndet-1)/2)
 #create object of class:
 run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp)
 
+map_in = run.get_map_in(maptyp)
+        
+plt.figure()
+hp.mollview(map_in)
+plt.savefig('%smap_in.pdf' % out_path  )
 
 # define start and stop time to search
 # in GPS seconds

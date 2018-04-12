@@ -537,9 +537,9 @@ class Telescope(object):
     
         self.map_in = self.get_map_in(maptyp)
         
-        plt.figure()
-        hp.mollview(self.map_in)
-        plt.savefig('map_in.pdf' )
+        # plt.figure()
+        # hp.mollview(self.map_in)
+        # plt.savefig('map_in.pdf' )
         
     # ********* Maps IN *************
 

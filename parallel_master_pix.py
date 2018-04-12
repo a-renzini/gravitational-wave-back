@@ -103,6 +103,11 @@ nbase = int(ndet*(ndet-1)/2)
 #create object of class:
 run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp)
 
+map_in = run.get_map_in(maptyp)
+        
+plt.figure()
+hp.mollview(map_in)
+plt.savefig('%smap_in.pdf' % out_path  )
 
 # define start and stop time to search
 # in GPS seconds
@@ -255,8 +260,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             q_ns = run.geometry(my_ctime)[1]
             pix_ns = run.geometry(my_ctime)[2]
             
-            print pix_bs
-                        
+            #print pix_bs
+            
+            # fig = plt.figure()
+            # hp.mollview(np.zeros_like(Z_p))
+            # hp.visufunc.projscatter(hp.pix2ang(nside_in,pix_ns))
+            # plt.savefig('n_pixs.pdf')
+            
+            
             for i in range(len(pix_bs)):
                 b_pixes.append(pix_bs[i])
             
