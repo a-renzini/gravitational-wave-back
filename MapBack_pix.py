@@ -547,8 +547,8 @@ class Telescope(object):
         
         nside = self._nside_in
         
-        lmax = self._lmax
-        print lmax
+        lmax = nside        #or not?
+
         alm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=np.complex)
         
         if maptyp == None: 
@@ -566,6 +566,12 @@ class Telescope(object):
             
             map_in = hp.alm2map(alm,nside=self._nside_in)
             
+        elif maptyp == '8pole':
+            idx = hp.Alm.getidx(lmax,3,3)
+            alm[idx] = 1.+ 0.j
+            
+            map_in = hp.alm2map(alm,nside=self._nside_in)
+        
         elif maptyp == 'gauss':
             cls = hp.sphtfunc.alm2cl(alm)
 
