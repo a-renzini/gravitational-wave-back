@@ -20,14 +20,15 @@ import sys
 
 data_path = sys.argv[1]
 out_path =  sys.argv[2]
+maptyp = sys.argv[3]
 
 try:
-    sys.argv[3]
+    sys.argv[4]
 except (NameError, IndexError):
     checkpoint = None
 else:
     checkpoint = True
-    checkfile_path = sys.argv[3]
+    checkfile_path = sys.argv[4]
 
     
 if os.path.exists(data_path):
@@ -100,7 +101,7 @@ ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
 #create object of class:
-run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects)
+run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp)
 
 
 # define start and stop time to search

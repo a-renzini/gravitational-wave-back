@@ -428,7 +428,7 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, input_map = None): #Dect list
+    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, maptyp = None): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
@@ -535,15 +535,52 @@ class Telescope(object):
         self.hc = np.array(np.sqrt(np.abs(sfs.Istoke)/2))
         
     
-        alm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=np.complex)
-        idx = hp.Alm.getidx(lmax,2,2)
-        alm[idx] = 1.+ 0.j
-        self.map_in = hp.alm2map(alm,nside=self._nside_in)
+        self.map_in = self.get_map_in(maptyp)
         
         plt.figure()
         hp.mollview(self.map_in)
         plt.savefig('map_in.pdf' )
-                        
+        
+        exit()
+    
+    # ********* Maps IN *************
+
+    def get_map_in(self, maptyp):
+        
+        nside = self._nside_in
+        
+        lmax = self._lmax
+        print lmax
+        alm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=np.complex)
+        
+        if maptyp == None: 
+            map_in = hp.alm2map(alm,nside=self._nside_in)
+            
+        elif maptyp == '1pole':
+            idx = hp.Alm.getidx(lmax,0,0)
+            alm[idx] = 1.+ 0.j
+
+            map_in = hp.alm2map(alm,nside=self._nside_in)
+        
+        elif maptyp == '4pole':
+            idx = hp.Alm.getidx(lmax,2,2)
+            alm[idx] = 1.+ 0.j
+            
+            map_in = hp.alm2map(alm,nside=self._nside_in)
+            
+        elif maptyp == 'gauss':
+            cls = hp.sphtfunc.alm2cl(alm)
+
+            cls=[1]*nside
+            i=0
+            while i<nside:
+                cls[i]=1./(i+1.)**2.
+                i+=1
+            
+            map_in = np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten()
+            
+            
+        return map_in
         
     # ********* Basic Tools *********
     

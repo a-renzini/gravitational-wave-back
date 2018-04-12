@@ -100,7 +100,7 @@ ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
 #create object of class:
-run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects)
+run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp)
 
 
 # define start and stop time to search
