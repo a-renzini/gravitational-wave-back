@@ -107,7 +107,7 @@ map_in = run.get_map_in(maptyp)
         
 plt.figure()
 hp.mollview(map_in)
-plt.savefig('%smap_in.pdf' % out_path  )
+plt.savefig('%s/map_in.pdf' % out_path  )
 
 # define start and stop time to search
 # in GPS seconds

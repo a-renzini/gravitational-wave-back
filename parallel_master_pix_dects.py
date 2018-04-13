@@ -260,6 +260,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             q_ns = run.geometry(my_ctime)[1]
             pix_ns = run.geometry(my_ctime)[2]
             
+            fig = plt.figure()
+            hp.mollview(np.zeros_like(Z_p))
+            hp.visufunc.projscatter(hp.pix2ang(nside_in,pix_bs))
+            plt.savefig('%s/b_pixs.pdf' % out_path)
+            
+            exit()
+            
             print pix_bs
                         
             for i in range(len(pix_bs)):
@@ -335,14 +342,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 ################################################################
 
-                #S_p = np.array(np.dot(M_inv,Z_p)) #fully accumulated maps!
-
-                #print len(s_lm)
-                #print s_lm
-
-                #dt_tot = np.sum(dt_lm,axis = 0)
-                #print 'dt total:' , len(dt_tot.real)
-                #print dt_tot
                 
                 if counter % (nproc*5) == 0:    ## *10000
                     

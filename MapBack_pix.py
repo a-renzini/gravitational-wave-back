@@ -547,7 +547,7 @@ class Telescope(object):
         
         nside = self._nside_in
         
-        lmax = nside        #or not?
+        lmax = nside/2        #or not?
 
         alm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=np.complex)
         
@@ -575,9 +575,9 @@ class Telescope(object):
         elif maptyp == 'gauss':
             cls = hp.sphtfunc.alm2cl(alm)
 
-            cls=[1]*nside
+            cls=[1]*lmax
             i=0
-            while i<nside:
+            while i<lmax:
                 cls[i]=1./(i+1.)**2.
                 i+=1
             
