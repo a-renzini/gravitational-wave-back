@@ -260,12 +260,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             q_ns = run.geometry(my_ctime)[1]
             pix_ns = run.geometry(my_ctime)[2]
             
-            fig = plt.figure()
-            hp.mollview(np.zeros_like(Z_p))
-            hp.visufunc.projscatter(hp.pix2ang(nside_in,pix_bs))
-            plt.savefig('%s/b_pixs.pdf' % out_path)
-            
-            exit()
+            # fig = plt.figure()
+            # hp.mollview(np.zeros_like(Z_p))
+            # hp.visufunc.projscatter(hp.pix2ang(nside_in,pix_bs))
+            # plt.savefig('%s/b_pixs.pdf' % out_path)
             
             print pix_bs
                         
