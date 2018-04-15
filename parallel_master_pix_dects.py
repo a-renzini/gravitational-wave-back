@@ -103,12 +103,14 @@ nbase = int(ndet*(ndet-1)/2)
 #create object of class:
 run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp)
 
-map_in = run.get_map_in(maptyp)
-        
+map_in = run.map_in
+
+     
 plt.figure()
 hp.mollview(map_in)
-plt.savefig('%smap_in.pdf' % out_path  )
+plt.savefig('%s/map_in.pdf' % out_path  )
 
+exit()
 # define start and stop time to search
 # in GPS seconds
 start = 931035615 #S6 start GPS
@@ -141,6 +143,7 @@ if myid == 0:
         S_p = None
         counter = checkdata['counter']
         conds = checkdata['conds']
+        map_in = checkdata['map_in']
         print counter
         
 else:
@@ -367,7 +370,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                     
                     
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds )
+                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in)
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     

@@ -536,7 +536,7 @@ class Telescope(object):
         
     
         self.map_in = self.get_map_in(maptyp)
-        
+
         # plt.figure()
         # hp.mollview(self.map_in)
         # plt.savefig('map_in.pdf' )
@@ -560,6 +560,20 @@ class Telescope(object):
 
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
+        elif maptyp == '2pole':
+            idx = hp.Alm.getidx(lmax,1,1)
+            alm[idx] = 1.+ 0.j
+            
+            map_in = hp.alm2map(alm,nside=self._nside_in)
+
+        elif maptyp == '2pole1':
+            idx = hp.Alm.getidx(lmax,1,0)
+            alm[idx] = 1.+ 0.j
+            #idx = hp.Alm.getidx(lmax,1,1)
+            #alm[idx] = 1.+ 0.j
+            
+            map_in = hp.alm2map(alm,nside=self._nside_in)
+        
         elif maptyp == '4pole':
             idx = hp.Alm.getidx(lmax,2,2)
             alm[idx] = 1.+ 0.j
@@ -573,6 +587,7 @@ class Telescope(object):
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
         elif maptyp == 'gauss':
+            lmax = lmax/2
             cls = hp.sphtfunc.alm2cl(alm)
 
             cls=[1]*lmax
@@ -583,6 +598,17 @@ class Telescope(object):
             
             map_in = np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten()
             
+        elif maptyp == 'gauss2':
+            lmax = lmax
+            cls = hp.sphtfunc.alm2cl(alm)
+
+            cls=[1]*lmax
+            i=0
+            while i<lmax:
+                cls[i]=1./(i+1.)**2.
+                i+=1
+            
+            map_in = np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten()
             
         return map_in
         
@@ -1236,8 +1262,8 @@ class Telescope(object):
             
             for ip in range(npix_out):
                 z_p[ip] += 8.*np.pi/npix_out * delf*np.sum(window[:] 
-                            * self.E_f(freq)[:]/ pf[:] * gammaI_rot_ud[ip]
-                            *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) - np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))) 
+                            * self.E_f(freq)[:]/ pf[:] * gammaI_rot_ud[ip]      ## minus sign? changed it to +
+                            *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))) 
                 
                 for jp in range(ip,npix_out):
 

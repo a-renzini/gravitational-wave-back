@@ -96,7 +96,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1','V1']#,'A1']
+dects = ['H1','L1']#,'V1']#,'A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -141,6 +141,7 @@ if myid == 0:
         S_p = None
         counter = checkdata['counter']
         conds = checkdata['conds']
+        map_in = checkdata['map_in']
         print counter
         
 else:
@@ -376,7 +377,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                     
                     
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds )
+                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     
