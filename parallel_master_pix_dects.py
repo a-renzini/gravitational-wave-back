@@ -110,7 +110,6 @@ plt.figure()
 hp.mollview(map_in)
 plt.savefig('%s/map_in.pdf' % out_path  )
 
-exit()
 # define start and stop time to search
 # in GPS seconds
 start = 931035615 #S6 start GPS
