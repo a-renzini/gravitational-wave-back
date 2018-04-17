@@ -139,6 +139,20 @@ class Dect(object):
             
             self._alpha = 116.5*np.pi/180.         #np.radians()
         
+        elif dect_name =='G':
+            self._lon = 0.1710
+            self._lat = 0.8326
+            self._vec = np.array([4.54637409900e+06, 8.42989697626e+05, 4.37857696241e+06])
+            
+            self._alpha = 68.8*np.pi/180.         #np.radians()
+            
+        elif dect_name =='K':
+            self._lon = 2.39424267
+            self._lat = 0.63268185
+            self._vec = np.array([4.54637409900e+06, 8.42989697626e+05, 4.37857696241e+06])
+            
+            self._alpha = 225.0*np.pi/180.         #np.radians()
+        
         else:
             dect_name = __import__(dect_name)
             #import name

@@ -108,7 +108,7 @@ map_in = run.map_in
      
 plt.figure()
 hp.mollview(map_in)
-plt.savefig('%s/map_in.pdf' % out_path  )
+plt.savefig('%s/map_in%s.pdf' % (out_path,maptyp)  )
 
 # define start and stop time to search
 # in GPS seconds
@@ -237,7 +237,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             for i in range(ndet):
                 psds_f.append(psds[i](freqs)*fs**2) 
-                #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
+                psds_f[i] = np.ones_like(psds_f[i])       ######weightless
                     
             
             #print strains_f[0][mask]*np.conj(strains_f[1])[mask]
