@@ -189,8 +189,6 @@ class Dect(object):
         #hp.mollview(self.Fplus)
         #plt.savefig('Fp.pdf')
         
-        #hp.mollview(self.Fcross)
-        #plt.savefig('Fc.pdf')
         
         if lmax>0:
         # cache 3j symbols

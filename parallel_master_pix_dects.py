@@ -96,7 +96,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1']#,'V1','A1']
+dects = ['H1','L1','V1','A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -237,7 +237,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             for i in range(ndet):
                 psds_f.append(psds[i](freqs)*fs**2) 
-                psds_f[i] = np.ones_like(psds_f[i])       ######weightless
+                #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
                     
             
             #print strains_f[0][mask]*np.conj(strains_f[1])[mask]
