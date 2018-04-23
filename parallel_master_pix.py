@@ -96,7 +96,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1']#,'V1']#,'A1']
+dects = ['H1','L1','V1']#,'A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -107,7 +107,7 @@ map_in = run.get_map_in(maptyp)
         
 plt.figure()
 hp.mollview(map_in)
-plt.savefig('%s/map_in.pdf' % out_path  )
+plt.savefig('%s/map_in%s.pdf' % (out_path,maptyp)  )
 
 # define start and stop time to search
 # in GPS seconds
