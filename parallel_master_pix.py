@@ -85,7 +85,7 @@ filelist = rl.FileList(directory=ligo_data_dir)
 nside_in = 16
 nside_out = 8
 lmax = 2
-sim = True  
+sim = False
 simtyp = 'mono'
 
 #INTEGRATING FREQS:                                                                                                           
@@ -96,7 +96,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1','V1']#,'A1']
+dects = ['H1','L1']#,'V1']#,'A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -111,8 +111,8 @@ plt.savefig('%s/map_in%s.pdf' % (out_path,maptyp)  )
 
 # define start and stop time to search
 # in GPS seconds
-start = 931035615 #S6 start GPS
-stop  = 971622015  #S6 end GPS      test 931135615 #
+start = 1126051217 #O1 start GPS
+stop  = 1129000000 #1137254417  #O1 end GPS      test 931135615 #
 
 
 ###########################UNCOMMENT ME#########################################
@@ -120,6 +120,8 @@ stop  = 971622015  #S6 end GPS      test 931135615 #
 print 'flagging the good data...'
 
 segs_begin, segs_end = run.flagger(start,stop,filelist)
+
+print segs_begin, segs_end
 
 ctime_nproc = []
 strain1_nproc = []

@@ -904,6 +904,7 @@ class Telescope(object):
         freqs = freqs[:Nt/2+1]
         
         mask = (freqs>low_f) & (freqs < high_f)
+        mask2 = (freqs>50) & (freqs < 500)
         #print '+sim+'
     
         psds = []
@@ -946,7 +947,14 @@ class Telescope(object):
             hf_psd = interp1d(frexx,Pxx)
             hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())/(fs**2))
     
-    
+            
+            plt.figure()
+            plt.loglog(freqs[mask2],hf_psd(freqs[mask2]))
+            plt.savefig('psd.pdf' )
+            
+            exit()
+            
+            
             #Norm
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs))
     
@@ -1102,9 +1110,9 @@ class Telescope(object):
         #print np.average(strain_in_nowin), ' , ' , np.std(strain_in_nowin), '  ,  ', len(strain_in_nowin)
         #print np.average(strain_in_cp), ' , ' , np.std(strain_in_cp), '  ,  ', len(strain_in_cp)
         
-        #plt.figure()
-        #plt.plot(freqs,hf_nbped)
-        #plt.savefig('show.png' )
+        plt.figure()
+        plt.plot(freqs,hf_nbped)
+        plt.savefig('hf_nbped.pdf' )
         
         
         return hf_nbped#, hf_psd
@@ -1127,12 +1135,12 @@ class Telescope(object):
         print (utc_stop - epoch).total_seconds()
 
         # get segments with required flag level
-        segs_H1 = rl.getsegs(start, stop, 'H1',flag='STOCH_CAT1', filelist=filelist)
+        segs_H1 = rl.getsegs(start, stop, 'H1',flag = 'CBC_CAT1', filelist=filelist)   #'STOCH_CAT1'
         good_data_H1 = np.zeros(stop-start,dtype=np.bool)
         for (begin, end) in segs_H1:
             good_data_H1[begin-start:end-start] = True
 
-        segs_L1 = rl.getsegs(start, stop, 'L1',flag='STOCH_CAT1', filelist=filelist)
+        segs_L1 = rl.getsegs(start, stop, 'L1',flag = 'CBC_CAT1', filelist=filelist)  #flag='STOCH_CAT1',
         good_data_L1 = np.zeros(stop-start,dtype=np.bool)
         for (begin, end) in segs_L1:
             good_data_L1[begin-start:end-start] = True
