@@ -205,6 +205,7 @@ def loaddata(filename, ifo=None, tvec=True, readstrain=True):
     #-- Calculate the DEFAULT channel
     try:
         channel_dict['DEFAULT'] = ( channel_dict['DATA'] )
+        #filename['quality']['simple']['DQmask']
     except:
         print("Warning: Failed to calculate DEFAULT data quality channel")
 

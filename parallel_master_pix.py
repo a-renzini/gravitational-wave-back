@@ -85,7 +85,7 @@ filelist = rl.FileList(directory=ligo_data_dir)
 nside_in = 16
 nside_out = 8
 lmax = 2
-sim = False
+sim = True
 simtyp = 'mono'
 
 #INTEGRATING FREQS:                                                                                                           
@@ -111,8 +111,8 @@ plt.savefig('%s/map_in%s.pdf' % (out_path,maptyp)  )
 
 # define start and stop time to search
 # in GPS seconds
-start = 1126051217 #O1 start GPS
-stop  = 1129000000 #1137254417  #O1 end GPS      test 931135615 #
+start = 1127000000 #O1 start GPS 1126051217
+stop  = 1129000000 #1137254417  #O1 end GPS     
 
 
 ###########################UNCOMMENT ME#########################################
@@ -120,8 +120,6 @@ stop  = 1129000000 #1137254417  #O1 end GPS      test 931135615 #
 print 'flagging the good data...'
 
 segs_begin, segs_end = run.flagger(start,stop,filelist)
-
-print segs_begin, segs_end
 
 ctime_nproc = []
 strain1_nproc = []
@@ -235,11 +233,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             #print 'std of corr. t_stream: ', np.std(strains[0]*strains[1])
             
             psds_f = []
+            strains_f = []
 
             for i in range(ndet):
-                psds_f.append(psds[i](freqs)*fs**2) 
+                strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i]))
+                psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)           #(psds[i](freqs)*fs**2) 
                 #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
-                    
+            
+            print psds
             
             #print strains_f[0][mask]*np.conj(strains_f[1])[mask]
             #print np.average(strains_f[0][mask]*np.conj(strains_f[1])[mask])
@@ -352,6 +353,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #dt_tot = np.sum(dt_lm,axis = 0)
                 #print 'dt total:' , len(dt_tot.real)
                 #print dt_tot
+                
                 
                 if counter % (nproc*5) == 0:    ## *10000
                     

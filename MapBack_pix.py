@@ -440,9 +440,12 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, maptyp = None): #Dect list
+    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, maptyp = None, data_run = 'O1'): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
+        
+        
+        self.data_run = data_run
         
         self.R_earth = 6378137
         self._nside_in = nside_in
@@ -603,9 +606,9 @@ class Telescope(object):
             cls = hp.sphtfunc.alm2cl(alm)
 
             cls=[1]*lmax
-            i=0
-            while i<lmax:
-                cls[i]=1./(i+1.)**2.
+            i=1
+            while i<lmax+1:
+                cls[i-1]=1./i/(i+1.)*2*np.pi
                 i+=1
             
             map_in = np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten()
@@ -890,7 +893,28 @@ class Telescope(object):
             df[idx_f] = 4.*np.pi/npix_in * delta_freq*np.sum(window[idx_f] * self.E_f(f) * gammaI_rot[:] * self.map_in[:]*(np.cos(bdotp_in[:]*f) + np.sin(bdotp_in[:]*f)*1.j)) 
         
         return df
+    
+    def PDX(self,frexx,a,b,c):
+        #b = 1.
+        #c = 1.
+         
+        return (a*1.e-22*((18.*b)/(0.1+frexx))**2)**2+(0.07*a*1.e-22)**2+((frexx/(2000.*c))*.4*a*1.e-22)**2
+    
+    def Pdx_notcher(self,freqx,Pdx):
+        mask = np.ones_like(freqx, dtype = bool)
         
+        for (idx_f,f) in enumerate(freqx):
+            for i in range(len(self.notches())):
+                if f > (self.notches()[i]-15.*self.sigmas()[i]) and f < (self.notches()[i]+15.*self.sigmas()[i]):
+                    mask[idx_f] = 0
+                    
+        
+        plt.figure()
+        plt.loglog(freqx[mask],Pdx[mask])
+        plt.savefig('masked.pdf')
+        
+        return freqx[mask],Pdx[mask]
+    
     def injector(self,strains_in,ct_split,low_f,high_f,sim = False, simtyp = 'mono'):
         fs=self.fs        
         dt=1./fs
@@ -904,27 +928,35 @@ class Telescope(object):
         freqs = freqs[:Nt/2+1]
         
         mask = (freqs>low_f) & (freqs < high_f)
-        mask2 = (freqs>50) & (freqs < 500)
+
         #print '+sim+'
     
         psds = []
         faketot = []
         fakestreams = []
+        streams = []
         
         if sim == True:     #simulates bases for all detectors called when T.scope was initialised
             
             pix_bs = self.geometry(ct_split)[0]
             q_ns = self.geometry(ct_split)[1]
-            freqs = freqs[mask]
             
             for i in range(self._nbase):
                 #a, b = self.combo_tuples[i]
                 pix_b = pix_bs[i]
                 q_x = q_ns[i]
-                fakestream_corr = self.simbase(freqs,q_x,pix_b,i,simtyp) 
+                fakestream_corr = self.simbase(freqs[mask],q_x,pix_b,i,simtyp) 
                 
                 fakestreams.append(fakestream_corr)
-                
+            
+            streams = fakestreams
+        
+        if sim == False:
+            
+            for i in range(len(strains_in)):
+                streams.append(self.filter(strains_in[i], low_f,high_f))
+
+        #**** psd ******
                 
         for (idx_str,strain_in) in enumerate(strains_in):
         
@@ -942,27 +974,57 @@ class Telescope(object):
             hf_nowin = hf_nowin[:Nt/2+1]
             
             '''the PSD. '''
+            
+            fstar = fs
     
-            Pxx, frexx = mlab.psd(strain_in_nowin, Fs=fs, NFFT=2*fs,noverlap=fs/2,window=np.blackman(2*fs),scale_by_freq=True)
+            Pxx, frexx = mlab.psd(strain_in_nowin, Fs=fs, NFFT=2*fstar,noverlap=fstar/2,window=np.blackman(2*fstar),scale_by_freq=True)
             hf_psd = interp1d(frexx,Pxx)
-            hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())/(fs**2))
-    
+            hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())/(fs**2)) 
             
-            plt.figure()
-            plt.loglog(freqs[mask2],hf_psd(freqs[mask2]))
-            plt.savefig('psd.pdf' )
+            #*******************
+
+            frexx_notch,Pxx_notch = self.Pdx_notcher(frexx,Pxx)
+
             
-            exit()
+            fit = curve_fit(self.PDX, frexx_notch[100:600], Pxx_notch[100:600])#, bounds = ([0.,0.,0.],[2.,2.,2.])) 
             
+            psd_params = fit[0]
+            
+            a,b,c = psd_params
             
             #Norm
-            norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs))
-    
-            #print norm
-    
-            hf_psd=interp1d(frexx,Pxx*norm)
-            psds.append(hf_psd)
-                
+            norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
+            psd_params[0] = norm*psd_params[0] 
+            
+            
+            # plt.figure()
+            # plt.loglog(hf_psd_data[mask])
+            # plt.loglog(hf_psd(freqs)[mask])
+            # #plt.loglog(self.PDX(frexx,a,b,c)[mask], label = 'notched pdx fit')
+            # plt.legend()
+            # plt.savefig('norm.pdf' )
+            #
+            # print norm
+            
+            # plt.figure()
+            # plt.loglog(frexx[100:1000],Pxx[100:1000])
+            # #plt.loglog(frexx[100:1000],interp1d(frexx, Pdx)(frexx)[100:1000], label = '01 curve')
+            # #plt.loglog(frexx[100:1000],self.ffit(frexx[100:1000],d,e,f)*1E-48, label = '6 pt fit')
+            # plt.loglog(frexx[100:1000],self.PDX(frexx,a,b,c)[100:1000], label = 'notched pdx fit')
+            # plt.loglog([frexx[100],frexx[600]],[2.e-47,2.e-47])
+            # plt.loglog(frexx_notch,Pxx_notch)
+            # #plt.loglog(frexxes,pixxes*1e-48)
+            # #plt.loglog(frexx,interp1d(frexxes,pixxes)(frexx)*10E-47)
+            # for xc in self.notches():
+            #     plt.axvline(x=xc,linewidth = 0.5)
+            # plt.legend()
+            # plt.xlim((50,500))
+            # plt.ylim((1.e-47,1.e-43))
+            # plt.savefig('snipxx.pdf' )
+            #exit()
+            
+            #hf_psd=interp1d(frexx,Pxx*norm)
+            psds.append(psd_params)
             #print frexx, Pxx, len(Pxx)
     
             #Pxx, frexx = mlab.psd(strain_in_win[:Nt], Fs = fs, NFFT = 4*fs, window = mlab.window_none)
@@ -970,68 +1032,40 @@ class Telescope(object):
             # plt.figure()
             # #plt.plot(freqs,) 
             # plt.savefig('.png' )
-
-        if sim == True:
         
-            if ndects == len(strains_in):
-
-                for idx_det in range(len(strains_in)):
-                    
-                    #rands = [np.random.normal(loc = 0., scale = 1. , size = len(hf_psd_data)),np.random.normal(loc = 0., scale = 1. , size = len(hf_psd_data))] 
-                    #fakenoise = rands[0]+1.j*rands[1]
-                    fake_psd = psds[idx_det](freqs)*self.fs**2
-                    #fakenoise = np.array(fakenoise*np.sqrt(fake_psd/2.))#np.sqrt(self.fs/2.)#part of the normalization
-        
-        
-                    #fake = np.sum([fakenoise,fakestreams[idx_det]], axis=0)
-        
-                    #fake_inv = np.fft.irfft(fake , n=2*Nt,norm = 'ortho')[:Nt]
-                    # print 'fake[0]!'
-                    # print fake[0]
-                    # print 'average fakeinv!'
-                    # print np.average(fake_inv)
-                    # print 'std fakeinv'
-                    # print np.std(fake_inv)
-                    # print 'lens!'
-                    # print len(fake), len(fake_inv)
-                    #faketot.append(fake_inv)
-            else:
-                
-                for idx_det in range(ndects):
-                    
-                    #rands = [np.random.normal(loc = 0., scale = 1. , size = len(hf_psd_data)),np.random.normal(loc = 0., scale = 1. , size = len(hf_psd_data))] 
-                    #fakenoise = rands[0]+1.j*rands[1]
-                    fake_psd = psds[0](freqs)*self.fs**2            #SAME PSD FOR ALL DATA  
-                    #fakenoise = np.array(fakenoise*np.sqrt(fake_psd/2.))#np.sqrt(self.fs/2.)#part of the normalization
-        
-        
-                    #fake = np.sum([fakenoise,fakestreams[idx_det]], axis=0)
-        
-                    #fake_inv = np.fft.irfft(fake , n=2*Nt,norm = 'ortho')[:Nt]
-                    # print 'fake[0]!'
-                    # print fake[0]
-                    # print 'average fakeinv!'
-                    # print np.average(fake_inv)
-                    # print 'std fakeinv'
-                    # print np.std(fake_inv)
-                    # print 'lens!'
-                    # print len(fake), len(fake_inv)
-                    #faketot.append(fake_inv)
-        
-        lenpsds = len(psds)            
+        lenpsds = len(psds)             #to fill in gaps if we are simulating        
         while ndects > lenpsds:
             psds.append(psds[0])
             lenpsds+=1
-                                    
+        
         
         return fakestreams, psds
         
         
         ####
         
-   
+    def notches(self):
+        
+        if self.data_run == 'S6':
+            notch_fs = np.array([14.0,34.70, 35.30, 35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.49, 510.02, 1009.99])
+        
+        if self.data_run == 'O1':#34.70, 35.30,  #LIVNGSTON: 33.7 34.7 35.3 
+            notch_fs = np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 510.02, 1009.99])
+        
+        return notch_fs
+        
+    def sigmas(self):
+        
+        if self.data_run == 'S6':
+            sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,5.,5.,1.])
+        
+        if self.data_run == 'O1':
+            sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,5.,5.,1.])    
+            
+        return sigma_fs
+        #np.array([0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.5,0.3,0.2])
     
-    def filter(self,strain_in,low_f,high_f, hf_psd, simulate = False):
+    def filter(self,strain_in,low_f,high_f,simulate = False):
         fs=self.fs        
         dt=1./fs
         
@@ -1079,11 +1113,11 @@ class Telescope(object):
         
         '''NOTCHING. '''
         
-        notch_fs = np.array([14.0,34.70, 35.30, 35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.49, 510.02, 1009.99])
-        sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,5.,5.,1.])
+        notch_fs = self.notches()
+        sigma_fs = self.sigmas()
         #np.array([0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.5,0.3,0.2])
         
-        samp_hz = fs**2*(len(hf_copy))**(-1.)-6.68 #correction due to?
+        samp_hz = fs**2*(len(hf_copy))**(-1.)#-6.68 #correction due to?
                 
         pixels = np.arange(len(hf_copy))
              
@@ -1111,7 +1145,7 @@ class Telescope(object):
         #print np.average(strain_in_cp), ' , ' , np.std(strain_in_cp), '  ,  ', len(strain_in_cp)
         
         plt.figure()
-        plt.plot(freqs,hf_nbped)
+        plt.plot(freqs[mask],np.abs(hf_nbped[mask]))
         plt.savefig('hf_nbped.pdf' )
         
         
@@ -1136,6 +1170,8 @@ class Telescope(object):
 
         # get segments with required flag level
         segs_H1 = rl.getsegs(start, stop, 'H1',flag = 'CBC_CAT1', filelist=filelist)   #'STOCH_CAT1'
+        #inj_H1 = rl.getsegs(start, stop, 'H1',flag = 'NO_DETCHAR_HW_INJ', filelist=filelist) 
+        
         good_data_H1 = np.zeros(stop-start,dtype=np.bool)
         for (begin, end) in segs_H1:
             good_data_H1[begin-start:end-start] = True
