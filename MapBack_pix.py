@@ -872,7 +872,7 @@ class Telescope(object):
 
 
  #   def cutout(self,x, freqs,low = 20, high = 300):
-    def simbase(self,freqs,q_n,pix_b,nbase,simtyp):
+    def simbase(self,freqs,q_n,pix_b,nbase):
         
         npix_in = hp.nside2npix(self._nside_in)
         delta_freq = 1.*self.fs/len(freqs)
@@ -915,7 +915,7 @@ class Telescope(object):
         
         return freqx[mask],Pdx[mask]
     
-    def injector(self,strains_in,ct_split,low_f,high_f,sim = False, simtyp = 'mono'):
+    def injector(self,strains_in,ct_split,low_f,high_f,sim = False):
         fs=self.fs        
         dt=1./fs
         
@@ -945,7 +945,7 @@ class Telescope(object):
                 #a, b = self.combo_tuples[i]
                 pix_b = pix_bs[i]
                 q_x = q_ns[i]
-                fakestream_corr = self.simbase(freqs[mask],q_x,pix_b,i,simtyp) 
+                fakestream_corr = self.simbase(freqs[mask],q_x,pix_b,i) 
                 
                 fakestreams.append(fakestream_corr)
             

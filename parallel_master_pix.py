@@ -86,7 +86,6 @@ nside_in = 16
 nside_out = 8
 lmax = 2
 sim = True
-simtyp = 'mono'
 
 #INTEGRATING FREQS:                                                                                                           
 low_f = 80.
@@ -96,7 +95,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1']#,'V1']#,'A1']
+dects = ['H1','L1','V1']#,'A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -215,7 +214,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 l1_in = my_l1.copy()
                 strains_in = (h1_in,l1_in)
                 #print strains_in
-                strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut, sim,simtyp)[0]
+                strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
                 
                 
                 #print len(strains)
