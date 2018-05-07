@@ -1144,9 +1144,9 @@ class Telescope(object):
         #print np.average(strain_in_nowin), ' , ' , np.std(strain_in_nowin), '  ,  ', len(strain_in_nowin)
         #print np.average(strain_in_cp), ' , ' , np.std(strain_in_cp), '  ,  ', len(strain_in_cp)
         
-        plt.figure()
-        plt.plot(freqs[mask],np.abs(hf_nbped[mask]))
-        plt.savefig('hf_nbped.pdf' )
+        # plt.figure()
+#         plt.plot(freqs[mask],np.abs(hf_nbped[mask]))
+#         plt.savefig('hf_nbped.pdf' )
         
         
         return hf_nbped#, hf_psd

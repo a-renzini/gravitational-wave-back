@@ -108,6 +108,8 @@ plt.figure()
 hp.mollview(map_in)
 plt.savefig('%s/map_in%s.pdf' % (out_path,maptyp)  )
 
+map_in_save = map_in.copy()
+
 # define start and stop time to search
 # in GPS seconds
 start = 1127000000 #O1 start GPS 1126051217
@@ -142,6 +144,11 @@ if myid == 0:
         conds = checkdata['conds']
         map_in = checkdata['map_in']
         print counter
+    
+        hp.mollview(map_in)
+        plt.savefig('mapin.pdf' )
+    
+    
         
 else:
     Z_p = None
@@ -357,7 +364,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print dt_tot
                 
                 
-                if counter % (nproc*5) == 0:    ## *10000
+                if counter % (nproc) == 0:    ## *10000
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, 'sim = ', sim
@@ -383,7 +390,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                     
                     
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in )
+                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     
