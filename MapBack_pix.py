@@ -643,9 +643,9 @@ class Telescope(object):
         gauss_hi = self.halfgaussian(x,l-l/82.*6.,l/82.)
         win = (1.-gauss_lo)*(gauss_hi)
         
-        plt.figure()
-        plt.plot(win, color = 'r')
-        plt.savefig('win.png' )
+        # plt.figure()
+        # plt.plot(win, color = 'r')
+        # plt.savefig('win.png' )
         
         return win
     
@@ -880,8 +880,8 @@ class Telescope(object):
         rot_m_array = self.rotation_pix(np.arange(npix_in), q_n)
         gammaI_rot = self.gammaI[nbase][rot_m_array]
         
-        hp.mollview(gammaI_rot)
-        plt.savefig('gammaI_rot.pdf')
+        # hp.mollview(gammaI_rot)
+        # plt.savefig('gammaI_rot.pdf')
         
         vec_p_in = hp.pix2vec(self._nside_in,np.arange(npix_in))
         vec_b = hp.pix2vec(self._nside_in,pix_b)
@@ -909,9 +909,9 @@ class Telescope(object):
                     mask[idx_f] = 0
                     
         
-        plt.figure()
-        plt.loglog(freqx[mask],Pdx[mask])
-        plt.savefig('masked.pdf')
+        # plt.figure()
+        # plt.loglog(freqx[mask],Pdx[mask])
+        # plt.savefig('masked.pdf')
         
         return freqx[mask],Pdx[mask]
     
