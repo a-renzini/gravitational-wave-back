@@ -216,8 +216,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print strains_in
                 strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
                 
-                
-                #print len(strains)
+                strains = strains_corr
+
                 # plt.figure()
                 # plt.plot((strains[0]))
                 # plt.savefig('fakestreamsinv.pdf')
@@ -234,17 +234,20 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             psds_f = []
             strains_f = []
 
+            
             for i in range(ndet):
-                strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i]))
+                
+                if sim == False:
+                    strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i]))
+                
                 psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)           #(psds[i](freqs)*fs**2) 
                 #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
             
-            print psds
             
             #print strains_f[0][mask]*np.conj(strains_f[1])[mask]
             #print np.average(strains_f[0][mask]*np.conj(strains_f[1])[mask])
             
-            print len(strains_corr), len(strains_corr[0]), len(psds_f), len(psds_f[0])
+            #print len(strains_corr), len(strains_corr[0]), len(psds_f), len(psds_f[0])
             
             '''
             now strains_w, etc are pairs of 60s segments of signal, in frequency space.
@@ -276,7 +279,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             print 'time: ', my_ctime[0]
             
-            z_p, my_M_p_pp = run.projector(my_ctime,strains_corr,psds_f,freqs,pix_bs, q_ns)
+            z_p, my_M_p_pp = run.projector(my_ctime,strains,psds_f,freqs,pix_bs, q_ns)
             cond = np.linalg.cond(my_M_p_pp)
             
             if myid == 0:
