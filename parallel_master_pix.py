@@ -106,7 +106,7 @@ map_in = run.get_map_in(maptyp)
         
 plt.figure()
 hp.mollview(map_in)
-plt.savefig('%s/map_in%s.pdf' % (out_path,maptyp)  )
+plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
 
 map_in_save = map_in.copy()
 
