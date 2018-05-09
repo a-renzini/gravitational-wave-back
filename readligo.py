@@ -68,6 +68,7 @@ data files with getsegs():
 import numpy as np
 import os
 import fnmatch
+from glue.segments import *
 
 def read_frame(filename, ifo, readstrain=True):
     """
@@ -487,7 +488,7 @@ def getsegs(start, stop, ifo, flag='DATA', filelist=None):
         indxlist = dq_channel_to_seglist(chan, fs=1.0)
         i_start = meta['start']
         i_seglist = [(indx.start+i_start, indx.stop+i_start) for indx in indxlist]
-        i_seglist = [(int(begin), int(end)) for begin, end in i_seglist] 
+        i_seglist = [segment(int(begin), int(end)) for begin, end in i_seglist] 
         segList = segList + i_seglist
       
     # -- Sort segments
@@ -500,7 +501,7 @@ def getsegs(start, stop, ifo, flag='DATA', filelist=None):
     
         if seg1[1] == seg2[0]:
             segList[i]   = None
-            segList[i+1] = (seg1[0], seg2[1])            
+            segList[i+1] = segment(seg1[0], seg2[1])            
     # -- Remove placeholder segments
     segList = [seg for seg in segList if seg is not None]
 
@@ -512,11 +513,11 @@ def getsegs(start, stop, ifo, flag='DATA', filelist=None):
         elif (seg[0] > stop):
             segList[idx] = None
         elif (seg[0] < start) and (seg[1] > stop):
-            segList[idx] = (start, stop)
+            segList[idx] = segment(start, stop)
         elif (seg[0] < start):
-            segList[idx] = (start, seg[1])
+            segList[idx] = segment(start, seg[1])
         elif (seg[1] > stop):
-            segList[idx] = (seg[0], stop)
+            segList[idx] = segment(seg[0], stop)
     # -- Remove placeholder segments
     segList = [seg for seg in segList if seg is not None]
 

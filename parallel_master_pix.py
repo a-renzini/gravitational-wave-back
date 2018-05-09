@@ -107,6 +107,7 @@ map_in = run.get_map_in(maptyp)
 plt.figure()
 hp.mollview(map_in)
 plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
+plt.close('all')
 
 map_in_save = map_in.copy()
 
@@ -127,6 +128,7 @@ strain1_nproc = []
 strain2_nproc = []
 b_pixes = []
 
+
 npix_out = hp.nside2npix(nside_out)
 
 if myid == 0:
@@ -135,6 +137,8 @@ if myid == 0:
     M_p_pp = 0.
     counter = 0
     conds = []
+    H1_PSD_fits = []
+    L1_PSD_fits = []
     if checkpoint  == True:
         checkdata = np.load(checkfile_path)
         Z_p += checkdata['Z_p']
@@ -146,7 +150,8 @@ if myid == 0:
         print counter
     
         hp.mollview(map_in)
-        plt.savefig('mapin.pdf' )
+        plt.savefig('map_in_checkfile.pdf' )
+        plt.close('all')
     
     
         
@@ -213,7 +218,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             strains_copy = (my_h1.copy(),my_l1.copy()) #calcualte psds from these
 
                     ###########################
-
+            strains_f = []
 
             if sim == True:
                 print 'generating...'
@@ -223,7 +228,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print strains_in
                 strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
                 
-                strains = strains_corr
+                strains_f = strains_corr
 
                 # plt.figure()
                 # plt.plot((strains[0]))
@@ -234,19 +239,17 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # f.close()
                 #pass the noisy strains to injector got the psds
             psds = run.injector(strains_copy,my_ctime,low_cut,high_cut)[1]
+            
             #strains are the new generated strains
             
             #print 'std of corr. t_stream: ', np.std(strains[0]*strains[1])
             
             psds_f = []
-            strains_f = []
-
             
             for i in range(ndet):
                 
                 if sim == False:
-                    strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i]))
-                
+                    strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i])[mask])
                 psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)           #(psds[i](freqs)*fs**2) 
                 #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
             
@@ -286,24 +289,32 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             print 'time: ', my_ctime[0]
             
-            z_p, my_M_p_pp = run.projector(my_ctime,strains,psds_f,freqs,pix_bs, q_ns)
+            z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns)
             cond = np.linalg.cond(my_M_p_pp)
             
             if myid == 0:
                 z_buffer = np.zeros_like(z_p)
                 M_p_pp_buffer = np.zeros_like(my_M_p_pp)   
                 conds_array = np.zeros(nproc)
+                a_buffer = nproc * [0.,0.,0.]
+                pdx_H1 =  np.zeros_like(a_buffer)
+                pdx_L1 =  np.zeros_like(a_buffer)
                 
             else:
                 z_buffer = None
                 M_p_pp_buffer = None
                 conds_array = None
+                pdx_H1 = None
+                pdx_L1 = None
 
-            if ISMPI:
+            if ISMPI: 
+                
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
                 comm.Gather(cond, conds_array, root = 0)
+                pdx_H1 = comm.gather(psds[0],root = 0)
+                pdx_L1 = comm.gather(psds[1], root = 0)
                 
                 if myid ==0: counter += nproc
 
@@ -323,8 +334,18 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
                 print 'this is id 0'
                 Z_p += z_buffer
-                M_p_pp += M_p_pp_buffer                
-                np.append(conds,conds_array)
+                M_p_pp += M_p_pp_buffer    
+         
+                
+                conds.append(conds_array)
+                H1_PSD_fits.append(pdx_H1)
+                L1_PSD_fits.append(pdx_L1)
+                
+                H1_PSD_fits_flat = 0.
+                L1_PSD_fits_flat = 0.
+                
+                H1_PSD_fits_flat = sum(H1_PSD_fits, [])
+                L1_PSD_fits_flat = sum(L1_PSD_fits, [])
                 
                 print '+++'
                 print counter, 'mins analysed.'
@@ -379,16 +400,34 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     print >>f, np.dot(M_p_pp, M_p_pp_inv),np.identity(len(M_p_pp))
                     f.close()
                     
-                                        
+                    fits1 = 0.
+                    fits2 = 0.
                     
-                    fig = plt.figure()
-                    hp.mollview(Z_p)
-                    plt.savefig('%s/dirty_map%s.pdf' % (out_path, counter))
+                    fits1 = np.array(H1_PSD_fits_flat).T
+                    fits2 = np.array(L1_PSD_fits_flat).T
+                    fits1 = np.append(fits1,fits2,axis = 0) 
+                    
+                    plt.matshow(fits1)
+                    plt.savefig('psdfits_mat.pdf')
+                    
+                    # plt.figure()
+                    # plt.plot(fits1[0])
+                    # plt.plot(fits1[1])
+                    # plt.plot(fits1[2])
+                    # plt.plot(fits1[3])
+                    # plt.plot(fits1[4])
+                    # plt.plot(fits1[5])
+                    # plt.savefig('psdfits.pdf')               
+                    
+                    # fig = plt.figure()
+                    # hp.mollview(Z_p)
+                    # plt.savefig('%s/dirty_map%s.pdf' % (out_path, counter))
 
                     fig = plt.figure()
                     hp.mollview(S_p)
                     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                     
+                    plt.close()
                     
                     np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                     
@@ -409,10 +448,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # print >> falm, 'end.'
                     # falm.close()
                 
-                    fig = plt.figure()
-                    hp.mollview(np.zeros_like(Z_p))
-                    hp.visufunc.projscatter(hp.pix2ang(nside_in,b_pixes))
-                    plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
+                    # fig = plt.figure()
+                    # hp.mollview(np.zeros_like(Z_p))
+                    # hp.visufunc.projscatter(hp.pix2ang(nside_in,b_pixes))
+                    # plt.savefig('%s/b_pixs%s.pdf' % (out_path,counter))
                     
                     #exit()
                     
