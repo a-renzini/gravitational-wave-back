@@ -102,18 +102,22 @@ nbase = int(ndet*(ndet-1)/2)
 #create object of class:
 run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp)
 
-map_in = run.get_map_in(maptyp)
-        
-plt.figure()
-hp.mollview(map_in)
-plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
-plt.close('all')
+if myid == 0:
+    map_in = run.get_map_in(maptyp)
+    
+    plt.figure()
+    hp.mollview(map_in)
+    plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
+    plt.close('all')
+    
+    map_in_save = map_in.copy()
+else: map_in = None
 
-map_in_save = map_in.copy()
+map_in = comm.bcast(map_in, root=0)
 
 # define start and stop time to search
 # in GPS seconds
-start = 1127000000 #O1 start GPS 1126051217
+start = 1126224017#1127000000 #O1 start GPS 1126051217 1126224017
 stop  = 1129000000 #1137254417  #O1 end GPS     
 
 
@@ -169,7 +173,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     n=sdx+1
 
     ctime, strain_H1, strain_L1 = run.segmenter(begin,end,filelist)
-
+    
+    #strain_L1.highpass(10.)
+    
     if len(ctime)<2 : continue
     
     idx_block = 0
@@ -239,7 +245,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # f.close()
                 #pass the noisy strains to injector got the psds
             psds = run.injector(strains_copy,my_ctime,low_cut,high_cut)[1]
-            
+
             #strains are the new generated strains
             
             #print 'std of corr. t_stream: ', np.std(strains[0]*strains[1])
@@ -408,6 +414,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     fits1 = np.append(fits1,fits2,axis = 0) 
                     
                     plt.matshow(fits1)
+                    plt.colorbar()
                     plt.savefig('psdfits_mat.pdf')
                     
                     # plt.figure()
@@ -429,7 +436,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     plt.close()
                     
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                    if counter % (nproc*30) == 0:   
+                        np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     

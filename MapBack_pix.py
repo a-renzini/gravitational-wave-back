@@ -997,6 +997,8 @@ class Telescope(object):
 
             frexx_notch,Pxx_notch = self.Pdx_notcher(frexx,Pxx)
 
+            frexx
+            
             
             fit = curve_fit(self.PDX, frexx_notch[100:600], Pxx_notch[100:600])#, bounds = ([0.,0.,0.],[2.,2.,2.])) 
             
@@ -1019,8 +1021,8 @@ class Telescope(object):
             # print norm
             
             # plt.figure()
-            # plt.loglog(frexx[100:1000],Pxx[100:1000])
-            # plt.loglog(frexx[100:1000],self.PDX(frexx,a,b,c)[100:1000], label = 'notched pdx fit')
+            # plt.loglog(frexx,Pxx)
+            # plt.loglog(frexx,self.PDX(frexx,a,b,c), label = 'notched pdx fit')
             # plt.loglog([frexx[100],frexx[600]],[2.e-47,2.e-47])
             # plt.loglog(frexx_notch,Pxx_notch)
             # #plt.loglog(frexxes,pixxes*1e-48)
@@ -1028,11 +1030,10 @@ class Telescope(object):
             # for xc in self.notches():
             #     plt.axvline(x=xc,linewidth = 0.5)
             # plt.legend()
-            # plt.xlim((50,500))
+            # plt.xlim((1,1500))
             # plt.ylim((1.e-47,1.e-43))
             # plt.savefig('snipxx.pdf' )
 
-            
             #hf_psd=interp1d(frexx,Pxx*norm)
             psds.append(psd_params)
             #print frexx, Pxx, len(Pxx)
@@ -1060,7 +1061,7 @@ class Telescope(object):
             notch_fs = np.array([14.0,34.70, 35.30, 35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.49, 510.02, 1009.99])
         
         if self.data_run == 'O1':#34.70, 35.30,  #LIVNGSTON: 33.7 34.7 35.3 
-            notch_fs = np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 510.02, 1009.99])
+            notch_fs = np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 510.02,  1009.99])
         
         return notch_fs
         
@@ -1127,14 +1128,17 @@ class Telescope(object):
         sigma_fs = self.sigmas()
         #np.array([0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.5,0.3,0.2])
         
-        samp_hz = fs**2*(len(hf_copy))**(-1.)#-6.68 #correction due to?
-                
+        df = freqs[1]- freqs[0]
+        samp_hz = 1./df
         pixels = np.arange(len(hf_copy))
              
         i = 0
-          
+         
+        hf_ones = np.ones_like(hf_nowin)
+         
         while i < len(notch_fs):
             notch_pix = int(notch_fs[i]*samp_hz)
+            hf_ones = hf_ones*(1.-self.gaussian(pixels,notch_pix,sigma_fs[i]*samp_hz))
             hf_nowin = hf_nowin*(1.-self.gaussian(pixels,notch_pix,sigma_fs[i]*samp_hz))
             i+=1           
         
@@ -1146,18 +1150,15 @@ class Telescope(object):
 
         hf_nbped = hf_nowin*(1.-gauss_lo)*(gauss_hi)            ####
         
-        #print 'average of band lim, std of band lim IN T DOMAIN'
-        
-        #hf_bp_inv= np.fft.irfft(hf_nbped, norm = 'ortho')
-        
-        #print np.average(hf_bp_inv), ' , ' , np.std(hf_bp_inv), '  ,  ', len(hf_bp_inv)
-        #print np.average(strain_in_nowin), ' , ' , np.std(strain_in_nowin), '  ,  ', len(strain_in_nowin)
-        #print np.average(strain_in_cp), ' , ' , np.std(strain_in_cp), '  ,  ', len(strain_in_cp)
+        mask1 = (freqs>30.) & (freqs < 1000.)
         
         # plt.figure()
-#         plt.plot(freqs[mask],np.abs(hf_nbped[mask]))
-#         plt.savefig('hf_nbped.pdf' )
-        
+        # plt.plot(freqs[mask1],np.abs(hf_copy[mask1]))
+        # plt.loglog(freqs[mask1],np.abs(hf_nowin[mask1]))
+        # for xc in self.notches():
+        #     plt.axvline(x=xc,linewidth = 0.5)
+        # plt.savefig('hf_nbped.png' )
+        # plt.close('all')
         
         return hf_nbped#, hf_psd
         
