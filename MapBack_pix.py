@@ -551,8 +551,10 @@ class Telescope(object):
         self.hc = np.array(np.sqrt(np.abs(sfs.Istoke)/2))
         
     
-        self.map_in = self.get_map_in(maptyp)
-
+        input_map = self.get_map_in(maptyp)
+        
+        self.map_in = input_map.copy()
+        
         # plt.figure()
         # hp.mollview(self.map_in)
         # plt.savefig('map_in.pdf' )
@@ -900,9 +902,11 @@ class Telescope(object):
         bdotp_in = 2.*np.pi*np.dot(vec_b,vec_p_in)*self.R_earth/3.e8
         
         df = np.zeros_like(freqs, dtype = complex)
+        
+        map_in = self.map_in
                 
         for idx_f,f in enumerate(freqs):     #maybe E_f is squared?
-            df[idx_f] = 4.*np.pi/npix_in * delta_freq*np.sum(window[idx_f] * self.E_f(f) * gammaI_rot[:] * self.map_in[:]*(np.cos(bdotp_in[:]*f) + np.sin(bdotp_in[:]*f)*1.j)) 
+            df[idx_f] = 4.*np.pi/npix_in * delta_freq*np.sum(window[idx_f] * self.E_f(f) * gammaI_rot[:] * map_in[:]*(np.cos(bdotp_in[:]*f) + np.sin(bdotp_in[:]*f)*1.j)) 
         
         return df
     
