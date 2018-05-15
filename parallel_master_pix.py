@@ -95,7 +95,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1','V1']#,'A1']
+dects = ['H1','L1']#,'V1']#,'A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
