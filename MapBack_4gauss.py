@@ -902,11 +902,6 @@ class Telescope(object):
         
         map_in = self.map_in
         
-        plt.figure()
-        hp.mollview(map_in)
-        plt.savefig('map_in_simbase.pdf' )
-        plt.close('all')
-        
         for idx_f,f in enumerate(freqs):     #maybe E_f is squared?
             df[idx_f] = 4.*np.pi/npix_in * delta_freq*np.sum(window[idx_f] * self.E_f(f) * gammaI_rot[:] * map_in[:]*(np.cos(bdotp_in[:]*f) + np.sin(bdotp_in[:]*f)*1.j)) 
         
