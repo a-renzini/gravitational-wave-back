@@ -85,7 +85,10 @@ filelist = rl.FileList(directory=ligo_data_dir)
 nside_in = 16
 nside_out = 8
 lmax = 2
+
+#### SIMULATION
 sim = True
+noise_lvl = 2
 
 #INTEGRATING FREQS:                                                                                                           
 low_f = 80.
@@ -100,7 +103,7 @@ ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
 #create object of class:
-run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp)
+#run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp,noise_lvl)
 
 if myid == 0:
     map_file = np.load('./map_in.npz')
@@ -116,7 +119,7 @@ else: map_in = None
 
 map_in = comm.bcast(map_in, root=0)
 
-run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, map_in)
+run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, map_in,noise_lvl)
 
 # define start and stop time to search
 # in GPS seconds

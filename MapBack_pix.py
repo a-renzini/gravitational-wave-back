@@ -441,7 +441,7 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, maptyp = None, data_run = 'O1'): #Dect list
+    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, maptyp, noise_lvl=1, data_run = 'O1'): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
@@ -546,15 +546,17 @@ class Telescope(object):
                         self.threej_m[lmin_m:lmax_m+1,l,lp,m,mp] = threej(lp, l, mp, m) ###
         
         #Simulation tools
-
-        self.hp = np.array(np.sqrt(np.abs(sfs.Istoke)/2))
-        self.hc = np.array(np.sqrt(np.abs(sfs.Istoke)/2))
-        
     
-        input_map = self.get_map_in(maptyp)
+
         
+        if noise_lvl == 1: self.alpha = 1.
+        elif noise_lvl == 2: self.alpha = 3.e-36
+        elif noise_lvl == 3: self.alpha = 1.e-40
+        
+        input_map = self.get_map_in(maptyp)
         self.map_in = input_map.copy()
         
+
         # plt.figure()
         # hp.mollview(self.map_in)
         # plt.savefig('map_in.pdf' )
@@ -564,6 +566,7 @@ class Telescope(object):
     def get_map_in(self, maptyp):
         
         nside = self._nside_in
+        alpha = self.alpha
         
         lmax = nside/2        #or not?
 
@@ -574,22 +577,22 @@ class Telescope(object):
             
         elif maptyp == '1pole':
             idx = hp.Alm.getidx(lmax,0,0)
-            alm[idx] = 1.+ 0.j
+            alm[idx] = (1.+ 0.j)*alpha
 
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
         elif maptyp == '2pole':
             idx = hp.Alm.getidx(lmax,1,1)
-            alm[idx] = 1.+ 0.j
+            alm[idx] = (1.+ 0.j)*alpha
             
             map_in = hp.alm2map(alm,nside=self._nside_in)
 
         elif maptyp == '2pole1':
             idx = hp.Alm.getidx(lmax,1,0)
-            alm[idx] = 1.+ 0.j
+            alm[idx] = (1.+ 0.j)*alpha
             
             idx = hp.Alm.getidx(lmax,1,1)
-            alm[idx] = .58+ .73j
+            alm[idx] = (.58+ .73j)*alpha
             #idx = hp.Alm.getidx(lmax,1,1)
             #alm[idx] = 1.+ 0.j
             
@@ -597,21 +600,21 @@ class Telescope(object):
         
         elif maptyp == '4pole':
             idx = hp.Alm.getidx(lmax,2,2)
-            alm[idx] = 1.+ 0.j
+            alm[idx] = (1.+ 0.j)*alpha
             
             map_in = hp.alm2map(alm,nside=self._nside_in)
             
         elif maptyp == '8pole':
             idx = hp.Alm.getidx(lmax,3,3)
-            alm[idx] = 1.+ 0.j
+            alm[idx] = (1.+ 0.j)*alpha
             
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
         elif maptyp == '8pole1':
             idx = hp.Alm.getidx(lmax,3,3)
-            alm[idx] = 1.+ .72j
+            alm[idx] = (1.+ .72j)*alpha
             idx = hp.Alm.getidx(lmax,3,2)
-            alm[idx] = .5+ .67j
+            alm[idx] = (.58+ .67j)*alpha
             
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
@@ -625,7 +628,7 @@ class Telescope(object):
                 cls[i-1]=1./i/(i+1.)*2*np.pi
                 i+=1
             
-            map_in = np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten()
+            map_in = (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*alpha
             
         elif maptyp == 'gauss2':
             lmax = lmax
@@ -637,7 +640,7 @@ class Telescope(object):
                 cls[i]=1./(i+1.)**2.
                 i+=1
             
-            map_in = np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten()
+            map_in = (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*alpha
             
         return map_in
         
