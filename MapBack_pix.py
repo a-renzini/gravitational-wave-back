@@ -931,6 +931,21 @@ class Telescope(object):
         
         return freqx[mask],Pdx[mask]
     
+    def noisy(self,strains_corr,psds_f,mask):
+        psd_corr = []
+        strains_noised = []
+        
+        for i in range(self._nbase):
+            a, b = self.combo_tuples[i]
+            psd_corr.append(psds_f[a][mask]*psds_f[b][mask])
+            rands = [np.random.normal(loc = 0., scale = 1. , size = len(psd_corr[i])),np.random.normal(loc = 0., scale = 1. , size = len(psd_corr[i]))] 
+            fakenoise = rands[0]+1.j*rands[1]
+            fakenoise = np.array(fakenoise*np.sqrt(psd_corr[i]/2.))
+            strain_noised = np.sum([fakenoise,strains_corr[i]], axis=0)
+            strains_noised.append(strain_noised)
+            
+        return strains_noised
+    
     def injector(self,strains_in,ct_split,low_f,high_f,sim = False):
         fs=self.fs        
         dt=1./fs

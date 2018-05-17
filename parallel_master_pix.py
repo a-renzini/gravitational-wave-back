@@ -225,25 +225,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
                     ###########################
             strains_f = []
-
-            if sim == True:
-                print 'generating...'
-                h1_in = my_h1.copy()
-                l1_in = my_l1.copy()
-                strains_in = (h1_in,l1_in)
-                #print strains_in
-                strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
-                
-                strains_f = strains_corr
-
-                # plt.figure()
-                # plt.plot((strains[0]))
-                # plt.savefig('fakestreamsinv.pdf')
-                # f = open('fakestreamsinv.txt', 'w')
-                # for (i,x) in enumerate(strains[0]):
-                #     print >>f, i, '     ', x
-                # f.close()
-                #pass the noisy strains to injector got the psds
+            
             psds = run.injector(strains_copy,my_ctime,low_cut,high_cut)[1]
 
             #strains are the new generated strains
@@ -256,19 +238,28 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 if sim == False:
                     strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i])[mask])
+                    
                 psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)           #(psds[i](freqs)*fs**2) 
                 #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
             
             
-            #print strains_f[0][mask]*np.conj(strains_f[1])[mask]
-            #print np.average(strains_f[0][mask]*np.conj(strains_f[1])[mask])
-            
-            #print len(strains_corr), len(strains_corr[0]), len(psds_f), len(psds_f[0])
+            if sim == True:
+                print 'generating...'
+                h1_in = my_h1.copy()
+                l1_in = my_l1.copy()
+                strains_in = (h1_in,l1_in)
+                #print strains_in
+                strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
+                strains_corr = run.noisy(strains_corr,psds_f,mask)
+                
+                
+                strains_f = strains_corr
+
             
             '''
             now strains_w, etc are pairs of 60s segments of signal, in frequency space.
             '''
-
+            
             print 'filtering done'
                 #Integrate over frequency in the projector
 

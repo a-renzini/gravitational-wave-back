@@ -455,7 +455,6 @@ class Telescope(object):
         self.fs = fs
         self.low_f = low_f
         self.high_f = high_f
-        
         # ********* Fixed Setup Constants *********
 
         # Configuration: radians and metres, Earth-centered frame
@@ -1055,6 +1054,21 @@ class Telescope(object):
         
         
         ####
+    
+    def noisy(self,strains_corr,psds_f,mask):
+        psd_corr = []
+        strains_noised = []
+        
+        for i in range(self._nbase):
+            a, b = self.combo_tuples[i]
+            psd_corr.append(psds_f[a][mask]*psds_f[b][mask])
+            rands = [np.random.normal(loc = 0., scale = 1. , size = len(psd_corr[i])),np.random.normal(loc = 0., scale = 1. , size = len(psd_corr[i]))] 
+            fakenoise = rands[0]+1.j*rands[1]
+            fakenoise = np.array(fakenoise*np.sqrt(psd_corr[i]/2.))
+            strain_noised = np.sum([fakenoise,strains_corr[i]], axis=0)
+            strains_noised.append(strain_noised)
+            
+        return strains_noised
         
     def notches(self):
         
@@ -1385,7 +1399,7 @@ class Telescope(object):
         for i in range(self._nbase):
             a, b = self.combo_tuples[i]
             pows.append(psds[a]*(psds[b]))      #(or sqrt)
-                
+            
         z_p, M_pp = self.summer(ctime, s, pows, freqs, pix_bs, q_ns)
         
         #print np.mean(data_lm)          
