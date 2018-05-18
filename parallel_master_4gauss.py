@@ -448,7 +448,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     plt.close()
                     
                     if counter % (nproc*30) == 0:   
-                        np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                        np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     

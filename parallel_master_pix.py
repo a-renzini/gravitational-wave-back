@@ -11,8 +11,10 @@ import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import time
 import MapBack_pix as mb  #################
+from matplotlib import cm
 from mpi4py import MPI
 ISMPI = True
+
 #if mpi4py not present: ISMPI = False
 
 import os
@@ -82,7 +84,7 @@ fs = 4096
 ligo_data_dir = data_path  #can be defined in the repo                                                                        
 filelist = rl.FileList(directory=ligo_data_dir)
 
-nside_in = 16
+nside_in = 32
 nside_out = 8
 lmax = 2
 
@@ -108,10 +110,19 @@ run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp,noi
 if myid == 0:
     map_in = run.map_in
     
-    plt.figure()
-    hp.mollview(map_in)
-    plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
-    plt.close('all')
+    if maptyp == 'planck':
+        
+        jet = cm.jet
+        jet.set_under("w")
+        hp.mollview(map_in,norm = 'hist', cmap = jet)
+        plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
+        plt.close('all')
+        
+    else:
+        plt.figure()
+        hp.mollview(map_in)
+        plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
+        plt.close('all')
     
     map_in_save = map_in.copy()
 else: map_in = None
@@ -424,14 +435,28 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # hp.mollview(Z_p)
                     # plt.savefig('%s/dirty_map%s.pdf' % (out_path, counter))
 
-                    fig = plt.figure()
-                    hp.mollview(S_p)
-                    plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
+
                     
-                    plt.close()
                     
-                    if counter % (nproc*30) == 0:   
-                        np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                    
+                    
+                    if maptyp == 'planck':
+        
+                        jet = cm.jet
+                        jet.set_under("w")
+                        hp.mollview(S_p,norm = 'hist', cmap = jet)
+                        plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
+                        plt.close('all')
+        
+                    else:
+                        fig = plt.figure()
+                        hp.mollview(S_p)
+                        plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
+                        plt.close('all')
+                    
+                    
+  
+                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     

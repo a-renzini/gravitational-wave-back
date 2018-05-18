@@ -18,6 +18,8 @@ from scipy.optimize import curve_fit
 import OverlapFunctsSrc as ofs
 import stokefields as sfs
 from numpy import cos,sin
+from matplotlib import cm
+
 
 # LIGO-specific readligo.py 
 import readligo as rl
@@ -641,6 +643,12 @@ class Telescope(object):
                 i+=1
             
             map_in = (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*alpha
+        
+        elif maptyp == 'planck':
+            fwhm = 5*np.pi/180.
+            planckmap = hp.read_map('COM_CompMap_dust-commander_0256_R2.00.fits')
+            planckmap = hp.sphtfunc.smoothing(planckmap,fwhm = fwhm)
+            map_in = hp.ud_grade(planckmap,nside_out = self._nside_in)
             
         return map_in
         
@@ -907,7 +915,7 @@ class Telescope(object):
         df = np.zeros_like(freqs, dtype = complex)
         
         map_in = self.map_in
-                
+        
         for idx_f,f in enumerate(freqs):     #maybe E_f is squared?
             df[idx_f] = 4.*np.pi/npix_in * delta_freq*np.sum(window[idx_f] * self.E_f(f) * gammaI_rot[:] * map_in[:]*(np.cos(bdotp_in[:]*f) + np.sin(bdotp_in[:]*f)*1.j)) 
         
