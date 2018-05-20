@@ -88,7 +88,7 @@ lmax = 2
 
 #### SIMULATION
 sim = True
-noise_lvl = 2
+noise_lvl = 3
 
 #INTEGRATING FREQS:                                                                                                           
 low_f = 80.
@@ -106,7 +106,7 @@ nbase = int(ndet*(ndet-1)/2)
 #run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp,noise_lvl)
 
 if myid == 0:
-    map_file = np.load('./map_in.npz')
+    map_file = np.load('/home/ar6215/gravitational-wave-bkg/map_in.npz')
     map_in = map_file['map_in']
     
     plt.figure()

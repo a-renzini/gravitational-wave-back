@@ -550,11 +550,13 @@ class Telescope(object):
         #Simulation tools
     
 
-        
+        self.alpha = 1.
         if noise_lvl == 1: self.alpha = 1.
         elif noise_lvl == 2: self.alpha = 3.e-36
         elif noise_lvl == 3: self.alpha = 1.e-40
         
+        print 'alpha is', self.alpha
+
         input_map = self.get_map_in(maptyp)
         self.map_in = input_map.copy()
         
@@ -646,7 +648,7 @@ class Telescope(object):
         
         elif maptyp == 'planck':
             fwhm = 5*np.pi/180.
-            planckmap = hp.read_map('COM_CompMap_dust-commander_0256_R2.00.fits')
+            planckmap = hp.read_map('/home/ar6215/gravitational-wave-bkg/COM_CompMap_dust-commander_0256_R2.00.fits')
             planckmap = hp.sphtfunc.smoothing(planckmap,fwhm = fwhm)
             map_in = hp.ud_grade(planckmap,nside_out = self._nside_in)
             

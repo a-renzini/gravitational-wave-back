@@ -23,14 +23,17 @@ import sys
 data_path = sys.argv[1]
 out_path =  sys.argv[2]
 maptyp = sys.argv[3]
+noise_lvl = sys.argv[4]
+noise_lvl = int(noise_lvl)
+print noise_lvl
 
 try:
-    sys.argv[4]
+    sys.argv[5]
 except (NameError, IndexError):
     checkpoint = None
 else:
     checkpoint = True
-    checkfile_path = sys.argv[4]
+    checkfile_path = sys.argv[5]
 
     
 if os.path.exists(data_path):
@@ -90,7 +93,6 @@ lmax = 2
 
 ##SIMULATION
 sim = True
-noise_lvl = 1
 
 #INTEGRATING FREQS:                                                                                                           
 low_f = 80.
