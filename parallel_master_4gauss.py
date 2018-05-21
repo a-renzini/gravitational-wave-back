@@ -133,7 +133,16 @@ stop  = 1129000000 #1137254417  #O1 end GPS
 
 print 'flagging the good data...'
 
-segs_begin, segs_end = run.flagger(start,stop,filelist)
+#
+if myid == 0:
+    segs_begin, segs_end = run.flagger(start,stop,filelist)
+else: 
+    segs_begin = None
+    segs_end = None
+     
+segs_begin = comm.bcast(segs_begin, root=0)
+segs_end = comm.bcast(segs_end, root=0)
+#
 
 ctime_nproc = []
 strain1_nproc = []
@@ -179,8 +188,20 @@ print 'segmenting the data...'
 for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
     n=sdx+1
-
-    ctime, strain_H1, strain_L1 = run.segmenter(begin,end,filelist)
+    
+    #
+    if myid == 0:
+        ctime, strain_H1, strain_L1 = run.segmenter(begin,end,filelist)
+    
+    else: 
+        ctime = None
+        strain_H1 = None
+        strain_L1 = None
+ 
+    ctime = comm.bcast(ctime, root=0)
+    strain_H1 = comm.bcast(strain_H1, root=0)
+    strain_L1 = comm.bcast(strain_L1, root=0)    
+    #
     
     #strain_L1.highpass(10.)
     
