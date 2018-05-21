@@ -441,7 +441,7 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, map_in, noise_lvl, data_run = 'O1'): #Dect list
+    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, map_in, noise_lvl = 1, data_run = 'O1'): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
