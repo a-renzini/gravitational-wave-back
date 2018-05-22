@@ -376,8 +376,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 Z_p += z_buffer
                 M_p_pp += M_p_pp_buffer    
          
+                conds_array = np.array(conds_array)
                 
-                conds.append(conds_array)
+                np.append(conds,conds_array)
                 H1_PSD_fits.append(pdx_H1)
                 L1_PSD_fits.append(pdx_L1)
                 
@@ -449,7 +450,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     plt.matshow(fits1)
                     plt.colorbar()
-                    plt.savefig('psdfits_mat.pdf')
+                    plt.savefig('%s/psdfits_mat.pdf' % out_path)
                     
                     # plt.figure()
                     # plt.plot(fits1[0])
@@ -469,9 +470,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                     
                     plt.close()
-                    
-                    if counter % (nproc*30) == 0:   
-                        np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                      
+                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     

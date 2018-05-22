@@ -159,7 +159,6 @@ b_pixes = []
 
 npix_out = hp.nside2npix(nside_out)
 
-
 if myid == 0:
     Z_p = np.zeros(npix_out)
     S_p = np.zeros(npix_out)
@@ -443,7 +442,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     plt.matshow(fits1)
                     plt.colorbar()
-                    plt.savefig('psdfits_mat.pdf')
+                    plt.savefig('%s/psdfits_mat.pdf' % out_path)
                     
                     # plt.figure()
                     # plt.plot(fits1[0])
