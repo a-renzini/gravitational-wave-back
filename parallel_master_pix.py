@@ -196,17 +196,16 @@ if myid == 0:
     
         hp.mollview(map_in)
         plt.savefig('map_in_checkfile.pdf' )
-        plt.close('all')
-
-if checkpoint == True:
-    map_in = comm.bcast(map_in, root=0)    
+        plt.close('all') 
     
-        
 else:
     Z_p = None
     S_p = None
     M_p_pp = None
     counter = 0
+
+if checkpoint == True:
+    map_in = comm.bcast(map_in, root=0)   
 
 print 'segmenting the data...'
 
@@ -359,8 +358,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 pdx_H1 = None
                 pdx_L1 = None
 
-            if ISMPI: 
-                
+            if ISMPI:                 
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
@@ -375,21 +373,16 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 counter += 1
                 M_p_pp_buffer += my_M_p_pp
                 conds.append(cond)
-            #print '----'
-            #print 'z_lm', z_lm
-            #print 'buffer', z_buffer
-            #print 'counter',counter
-            #print '----'
 
 
             if myid == 0:
-
+                
                 print 'this is id 0'
                 Z_p += z_buffer
                 M_p_pp += M_p_pp_buffer    
          
-                
-                conds.append(conds_array)
+                conds_array = np.array(conds_array)
+                np.append(conds,conds_array)
                 H1_PSD_fits.append(pdx_H1)
                 L1_PSD_fits.append(pdx_L1)
                 
@@ -499,6 +492,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
   
                     np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                     
+                    if counter % (nproc*50) == 0:
+                        np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                        
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     
                     # falm = open('%s/alms%s.txt' % (out_path,counter), 'w')
