@@ -126,6 +126,9 @@ if myid == 0:
 
     map_in = run.map_in
     
+    if checkpoint == True:
+        map_in = np.zeros_like(map_in)
+        
     if maptyp == 'planck':
         
         jet = cm.jet
@@ -134,16 +137,12 @@ if myid == 0:
         plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
         plt.close('all')
     
-    if checkpoint == True:
-        map_in = None
-        
     else:
         plt.figure()
         hp.mollview(map_in)
         plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
         plt.close('all')
     
-    map_in_save = map_in.copy()
 else: map_in = None
 
 map_in = comm.bcast(map_in, root=0)
@@ -192,7 +191,7 @@ if myid == 0:
         counter = checkdata['counter']
         conds = checkdata['conds']
         map_in = checkdata['map_in']
-        print counter
+        print 'we are at minute', counter
     
         hp.mollview(map_in)
         plt.savefig('map_in_checkfile.pdf' )
@@ -206,6 +205,8 @@ else:
 
 if checkpoint == True:
     map_in = comm.bcast(map_in, root=0)   
+
+map_in_save = map_in.copy()
 
 print 'segmenting the data...'
 
