@@ -39,6 +39,27 @@ LIGO ANALYSIS ROUTINES
 
 '''
 
+def map_in_gauss(nside_in, noise_lvl):
+    
+    nside = nside_in
+    
+    if noise_lvl == 1: alpha = 1.
+    elif noise_lvl == 2: alpha = 3.e-36
+    elif noise_lvl == 3: alpha = 1.e-40
+    
+    lmax = nside/4
+    alm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=np.complex)
+    
+    cls = hp.sphtfunc.alm2cl(alm)
+
+    cls=[1]*lmax
+    i=1
+    while i<lmax+1:
+        cls[i-1]=1./i/(i+1.)*2*np.pi
+        i+=1
+    
+    return (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*alpha
+
 class Generator(object):
     
     def __init__(self,nside, sig_name):     #use nside_in! 
@@ -443,11 +464,11 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, maptyp, noise_lvl=1, data_run = 'O1'): #Dect list
+    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, data_run = 'O1'): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
-        
+        self.this_path = this_path
         self.data_run = data_run
         
         self.R_earth = 6378137
@@ -549,7 +570,7 @@ class Telescope(object):
         
         #Simulation tools
     
-
+        self.noise_lvl = noise_lvl
         self.alpha = 1.
         if noise_lvl == 1: self.alpha = 1.
         elif noise_lvl == 2: self.alpha = 3.e-36
@@ -566,7 +587,7 @@ class Telescope(object):
         # plt.savefig('map_in.pdf' )
         
     # ********* Maps IN *************
-
+    
     def get_map_in(self, maptyp):
         
         nside = self._nside_in
@@ -623,32 +644,24 @@ class Telescope(object):
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
         elif maptyp == 'gauss':
-            lmax = lmax/2
-            cls = hp.sphtfunc.alm2cl(alm)
-
-            cls=[1]*lmax
-            i=1
-            while i<lmax+1:
-                cls[i-1]=1./i/(i+1.)*2*np.pi
-                i+=1
-            
-            map_in = (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*alpha
-            
-        elif maptyp == 'gauss2':
-            lmax = lmax
-            cls = hp.sphtfunc.alm2cl(alm)
-
-            cls=[1]*lmax
-            i=0
-            while i<lmax:
-                cls[i]=1./(i+1.)**2.
-                i+=1
-            
-            map_in = (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*alpha
+            map_file = np.load('%smap_in%s.npz' % (self.this_path,self.noise_lvl))
+            map_in = map_file['map_in']
+        
+        # elif maptyp == 'gauss2':
+        #     lmax = lmax
+        #     cls = hp.sphtfunc.alm2cl(alm)
+        #
+        #     cls=[1]*lmax
+        #     i=0
+        #     while i<lmax:
+        #         cls[i]=1./(i+1.)**2.
+        #         i+=1
+        #
+        #     map_in = (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*alpha
         
         elif maptyp == 'planck':
             fwhm = 5*np.pi/180.
-            planckmap = hp.read_map('/Users/pai/Dropbox/GWs/Python/gravitational-wave-bkg/COM_CompMap_dust-commander_0256_R2.00.fits')
+            planckmap = hp.read_map('%sCOM_CompMap_dust-commander_0256_R2.00.fits' % self.this_path)
             planckmap = hp.sphtfunc.smoothing(planckmap,fwhm = fwhm)
             map_in = (hp.ud_grade(planckmap,nside_out = self._nside_in))*alpha
             

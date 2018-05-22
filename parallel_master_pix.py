@@ -26,6 +26,7 @@ maptyp = sys.argv[3]
 noise_lvl = sys.argv[4]
 noise_lvl = int(noise_lvl)
 print noise_lvl
+this_path = os.getcwd()+ '/'
 
 try:
     sys.argv[5]
@@ -41,6 +42,8 @@ if os.path.exists(data_path):
     # file exists                                                                                                             
 if os.path.exists(out_path):
     print 'output goes to ' , out_path
+
+print 'the code its in the' , this_path
     
 ###############                                                                                                               
 
@@ -106,10 +109,21 @@ dects = ['H1','L1','V1']#,'A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
+if myid == 0:
+    
+    if maptyp == 'gauss':
+        map_in = mb.map_in_gauss(nside_in,noise_lvl)
+        np.savez('%smap_in%s.npz' % (this_path,noise_lvl), map_in = map_in )
+        
+        print '~~~~~~~~~~~~'
+        print 'saved map_in_gauss in the code dir'
+        print '~~~~~~~~~~~~'
+
 #create object of class:
-run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp,noise_lvl)
+run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl)
 
 if myid == 0:
+
     map_in = run.map_in
     
     if maptyp == 'planck':
@@ -119,6 +133,9 @@ if myid == 0:
         hp.mollview(map_in,norm = 'hist', cmap = jet)
         plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
         plt.close('all')
+    
+    if checkpoint == True:
+        map_in = None
         
     else:
         plt.figure()
@@ -180,7 +197,9 @@ if myid == 0:
         hp.mollview(map_in)
         plt.savefig('map_in_checkfile.pdf' )
         plt.close('all')
-    
+
+if checkpoint == True:
+    map_in = comm.bcast(map_in, root=0)    
     
         
 else:
