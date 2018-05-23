@@ -457,18 +457,18 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     fits2 = np.array(L1_PSD_fits_flat).T
                     fits1 = np.append(fits1,fits2,axis = 0) 
                     
-                    mark = 0
-                    new_fits = []
-                    while mark<counter:
-                        for i in range(len(fits1)):
-                            mark2 = mark+2*nproc
-                            new_fits.append(fits1[i][mark:mark2])
-                            mark+=2*nproc
-                    
-                    plt.matshow(new_fits)
-                    plt.colorbar()
-                    plt.savefig('%s/psdfits_mat.pdf' % out_path)
-                    plt.close('all')
+                    # mark = 0
+                    # new_fits = []
+                    # while mark<counter:
+                    #     for i in range(len(fits1)):
+                    #         mark2 = mark+2*nproc
+                    #         new_fits.append(fits1[i][mark:mark2])
+                    #         mark+=2*nproc
+                    #
+                    # plt.matshow(new_fits)
+                    # plt.colorbar()
+                    # plt.savefig('%s/psdfits_mat.pdf' % out_path)
+                    # plt.close('all')
                     
                     # plt.figure()
                     # plt.plot(fits1[0])
