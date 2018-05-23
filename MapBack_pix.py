@@ -668,7 +668,7 @@ class Telescope(object):
         
         elif maptyp == 'planck':
             fwhm = 5*np.pi/180.
-            planckmap = hp.read_map('%sCOM_CompMap_dust-commander_0256_R2.00.fits' % self.this_path)
+            planckmap = hp.read_map('%s/COM_CompMap_dust-commander_0256_R2.00.fits' % self.this_path)
             planckmap = hp.sphtfunc.smoothing(planckmap,fwhm = fwhm)
             map_in = (hp.ud_grade(planckmap,nside_out = self._nside_in))*alpha
             
