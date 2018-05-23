@@ -26,7 +26,7 @@ maptyp = sys.argv[3]
 noise_lvl = sys.argv[4]
 noise_lvl = int(noise_lvl)
 print noise_lvl
-this_path = os.getcwd()+ '/'
+this_path = out_path
 
 try:
     sys.argv[5]
@@ -43,7 +43,7 @@ if os.path.exists(data_path):
 if os.path.exists(out_path):
     print 'output goes to ' , out_path
 
-print 'the code its in the' , this_path
+#print 'the code its in the' , this_path
     
 ###############                                                                                                               
 
