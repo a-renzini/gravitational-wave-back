@@ -646,7 +646,7 @@ class Telescope(object):
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
         elif maptyp == 'gauss':
-            map_file = np.load('%smap_in%s.npz' % (self.this_path,self.noise_lvl))
+            map_file = np.load('%s/map_in%s.npz' % (self.this_path,self.noise_lvl))
             map_in = map_file['map_in']
         
         elif maptyp == 'checkfile':
