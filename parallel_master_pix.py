@@ -30,7 +30,7 @@ this_path = out_path
 try:
     sys.argv[5]
 except (NameError, IndexError):
-    checkpoint = None
+    checkpoint = False
 else:
     checkpoint = True
     checkfile_path = sys.argv[5]
@@ -113,7 +113,7 @@ if myid == 0:
     if checkpoint == False and maptyp == 'gauss':
         
         map_in = mb.map_in_gauss(nside_in,noise_lvl)
-        np.savez('%smap_in%s.npz' % (this_path,noise_lvl), map_in = map_in )
+        np.savez('%s/map_in%s.npz' % (this_path,noise_lvl), map_in = map_in )
         
         print '~~~~~~~~~~~~'
         print 'saved map_in_gauss in the out dir'

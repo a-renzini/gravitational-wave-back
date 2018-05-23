@@ -576,7 +576,7 @@ class Telescope(object):
         if noise_lvl == 1: self.alpha = 1.
         elif noise_lvl == 2: self.alpha = 3.e-36
         elif noise_lvl == 3: self.alpha = 1.e-40
-        elif noise_lvl == 4: alpha = 1.e-38 ##change around when runs are done
+        elif noise_lvl == 4: self.alpha = 1.e-38 ##change around when runs are done
         
         print 'alpha is', self.alpha
 
