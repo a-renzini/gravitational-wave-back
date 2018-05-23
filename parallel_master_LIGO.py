@@ -295,7 +295,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
             
             
-            
+            # plt.figure()
+            # plt.loglog(freqs[mask],psds_f[0][mask])
+            # plt.loglog(freqs[mask],psds_f[1][mask])
+            # plt.savefig('psds_H_L.pdf' )
+            # plt.close('all')
+
             
             if sim == True:
                 print 'generating...'
@@ -430,7 +435,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print dt_tot
                 
                 
-                if counter % (nproc*10) == 0:    ##
+                if counter % (nproc*4) == 0:    ##
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, 'sim = ', sim
@@ -455,10 +460,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     mark = 0
                     new_fits = []
                     while mark<counter:
+                        mark2 = mark+2*nproc
                         for i in range(len(fits1)):
-                            mark2 = mark+2*nproc
                             new_fits.append(fits1[i][mark:mark2])
-                            mark+=2*nproc
+                        mark+=2*nproc
                     
                     plt.matshow(new_fits)
                     plt.colorbar()
