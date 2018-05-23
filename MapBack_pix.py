@@ -46,6 +46,7 @@ def map_in_gauss(nside_in, noise_lvl):
     if noise_lvl == 1: alpha = 1.
     elif noise_lvl == 2: alpha = 3.e-36
     elif noise_lvl == 3: alpha = 1.e-40
+    elif noise_lvl == 4: alpha = 1.e-38 ##change around when runs are done
     
     lmax = nside/4
     alm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=np.complex)
@@ -575,6 +576,7 @@ class Telescope(object):
         if noise_lvl == 1: self.alpha = 1.
         elif noise_lvl == 2: self.alpha = 3.e-36
         elif noise_lvl == 3: self.alpha = 1.e-40
+        elif noise_lvl == 4: alpha = 1.e-38 ##change around when runs are done
         
         print 'alpha is', self.alpha
 
@@ -647,6 +649,11 @@ class Telescope(object):
             map_file = np.load('%smap_in%s.npz' % (self.this_path,self.noise_lvl))
             map_in = map_file['map_in']
         
+        elif maptyp == 'checkfile':
+            checkdata = np.load(self.this_path + 'checkfile.npz')
+            map_in = checkdata['map_in']
+            map_in = hp.ud_grade(map_in,nside_out = self._nside_in)
+            
         # elif maptyp == 'gauss2':
         #     lmax = lmax
         #     cls = hp.sphtfunc.alm2cl(alm)
@@ -930,7 +937,7 @@ class Telescope(object):
         df = np.zeros_like(freqs, dtype = complex)
         
         map_in = self.map_in
-        
+                
         for idx_f,f in enumerate(freqs):     #maybe E_f is squared?
             df[idx_f] = 4.*np.pi/npix_in * delta_freq*np.sum(window[idx_f] * self.E_f(f) * gammaI_rot[:] * map_in[:]*(np.cos(bdotp_in[:]*f) + np.sin(bdotp_in[:]*f)*1.j)) 
         

@@ -111,13 +111,18 @@ nbase = int(ndet*(ndet-1)/2)
  
 if myid == 0:
     
-    if maptyp == 'gauss':
+    if checkpoint == False and maptyp == 'gauss':
+        
         map_in = mb.map_in_gauss(nside_in,noise_lvl)
         np.savez('%smap_in%s.npz' % (this_path,noise_lvl), map_in = map_in )
         
         print '~~~~~~~~~~~~'
-        print 'saved map_in_gauss in the code dir'
+        print 'saved map_in_gauss in the out dir'
         print '~~~~~~~~~~~~'
+    
+    if checkpoint == True and maptyp == 'gauss':
+        
+        maptyp = 'checkfile'
 
 #create object of class:
 run = mb.Telescope(nside_in,nside_out,lmax, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl)
@@ -126,23 +131,20 @@ if myid == 0:
 
     map_in = run.map_in
     
-    if checkpoint == True:
-        map_in = np.zeros_like(map_in)
-        
     if maptyp == 'planck':
-        
+
         jet = cm.jet
         jet.set_under("w")
         hp.mollview(map_in,norm = 'hist', cmap = jet)
         plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
         plt.close('all')
-    
+
     else:
         plt.figure()
         hp.mollview(map_in)
         plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
         plt.close('all')
-    
+
 else: map_in = None
 
 map_in = comm.bcast(map_in, root=0)
@@ -190,12 +192,8 @@ if myid == 0:
         S_p = None
         counter = checkdata['counter']
         conds = checkdata['conds']
-        map_in = checkdata['map_in']
         print 'we are at minute', counter
     
-        hp.mollview(map_in)
-        plt.savefig('map_in_checkfile.pdf' )
-        plt.close('all') 
     
 else:
     Z_p = None
@@ -431,7 +429,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print dt_tot
                 
                 
-                if counter % (nproc*10) == 0:    ## *10000
+                if counter % (nproc*10) == 0:    ##
                     
                     f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     print >>f, 'sim = ', sim
