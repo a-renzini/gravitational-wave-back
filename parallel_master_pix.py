@@ -25,7 +25,6 @@ out_path =  sys.argv[2]
 maptyp = sys.argv[3]
 noise_lvl = sys.argv[4]
 noise_lvl = int(noise_lvl)
-print noise_lvl
 this_path = out_path
 
 try:
@@ -296,6 +295,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
             
             
+            plt.figure()
+            plt.loglog(psds_f[0])
+            plt.loglog(psds_f[1])
+            plt.savefig('psds_H_L.pdf' )
+            plt.close('all')
+            
+            
             if sim == True:
                 print 'generating...'
                 h1_in = my_h1.copy()
@@ -451,9 +457,18 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     fits2 = np.array(L1_PSD_fits_flat).T
                     fits1 = np.append(fits1,fits2,axis = 0) 
                     
-                    plt.matshow(fits1)
+                    mark = 0
+                    new_fits = []
+                    while mark<counter:
+                        for i in range(len(fits1)):
+                            mark2 = mark+2*nproc
+                            new_fits.append(fits1[i][mark:mark2])
+                            mark+=2*nproc
+                    
+                    plt.matshow(new_fits)
                     plt.colorbar()
                     plt.savefig('%s/psdfits_mat.pdf' % out_path)
+                    plt.close('all')
                     
                     # plt.figure()
                     # plt.plot(fits1[0])
