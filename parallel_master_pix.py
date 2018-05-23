@@ -295,12 +295,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
             
             
-            plt.figure()
-            plt.loglog(psds_f[0])
-            plt.loglog(psds_f[1])
-            plt.savefig('psds_H_L.pdf' )
-            plt.close('all')
-            
             
             if sim == True:
                 print 'generating...'
