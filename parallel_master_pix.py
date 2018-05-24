@@ -10,6 +10,7 @@ import matplotlib as mlb
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import time
+import math
 import MapBack_pix as mb  #################
 from matplotlib import cm
 from mpi4py import MPI
@@ -160,6 +161,23 @@ print 'flagging the good data...'
 
 if myid == 0:
     segs_begin, segs_end = run.flagger(start,stop,filelist)
+    segs_begin = list(segs_begin)
+    segs_end = list(segs_end)
+    
+    
+    i = 0
+    while i in np.arange(len(segs_begin)):
+        delta = segs_end[i]-segs_begin[i]
+        if delta > 15000:   #250 min
+            steps = int(math.floor(delta/15000.))
+            for j in np.arange(steps):
+                step = segs_begin[i]+(j+1)*15000
+                segs_end[i+j:i+j]=[step]
+                segs_begin[i+j+1:i+j+1]=[step]
+            i+=steps+1
+        else: i+=1
+
+    
 else: 
     segs_begin = None
     segs_end = None
@@ -285,14 +303,16 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             #print 'std of corr. t_stream: ', np.std(strains[0]*strains[1])
             
             psds_f = []
+           
             
-            for i in range(ndet):
-                
-                if sim == False:
+            if sim == False:
+                for i in range(ndet):
+                    print i
                     strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i])[mask])
+                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2) 
                     
-                psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)           #(psds[i](freqs)*fs**2) 
-                #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
+                strains_f = [(strains_f[0]*np.conj(strains_f[1]))] #become correlated strains
+
             
             
             
@@ -401,7 +421,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 #### SVD
 
-                M_p_pp_inv = np.linalg.pinv(M_p_pp,rcond=1.e-5)
+                M_p_pp_inv = np.linalg.pinv(M_p_pp,rcond=1.e-8)
                 print 'the matrix has been inverted!'
                 
                 S_p = np.einsum('...ik,...k->...i', M_p_pp_inv, Z_p)
