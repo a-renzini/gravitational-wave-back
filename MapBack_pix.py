@@ -650,7 +650,7 @@ class Telescope(object):
             map_in = map_file['map_in']
         
         elif maptyp == 'checkfile':
-            checkdata = np.load(self.this_path + 'checkfile.npz')
+            checkdata = np.load(self.this_path + '/checkfile.npz')
             map_in = checkdata['map_in']
             map_in = hp.ud_grade(map_in,nside_out = self._nside_in)
             
