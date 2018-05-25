@@ -304,12 +304,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             psds_f = []
            
+            for i in range(ndet):
+                psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)
             
             if sim == False:
                 for i in range(ndet):
-                    print i
                     strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i])[mask])
-                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2) 
                     
                 strains_f = [(strains_f[0]*np.conj(strains_f[1]))] #become correlated strains
 
@@ -317,6 +317,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             
             if sim == True:
+
                 print 'generating...'
                 h1_in = my_h1.copy()
                 l1_in = my_l1.copy()
