@@ -574,7 +574,7 @@ class Telescope(object):
         self.noise_lvl = noise_lvl
         self.alpha = 1.
         if noise_lvl == 1: self.alpha = 1.
-        elif noise_lvl == 2: self.alpha = 3.e-36
+        elif noise_lvl == 2: self.alpha = 3.e-37
         elif noise_lvl == 3: self.alpha = 1.e-40
         elif noise_lvl == 4: self.alpha = 1.e-38 ##change around when runs are done
         
@@ -783,6 +783,33 @@ class Telescope(object):
         
         #returns the baseline pixel p and the boresight quaternion q_n
         nside = self._nside_in
+        mid_idx = int(len(ct_split)/2)
+        
+        q_b = []
+        q_n = []
+        p = np.zeros(self._nbase, dtype = int)
+        s2p = np.zeros(self._nbase)
+        c2p = np.zeros(self._nbase)
+        n = np.zeros_like(p)
+        
+        for i in range(self._nbase):
+            a, b = self.combo_tuples[i]
+            q_b.append(self.Q.rotate_quat(self.Q.azel2bore(np.degrees(self.az_b[i]), np.degrees(self.el_b[i]), None, None, np.degrees(self.detectors[b].lon()), np.degrees(self.detectors[b].lat()), ct_split[mid_idx])[0]))
+            q_n.append(self.Q.rotate_quat(self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid[i]), np.degrees(self.latMid[i]), ct_split[mid_idx])[0]))
+            p[i], s2p[i], c2p[i] = self.Q.quat2pix(q_b[i], nside=nside, pol=True)
+            n[i] = self.Q.quat2pix(q_n[i], nside=nside, pol=True)[0]
+        
+        #p, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True)
+        #n, s2n, c2n = self.Q.quat2pix(q_n, nside=nside, pol=True)  
+        #theta_b, phi_b = hp.pix2ang(nside,p)
+        
+        if pol == False: return p, q_n, n
+        else : return p, s2p, c2p, q_n, n
+
+    def geometry_up(self,ct_split, pol = False):		#ct_split = ctime_i
+        
+        #returns the baseline pixel p and the boresight quaternion q_n
+        nside = self._nside_in*2
         mid_idx = int(len(ct_split)/2)
         
         q_b = []
