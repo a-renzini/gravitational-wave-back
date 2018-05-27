@@ -10,6 +10,7 @@ import matplotlib as mlb
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import time
+from matplotlib.colors import LogNorm
 import math
 import MapBack_pix as mb  #################
 from matplotlib import cm
@@ -303,12 +304,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             #print 'std of corr. t_stream: ', np.std(strains[0]*strains[1])
             
             psds_f = []
-                
+            
+            for i in range(ndet):
+                psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)
+            
             if sim == False:
                 for i in range(ndet):
-                    print i
                     strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i])[mask])
-                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2) 
                     
                 strains_f = [(strains_f[0]*np.conj(strains_f[1]))] #become correlated strains
                 
@@ -351,6 +353,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             print 'running the projector, obtaining a dirty map'
 
             pix_bs = run.geometry(my_ctime)[0]
+            pix_bs_up = run.geometry(my_ctime)[0]
             q_ns = run.geometry(my_ctime)[1]
             pix_ns = run.geometry(my_ctime)[2]
             
@@ -362,8 +365,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             # plt.savefig('n_pixs.pdf')
             
             
-            for i in range(len(pix_bs)):
-                b_pixes.append(pix_bs[i])
+            #for i in range(len(pix_bs_up)):
+            #    b_pixes.append(pix_bs_up[i])
             
             print 'time: ', my_ctime[0]
             
@@ -378,6 +381,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 a_buffer = nproc * [0.,0.,0.]
                 pdx_H1 =  np.zeros_like(a_buffer)
                 pdx_L1 =  np.zeros_like(a_buffer)
+                b_buffer =  nproc * [nbase*[0]]
                 
             else:
                 z_buffer = None
@@ -385,6 +389,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 conds_array = None
                 pdx_H1 = None
                 pdx_L1 = None
+                b_buffer = None
 
             if ISMPI:                 
                 comm.barrier()
@@ -393,7 +398,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 comm.Gather(cond, conds_array, root = 0)
                 pdx_H1 = comm.gather(psds[0],root = 0)
                 pdx_L1 = comm.gather(psds[1], root = 0)
-                
+                b_buffer = comm.gather(pix_bs_up,root = 0)
+                                
                 if myid ==0: counter += nproc
 
             else:
@@ -408,17 +414,22 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 print 'this is id 0'
                 Z_p += z_buffer
                 M_p_pp += M_p_pp_buffer    
-         
+                
                 conds_array = np.array(conds_array)
                 np.append(conds,conds_array)
                 H1_PSD_fits.append(pdx_H1)
                 L1_PSD_fits.append(pdx_L1)
+                b_pixes.append(b_buffer)
                 
                 H1_PSD_fits_flat = 0.
                 L1_PSD_fits_flat = 0.
                 
                 H1_PSD_fits_flat = sum(H1_PSD_fits, [])
                 L1_PSD_fits_flat = sum(L1_PSD_fits, [])
+                
+                b_pixes_flat = 0.
+                b_pixes_flat = np.concatenate(b_pixes).ravel().tolist()
+                np.savez('%s/b_pixes.npz' % out_path, b_pixes = b_pixes_flat )
                 
                 print '+++'
                 print counter, 'mins analysed.'
@@ -458,20 +469,20 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print dt_tot
                 
                 
-                if counter % (nproc*4) == 0:    ##
+                if counter % (nproc*10) == 0:    ##
                     
-                    f = open('%s/M%s.txt' % (out_path,counter), 'w')
-                    print >>f, 'sim = ', sim
-                    print >>f, M_p_pp
-                    print >>f, '===='
-                    print >>f, M_p_pp_inv
-                    print >>f, '===='                    
-                    print >>f, np.linalg.eigh(M_p_pp)
-                    print >>f, '===='
-                    print >>f, cond
-                    print >>f, '===='
-                    print >>f, np.dot(M_p_pp, M_p_pp_inv),np.identity(len(M_p_pp))
-                    f.close()
+                    # f = open('%s/M%s.txt' % (out_path,counter), 'w')
+                    # print >>f, 'sim = ', sim
+                    # print >>f, M_p_pp
+                    # print >>f, '===='
+                    # print >>f, M_p_pp_inv
+                    # print >>f, '===='
+                    # print >>f, np.linalg.eigh(M_p_pp)
+                    # print >>f, '===='
+                    # print >>f, cond
+                    # print >>f, '===='
+                    # print >>f, np.dot(M_p_pp, M_p_pp_inv),np.identity(len(M_p_pp))
+                    # f.close()
                     
                     fits1 = 0.
                     fits2 = 0.
@@ -488,9 +499,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                             new_fits.append(fits1[i][mark:mark2])
                         mark+=2*nproc
                     
-                    plt.matshow(new_fits)
+                    plt.matshow(new_fits,norm=LogNorm())
                     plt.colorbar()
-                    plt.savefig('%s/psdfits_mat.pdf' % out_path)
+                    plt.savefig('%s/psdfits_mat%s.pdf' % (out_path,counter))
                     plt.close('all')
                     # plt.figure()
                     # plt.plot(fits1[0])
@@ -504,11 +515,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # fig = plt.figure()
                     # hp.mollview(Z_p)
                     # plt.savefig('%s/dirty_map%s.pdf' % (out_path, counter))
-
-
                     
-                    
-                    
+                    hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p*1.e30)  
                     
                     if maptyp == 'planck':
         
@@ -524,15 +532,20 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                         plt.close('all')
                     
-                    
+                    b_pixes_flat = 0.
+                    #print b_pixes_flat
+                    b_pixes_flat = np.concatenate(b_pixes).ravel().tolist()
+                    print b_pixes_flat
   
                     np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                    np.savez('%s/b_pixes.npz' % out_path, b_pixes = b_pixes_flat )
+                    
                     
                     if counter % (nproc*50) == 0:
                         np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                         
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
-                    
+
                     # falm = open('%s/alms%s.txt' % (out_path,counter), 'w')
                     # print >> falm, S_lm
                     # for l in range(lmax+1):
