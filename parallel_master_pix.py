@@ -105,7 +105,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1','V1']#,'A1']
+dects = ['H1','L1']#,'V1']#,'A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -255,6 +255,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         strain1_nproc.append(strain_H1[idx_block])
         strain2_nproc.append(strain_L1[idx_block])
         
+        z_p = None
+        my_M_p_pp = None
+        cond = None
+        
         if len(ctime_nproc) == nproc:   #################################
                         #
             ######################################################
@@ -296,72 +300,79 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     ###########################
             strains_f = []
             
-            psds = run.injector(strains_copy,my_ctime,low_cut,high_cut)[1]
-
+            psds, flags = run.injector(strains_copy,my_ctime,low_cut,high_cut)
             #strains are the new generated strains
+            #
+
+            avoid = False
+            if sum(flags) > 0:
+                avoid = True
+                
+            if avoid is not True: 
+
+                #print 'std of corr. t_stream: ', np.std(strains[0]*strains[1])
             
-            #print 'std of corr. t_stream: ', np.std(strains[0]*strains[1])
-            
-            psds_f = []
+                psds_f = []
            
-            for i in range(ndet):
-                psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)
-            
-            if sim == False:
                 for i in range(ndet):
-                    strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i])[mask])
+                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)
+            
+                if sim == False:
+                    for i in range(ndet):
+                        strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i])[mask])
                     
-                strains_f = [(strains_f[0]*np.conj(strains_f[1]))] #become correlated strains
+                    strains_f = [(strains_f[0]*np.conj(strains_f[1]))] #become correlated strains
 
             
             
             
-            if sim == True:
+                if sim == True:
 
-                print 'generating...'
-                h1_in = my_h1.copy()
-                l1_in = my_l1.copy()
-                strains_in = (h1_in,l1_in)
-                #print strains_in
-                strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
-                strains_corr = run.noisy(strains_corr,psds_f,mask)
+                    print 'generating...'
+                    h1_in = my_h1.copy()
+                    l1_in = my_l1.copy()
+                    strains_in = (h1_in,l1_in)
+                    #print strains_in
+                    strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
+                    strains_corr = run.noisy(strains_corr,psds_f,mask)
                 
                 
-                strains_f = strains_corr
+                    strains_f = strains_corr
 
             
-            '''
-            now strains_w, etc are pairs of 60s segments of signal, in frequency space.
-            '''
+                '''
+                now strains_w, etc are pairs of 60s segments of signal, in frequency space.
+                '''
             
-            print 'filtering done'
-                #Integrate over frequency in the projector
+                print 'filtering done'
+                    #Integrate over frequency in the projector
 
-            ####################################################################
+                ####################################################################
 
-            #proj_lm = np.array([np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)]*len(ctime)) #why *len_ctime?
+                #proj_lm = np.array([np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)]*len(ctime)) #why *len_ctime?
 
-            print 'running the projector, obtaining a dirty map'
+                print 'running the projector, obtaining a dirty map'
 
-            pix_bs = run.geometry(my_ctime)[0]
-            q_ns = run.geometry(my_ctime)[1]
-            pix_ns = run.geometry(my_ctime)[2]
+                pix_bs = run.geometry(my_ctime)[0]
+                pix_bs_up = run.geometry(my_ctime)[0]
+                q_ns = run.geometry(my_ctime)[1]
+                pix_ns = run.geometry(my_ctime)[2]
             
-            #print pix_bs
+                #print pix_bs
             
-            # fig = plt.figure()
-            # hp.mollview(np.zeros_like(Z_p))
-            # hp.visufunc.projscatter(hp.pix2ang(nside_in,pix_ns))
-            # plt.savefig('n_pixs.pdf')
+                # fig = plt.figure()
+                # hp.mollview(np.zeros_like(Z_p))
+                # hp.visufunc.projscatter(hp.pix2ang(nside_in,pix_ns))
+                # plt.savefig('n_pixs.pdf')
             
             
-            for i in range(len(pix_bs)):
-                b_pixes.append(pix_bs[i])
+                # for i in range(len(pix_bs)):
+                #     b_pixes.append(pix_bs[i])
             
-            print 'time: ', my_ctime[0]
+                print 'time: ', my_ctime[0]
             
-            z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns)
-            cond = np.linalg.cond(my_M_p_pp)
+                z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns)
+                cond = np.linalg.cond(my_M_p_pp)
             
             if myid == 0:
                 z_buffer = np.zeros_like(z_p)
@@ -370,6 +381,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 a_buffer = nproc * [0.,0.,0.]
                 pdx_H1 =  np.zeros_like(a_buffer)
                 pdx_L1 =  np.zeros_like(a_buffer)
+                b_buffer =  nproc * [nbase*[0]]
                 
             else:
                 z_buffer = None
@@ -377,6 +389,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 conds_array = None
                 pdx_H1 = None
                 pdx_L1 = None
+                b_buffer = None
 
             if ISMPI:                 
                 comm.barrier()
@@ -385,6 +398,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 comm.Gather(cond, conds_array, root = 0)
                 pdx_H1 = comm.gather(psds[0],root = 0)
                 pdx_L1 = comm.gather(psds[1], root = 0)
+                b_buffer = comm.gather(pix_bs_up,root = 0)
+
                 
                 if myid ==0: counter += nproc
 
@@ -400,17 +415,24 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 print 'this is id 0'
                 Z_p += z_buffer
                 M_p_pp += M_p_pp_buffer    
-         
+                
+                print b_buffer
+                
                 conds_array = np.array(conds_array)
                 np.append(conds,conds_array)
                 H1_PSD_fits.append(pdx_H1)
                 L1_PSD_fits.append(pdx_L1)
+                b_pixes.append(b_buffer)
                 
                 H1_PSD_fits_flat = 0.
                 L1_PSD_fits_flat = 0.
                 
                 H1_PSD_fits_flat = sum(H1_PSD_fits, [])
                 L1_PSD_fits_flat = sum(L1_PSD_fits, [])
+                
+                b_pixes_flat = 0.
+                b_pixes_flat = np.concatenate(b_pixes).ravel().tolist()
+                np.savez('%s/b_pixes.npz' % out_path, b_pixes = b_pixes_flat )
                 
                 print '+++'
                 print counter, 'mins analysed.'
@@ -452,18 +474,18 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 if counter % (nproc*10) == 0:    ##
                     
-                    f = open('%s/M%s.txt' % (out_path,counter), 'w')
-                    print >>f, 'sim = ', sim
-                    print >>f, M_p_pp
-                    print >>f, '===='
-                    print >>f, M_p_pp_inv
-                    print >>f, '===='                    
-                    print >>f, np.linalg.eigh(M_p_pp)
-                    print >>f, '===='
-                    print >>f, cond
-                    print >>f, '===='
-                    print >>f, np.dot(M_p_pp, M_p_pp_inv),np.identity(len(M_p_pp))
-                    f.close()
+                    # f = open('%s/M%s.txt' % (out_path,counter), 'w')
+                    # print >>f, 'sim = ', sim
+                    # print >>f, M_p_pp
+                    # print >>f, '===='
+                    # print >>f, M_p_pp_inv
+                    # print >>f, '===='
+                    # print >>f, np.linalg.eigh(M_p_pp)
+                    # print >>f, '===='
+                    # print >>f, cond
+                    # print >>f, '===='
+                    # print >>f, np.dot(M_p_pp, M_p_pp_inv),np.identity(len(M_p_pp))
+                    # f.close()
                     
                     fits1 = 0.
                     fits2 = 0.
@@ -517,9 +539,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                         plt.close('all')
                     
-                    
+                    b_pixes_flat = 0.
+                    print b_pixes_flat
+                    b_pixes_flat = np.concatenate(b_pixes).ravel().tolist()
+                    print b_pixes_flat
   
                     np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                    np.savez('%s/b_pixes.npz' % out_path, b_pixes = b_pixes_flat )
                     
                     if counter % (nproc*50) == 0:
                         np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )

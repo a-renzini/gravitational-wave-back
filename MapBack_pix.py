@@ -44,7 +44,7 @@ def map_in_gauss(nside_in, noise_lvl):
     nside = nside_in
     
     if noise_lvl == 1: alpha = 1.
-    elif noise_lvl == 2: alpha = 3.e-36
+    elif noise_lvl == 2: alpha = 3.e-37
     elif noise_lvl == 3: alpha = 1.e-40
     elif noise_lvl == 4: alpha = 1.e-38 ##change around when runs are done
     
@@ -58,6 +58,9 @@ def map_in_gauss(nside_in, noise_lvl):
     while i<lmax+1:
         cls[i-1]=1./i/(i+1.)*2*np.pi
         i+=1
+    
+    #does synfast include the monopole?
+    #realistic case: monopole should be larger then others, then dipole 1.e-2
     
     return (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*alpha
 
@@ -944,9 +947,17 @@ class Telescope(object):
         return data
         
 
-
+    def poissonify(self,map_in):
+        norm = max(map_in)/10.      #(such that: map/norm will have max value 10)
+        map_norm = map_in/norm
+        map_poi = []
+        for pix in range(len(map_in)):
+            map_poi.append(np.random.poisson(map_norm[pix]))
+            
+        return np.array(map_poi)*norm
+        
  #   def cutout(self,x, freqs,low = 20, high = 300):
-    def simbase(self,freqs,q_n,pix_b,nbase):
+    def simbase(self,freqs,q_n,pix_b,nbase,poi = False):
         
         npix_in = hp.nside2npix(self._nside_in)
         delta_freq = 1.*self.fs/len(freqs)
@@ -964,7 +975,15 @@ class Telescope(object):
         df = np.zeros_like(freqs, dtype = complex)
         
         map_in = self.map_in
-                
+        if poi == True: map_in = self.poissonify(map_in)
+        #get map now: with poisson process with sigma = pixel in map_in
+        
+        # jet = cm.jet
+        # jet.set_under("w")
+        # hp.mollview(map_in,norm = 'hist', cmap = jet)
+        # plt.savefig('map_poi.pdf' )
+        # plt.close('all')
+
         for idx_f,f in enumerate(freqs):     #maybe E_f is squared?
             df[idx_f] = 4.*np.pi/npix_in * delta_freq*np.sum(window[idx_f] * self.E_f(f) * gammaI_rot[:] * map_in[:]*(np.cos(bdotp_in[:]*f) + np.sin(bdotp_in[:]*f)*1.j)) 
         
@@ -1004,21 +1023,23 @@ class Telescope(object):
             strain_noised = np.sum([fakenoise,strains_corr[i]], axis=0)
             strains_noised.append(strain_noised)
             
-            plt.figure()
-            plt.loglog(np.abs(fakenoise))
-            plt.savefig('noise%s.pdf' % i )
-            plt.close('all')
-
-            plt.figure()
-            plt.loglog(np.abs(strain_noised))
-            plt.savefig('straincorr%s.pdf' % i )
-            plt.close('all')
+            # plt.figure()
+            # plt.loglog(np.abs(fakenoise))
+            # plt.savefig('noise%s.pdf' % i )
+            # plt.close('all')
+            #
+            # plt.figure()
+            # plt.loglog(np.abs(strain_noised))
+            # plt.savefig('straincorr%s.pdf' % i )
+            # plt.close('all')
             
         return strains_noised
     
     def injector(self,strains_in,ct_split,low_f,high_f,sim = False):
         fs=self.fs        
         dt=1./fs
+        
+        poi = True
         
         ndects = self.ndet
 
@@ -1046,7 +1067,7 @@ class Telescope(object):
                 #a, b = self.combo_tuples[i]
                 pix_b = pix_bs[i]
                 q_x = q_ns[i]
-                fakestream_corr = self.simbase(freqs[mask],q_x,pix_b,i) 
+                fakestream_corr = self.simbase(freqs[mask],q_x,pix_b,i,poi) 
                 
                 fakestreams.append(fakestream_corr)
             
@@ -1058,7 +1079,8 @@ class Telescope(object):
                 streams.append(self.filter(strains_in[i], low_f,high_f))
 
         #**** psd ******
-                
+        flags = np.zeros(len(strains_in), dtype = bool)
+        
         for (idx_str,strain_in) in enumerate(strains_in):
         
             '''WINDOWING & RFFTING.'''
@@ -1094,7 +1116,14 @@ class Telescope(object):
             psd_params = fit[0]
             
             a,b,c = psd_params
+            min = 0.1
+            max = 1.9
             
+            if a < min or a > max: flags[idx_str] = True
+            if b < 2*min or b > 2*max: flags[idx_str] = True
+            if c < 2*min or c > 2*max: flags[idx_str] = True
+            
+            if flags[idx_str] == True: print 'bad segment!  '
             #Norm
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
             psd_params[0] = norm*psd_params[0] 
@@ -1138,8 +1167,8 @@ class Telescope(object):
             psds.append(psds[0])
             lenpsds+=1
         
-        
-        return fakestreams, psds
+        if sim == False: return psds, flags
+        if sim == True: return fakestreams, psds, flags
         
         
         ####
