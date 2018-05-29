@@ -604,7 +604,7 @@ class Telescope(object):
             
         elif maptyp == '1pole':
             idx = hp.Alm.getidx(lmax,0,0)
-            alm[idx] = (1.+ 0.j)*alpha
+            alm[idx] = (1.+ 0.j)*alpha*0.
 
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
@@ -1003,6 +1003,16 @@ class Telescope(object):
             fakenoise = np.array(fakenoise*np.sqrt(psd_corr[i]/2.))
             strain_noised = np.sum([fakenoise,strains_corr[i]], axis=0)
             strains_noised.append(strain_noised)
+            
+            plt.figure()
+            plt.loglog(np.abs(fakenoise))
+            plt.savefig('noise%s.pdf' % i )
+            plt.close('all')
+
+            plt.figure()
+            plt.loglog(np.abs(strain_noised))
+            plt.savefig('straincorr%s.pdf' % i )
+            plt.close('all')
             
         return strains_noised
     
