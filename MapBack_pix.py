@@ -1039,7 +1039,7 @@ class Telescope(object):
         fs=self.fs        
         dt=1./fs
         
-        poi = True
+        #poi = True
         
         ndects = self.ndet
 
