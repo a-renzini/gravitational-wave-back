@@ -103,7 +103,7 @@ low_f = 80.
 high_f = 300.
 low_cut = 80.
 high_cut = 300.
-
+poi = False
     
 #DETECTORS
 dects = ['H1','L1']
@@ -256,6 +256,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         strain1_nproc.append(strain_H1[idx_block])
         strain2_nproc.append(strain_L1[idx_block])
         
+        z_p = None
+        my_M_p_pp = None
+        cond = None
+        
         if len(ctime_nproc) == nproc:   #################################
                         #
             ######################################################
@@ -297,82 +301,89 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     ###########################
             strains_f = []
             
-            psds = run.injector(strains_copy,my_ctime,low_cut,high_cut)[1]
-
+            psds, flags = run.injector(strains_copy,my_ctime,low_cut,high_cut,poi)
+            
             #strains are the new generated strains
             
-            #print 'std of corr. t_stream: ', np.std(strains[0]*strains[1])
+            avoid = False
+            if sum(flags) > 0:
+                avoid = True
+                psds[0] = np.array([ 0.,   0.,   0.])
+                psds[1] = psds[0]
+                
+            if avoid is not True:
+                
+                #print 'std of corr. t_stream: ', np.std(strains[0]*strains[1])
             
-            psds_f = []
+                psds_f = []
             
-            for i in range(ndet):
-                psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)
-            
-            if sim == False:
                 for i in range(ndet):
-                    strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i])[mask])
+                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs)#**2)
+            
+                if sim == False:
+                    for i in range(ndet):
+                        strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i])[mask])
                     
-                strains_f = [(strains_f[0]*np.conj(strains_f[1]))] #become correlated strains
+                    strains_f = [(strains_f[0]*np.conj(strains_f[1]))] #become correlated strains
                 
                     
-                         #(psds[i](freqs)*fs**2) 
-                #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
+                             #(psds[i](freqs)*fs**2) 
+                    #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
             
             
-            # plt.figure()
-            # plt.loglog(freqs[mask],psds_f[0][mask])
-            # plt.loglog(freqs[mask],psds_f[1][mask])
-            # plt.savefig('psds_H_L.pdf' )
-            # plt.close('all')
+                # plt.figure()
+                # plt.loglog(freqs[mask],psds_f[0][mask])
+                # plt.loglog(freqs[mask],psds_f[1][mask])
+                # plt.savefig('psds_H_L.pdf' )
+                # plt.close('all')
 
             
-            if sim == True:
-                print 'generating...'
-                h1_in = my_h1.copy()
-                l1_in = my_l1.copy()
-                strains_in = (h1_in,l1_in)
-                #print strains_in
-                strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
-                strains_corr = run.noisy(strains_corr,psds_f,mask)
+                if sim == True:
+                    print 'generating...'
+                    h1_in = my_h1.copy()
+                    l1_in = my_l1.copy()
+                    strains_in = (h1_in,l1_in)
+                    #print strains_in
+                    strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut,poi, sim)[0]
+                    strains_corr = run.noisy(strains_corr,psds_f,mask)
                 
                 
-                strains_f = strains_corr
+                    strains_f = strains_corr
 
             
-            '''
-            now strains_w, etc are pairs of 60s segments of signal, in frequency space.
-            '''
+                '''
+                now strains_w, etc are pairs of 60s segments of signal, in frequency space.
+                '''
             
-            print 'filtering done'
-                #Integrate over frequency in the projector
+                print 'filtering done'
+                    #Integrate over frequency in the projector
 
-            ####################################################################
+                ####################################################################
 
-            #proj_lm = np.array([np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)]*len(ctime)) #why *len_ctime?
+                #proj_lm = np.array([np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)]*len(ctime)) #why *len_ctime?
 
-            print 'running the projector, obtaining a dirty map'
+                print 'running the projector, obtaining a dirty map'
 
-            pix_bs = run.geometry(my_ctime)[0]
-            pix_bs_up = run.geometry(my_ctime)[0]
-            q_ns = run.geometry(my_ctime)[1]
-            pix_ns = run.geometry(my_ctime)[2]
+                pix_bs = run.geometry(my_ctime)[0]
+                pix_bs_up = run.geometry(my_ctime)[0]
+                q_ns = run.geometry(my_ctime)[1]
+                pix_ns = run.geometry(my_ctime)[2]
             
-            #print pix_bs
+                #print pix_bs
             
-            # fig = plt.figure()
-            # hp.mollview(np.zeros_like(Z_p))
-            # hp.visufunc.projscatter(hp.pix2ang(nside_in,pix_ns))
-            # plt.savefig('n_pixs.pdf')
+                # fig = plt.figure()
+                # hp.mollview(np.zeros_like(Z_p))
+                # hp.visufunc.projscatter(hp.pix2ang(nside_in,pix_ns))
+                # plt.savefig('n_pixs.pdf')
             
             
-            #for i in range(len(pix_bs_up)):
-            #    b_pixes.append(pix_bs_up[i])
+                #for i in range(len(pix_bs_up)):
+                #    b_pixes.append(pix_bs_up[i])
             
-            print 'time: ', my_ctime[0]
+                print 'time: ', my_ctime[0]
             
-            z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns)
-            
-            cond = np.linalg.cond(my_M_p_pp)
+                z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns)
+                cond = np.linalg.cond(my_M_p_pp)
             
             if myid == 0:
                 z_buffer = np.zeros_like(z_p)
@@ -469,7 +480,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print dt_tot
                 
                 
-                if counter % (nproc*10) == 0:    ##
+                if counter % (nproc*4) == 0:    ##
                     
                     # f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     # print >>f, 'sim = ', sim
@@ -518,30 +529,26 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p*1.e30)  
                     
-                    if maptyp == 'planck':
-        
-                        jet = cm.jet
-                        jet.set_under("w")
-                        hp.mollview(S_p,norm = 'hist', cmap = jet)
-                        plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
-                        plt.close('all')
-        
-                    else:
-                        fig = plt.figure()
-                        hp.mollview(S_p)
-                        plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
-                        plt.close('all')
+                    # if maptyp == 'planck':
+                    #
+                    #     jet = cm.jet
+                    #     jet.set_under("w")
+                    #     hp.mollview(S_p,norm = 'hist', cmap = jet)
+                    #     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
+                    #     plt.close('all')
+                    #
+                    # else:
+                    #     fig = plt.figure()
+                    #     hp.mollview(S_p)
+                    #     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
+                    #     plt.close('all')
                     
-                    b_pixes_flat = 0.
-                    #print b_pixes_flat
-                    b_pixes_flat = np.concatenate(b_pixes).ravel().tolist()
-                    print b_pixes_flat
   
                     np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
-                    np.savez('%s/b_pixes.npz' % out_path, b_pixes = b_pixes_flat )
+
                     
                     
-                    if counter % (nproc*50) == 0:
+                    if counter % (nproc*6) == 0:
                         np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                         
                     print 'saved dirty_map, clean_map and checkfile @ min', counter

@@ -28,6 +28,9 @@ noise_lvl = sys.argv[4]
 noise_lvl = int(noise_lvl)
 this_path = out_path
 
+poi = False
+if maptyp == 'planck_poi': poi = True
+
 try:
     sys.argv[5]
 except (NameError, IndexError):
@@ -105,7 +108,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1']#,'V1']#,'A1']
+dects = ['H1','L1','V1']#,'A1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -300,13 +303,15 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     ###########################
             strains_f = []
             
-            psds, flags = run.injector(strains_copy,my_ctime,low_cut,high_cut)
+            psds, flags = run.injector(strains_copy,my_ctime,low_cut,high_cut,poi)
             #strains are the new generated strains
             #
-
+            
             avoid = False
             if sum(flags) > 0:
                 avoid = True
+                psds[0] = np.array([ 0.,   0.,   0.])
+                psds[1] = psds[0]
                 
             if avoid is not True: 
 
@@ -315,7 +320,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 psds_f = []
            
                 for i in range(ndet):
-                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs**2)
+                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs)#**2)
             
                 if sim == False:
                     for i in range(ndet):
@@ -333,7 +338,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     l1_in = my_l1.copy()
                     strains_in = (h1_in,l1_in)
                     #print strains_in
-                    strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut, sim)[0]
+                    strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut,poi, sim)[0]
                     strains_corr = run.noisy(strains_corr,psds_f,mask)
                 
                 
@@ -416,8 +421,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 Z_p += z_buffer
                 M_p_pp += M_p_pp_buffer    
                 
-                print b_buffer
-                
                 conds_array = np.array(conds_array)
                 np.append(conds,conds_array)
                 H1_PSD_fits.append(pdx_H1)
@@ -472,7 +475,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print dt_tot
                 
                 
-                if counter % (nproc*10) == 0:    ##
+                if counter % (nproc*4) == 0:    ##
                     
                     # f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     # print >>f, 'sim = ', sim
@@ -522,32 +525,26 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
 
                     
+                    hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p*1.e30) 
                     
                     
+                    # if maptyp == 'planck':
+                    #
+                    #     jet = cm.jet
+                    #     jet.set_under("w")
+                    #     hp.mollview(S_p,norm = 'hist', cmap = jet)
+                    #     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
+                    #     plt.close('all')
+                    #
+                    # else:
+                    #     fig = plt.figure()
+                    #     hp.mollview(S_p)
+                    #     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
+                    #     plt.close('all')
                     
-                    if maptyp == 'planck':
-        
-                        jet = cm.jet
-                        jet.set_under("w")
-                        hp.mollview(S_p,norm = 'hist', cmap = jet)
-                        plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
-                        plt.close('all')
-        
-                    else:
-                        fig = plt.figure()
-                        hp.mollview(S_p)
-                        plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
-                        plt.close('all')
-                    
-                    b_pixes_flat = 0.
-                    print b_pixes_flat
-                    b_pixes_flat = np.concatenate(b_pixes).ravel().tolist()
-                    print b_pixes_flat
-  
                     np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
-                    np.savez('%s/b_pixes.npz' % out_path, b_pixes = b_pixes_flat )
                     
-                    if counter % (nproc*50) == 0:
+                    if counter % (nproc*30) == 0:
                         np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                         
                     print 'saved dirty_map, clean_map and checkfile @ min', counter

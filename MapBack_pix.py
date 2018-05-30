@@ -44,8 +44,8 @@ def map_in_gauss(nside_in, noise_lvl):
     nside = nside_in
     
     if noise_lvl == 1: alpha = 1.
-    elif noise_lvl == 2: alpha = 3.e-37
-    elif noise_lvl == 3: alpha = 1.e-40
+    elif noise_lvl == 2: alpha = 1.e-36
+    elif noise_lvl == 3: alpha = 3.e-37
     elif noise_lvl == 4: alpha = 1.e-38 ##change around when runs are done
     
     lmax = nside/4
@@ -669,7 +669,7 @@ class Telescope(object):
         #
         #     map_in = (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*alpha
         
-        elif maptyp == 'planck':
+        elif maptyp == 'planck' or maptyp == 'planck_poi':
             fwhm = 5*np.pi/180.
             planckmap = hp.read_map('%s/COM_CompMap_dust-commander_0256_R2.00.fits' % self.this_path)
             planckmap = hp.sphtfunc.smoothing(planckmap,fwhm = fwhm)
@@ -948,13 +948,13 @@ class Telescope(object):
         
 
     def poissonify(self,map_in):
-        norm = max(map_in)/10.      #(such that: map/norm will have max value 10)
+        norm = max(map_in)#/2.      #(such that: map/norm will have max value 2)
         map_norm = map_in/norm
         map_poi = []
         for pix in range(len(map_in)):
             map_poi.append(np.random.poisson(map_norm[pix]))
-            
-        return np.array(map_poi)*norm
+        
+        return np.array(map_poi)#*norm
         
  #   def cutout(self,x, freqs,low = 20, high = 300):
     def simbase(self,freqs,q_n,pix_b,nbase,poi = False):
@@ -978,10 +978,10 @@ class Telescope(object):
         if poi == True: map_in = self.poissonify(map_in)
         #get map now: with poisson process with sigma = pixel in map_in
         
-        # jet = cm.jet
-        # jet.set_under("w")
-        # hp.mollview(map_in,norm = 'hist', cmap = jet)
-        # plt.savefig('map_poi.pdf' )
+        # # jet = cm.jet
+        # # jet.set_under("w")
+        # hp.mollview(map_in)#,norm = 'hist', cmap = jet)
+        # plt.savefig('test/map_poi.pdf' )
         # plt.close('all')
 
         for idx_f,f in enumerate(freqs):     #maybe E_f is squared?
@@ -1035,11 +1035,9 @@ class Telescope(object):
             
         return strains_noised
     
-    def injector(self,strains_in,ct_split,low_f,high_f,sim = False):
+    def injector(self,strains_in,ct_split,low_f,high_f,poi,sim = False):
         fs=self.fs        
         dt=1./fs
-        
-        poi = False
         
         ndects = self.ndet
 
