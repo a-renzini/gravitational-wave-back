@@ -673,7 +673,9 @@ class Telescope(object):
             fwhm = 5*np.pi/180.
             planckmap = hp.read_map('%s/COM_CompMap_dust-commander_0256_R2.00.fits' % self.this_path)
             planckmap = hp.sphtfunc.smoothing(planckmap,fwhm = fwhm)
-            map_in = (hp.ud_grade(planckmap,nside_out = self._nside_in))*alpha
+            map_in = (hp.ud_grade(planckmap,nside_out = self._nside_in))
+            max_in = max(map_in)
+            map_in = map_in/max_in*alpha
             
         return map_in
         
@@ -981,9 +983,10 @@ class Telescope(object):
         # # jet = cm.jet
         # # jet.set_under("w")
         # hp.mollview(map_in)#,norm = 'hist', cmap = jet)
-        # plt.savefig('test/map_poi.pdf' )
+        # plt.savefig('test/map_poi_now.pdf' )
         # plt.close('all')
-
+        #
+        
         for idx_f,f in enumerate(freqs):     #maybe E_f is squared?
             df[idx_f] = 4.*np.pi/npix_in * delta_freq*np.sum(window[idx_f] * self.E_f(f) * gammaI_rot[:] * map_in[:]*(np.cos(bdotp_in[:]*f) + np.sin(bdotp_in[:]*f)*1.j)) 
         
