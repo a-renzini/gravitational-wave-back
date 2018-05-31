@@ -256,11 +256,19 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         strain1_nproc.append(strain_H1[idx_block])
         strain2_nproc.append(strain_L1[idx_block])
         
-        z_p = None
-        my_M_p_pp = None
+        z_p = np.zeros(npix_out)
+        my_M_p_pp = np.zeros((npix_out,npix_out))
         cond = None
         
         if len(ctime_nproc) == nproc:   #################################
+            
+            #create empty lm objects:
+        
+            z_p = np.zeros(npix_out)
+            my_M_p_pp = np.zeros((npix_out,npix_out))
+            cond = None
+            pix_bs_up = np.zeros(nbase)
+            
                         #
             ######################################################
             ######################################################
@@ -281,9 +289,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 my_h1 = strain1_nproc[my_idx[0]]
                 my_l1 = strain2_nproc[my_idx[0]]
 
-
-            #create empty lm objects:
-            my_M_p_pp = 0.
             
             print 'filtering, ffting & saving the strains...'
 
@@ -406,7 +411,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
-                comm.Gather(cond, conds_array, root = 0)
+                conds_array = comm.gather(cond, root = 0)
                 pdx_H1 = comm.gather(psds[0],root = 0)
                 pdx_L1 = comm.gather(psds[1], root = 0)
                 b_buffer = comm.gather(pix_bs_up,root = 0)

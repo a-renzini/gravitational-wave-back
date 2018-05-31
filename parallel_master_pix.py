@@ -154,7 +154,7 @@ map_in = comm.bcast(map_in, root=0)
 
 # define start and stop time to search
 # in GPS seconds
-start = 1126224017#1127000000 #O1 start GPS 1126051217 1126224017
+start = 1126297600#1126224017#1127000000 #O1 start GPS 1126051217 1126224017
 stop  = 1129000000 #1137254417  #O1 end GPS     
 
 
@@ -258,11 +258,15 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         strain1_nproc.append(strain_H1[idx_block])
         strain2_nproc.append(strain_L1[idx_block])
         
-        z_p = None
-        my_M_p_pp = None
-        cond = None
         
         if len(ctime_nproc) == nproc:   #################################
+            
+            #create empty lm objects:
+        
+            z_p = np.zeros(npix_out)
+            my_M_p_pp = np.zeros((npix_out,npix_out))
+            cond = 0.
+            pix_bs_up = np.zeros(nbase)
                         #
             ######################################################
             ######################################################
@@ -282,10 +286,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 my_ctime = ctime_nproc[my_idx[0]]
                 my_h1 = strain1_nproc[my_idx[0]]
                 my_l1 = strain2_nproc[my_idx[0]]
-
-
-            #create empty lm objects:
-            my_M_p_pp = 0.
             
             print 'filtering, ffting & saving the strains...'
 
@@ -311,7 +311,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             if sum(flags) > 0:
                 avoid = True
                 psds[0] = np.array([ 0.,   0.,   0.])
-                psds[1] = psds[0]
+                psds[1] = np.copy(psds[0])
                 
             if avoid is not True: 
 
@@ -395,12 +395,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 pdx_H1 = None
                 pdx_L1 = None
                 b_buffer = None
-
+            
             if ISMPI:                 
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
-                comm.Gather(cond, conds_array, root = 0)
+                conds_array = comm.gather(cond, root = 0)
                 pdx_H1 = comm.gather(psds[0],root = 0)
                 pdx_L1 = comm.gather(psds[1], root = 0)
                 b_buffer = comm.gather(pix_bs_up,root = 0)
