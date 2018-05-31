@@ -580,6 +580,8 @@ class Telescope(object):
         elif noise_lvl == 2: alpha = 1.e-38
         elif noise_lvl == 3: alpha = 3.e-39
         
+        self.alpha = alpha
+        
         print 'alpha is', self.alpha
 
         input_map = self.get_map_in(maptyp)
@@ -606,7 +608,7 @@ class Telescope(object):
             
         elif maptyp == '1pole':
             idx = hp.Alm.getidx(lmax,0,0)
-            alm[idx] = (1.+ 0.j)*alpha*0.
+            alm[idx] = (1.+ 0.j)*alpha
 
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
@@ -675,7 +677,7 @@ class Telescope(object):
             map_in = (hp.ud_grade(planckmap,nside_out = self._nside_in))
             max_in = max(map_in)
             map_in = map_in/max_in*alpha
-            
+        
         return map_in
         
     # ********* Basic Tools *********
