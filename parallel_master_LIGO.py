@@ -155,6 +155,7 @@ map_in = comm.bcast(map_in, root=0)
 counter = 0
 
 if checkpoint  == True:
+    checkdata = np.load(checkfile_path)
     counter = checkdata['counter']
 
 start = 1126224017  + np.int(60*counter) #1127000000 #O1 start GPS 1126051217 1126224017

@@ -157,6 +157,7 @@ map_in = comm.bcast(map_in, root=0)
 counter = 0
 
 if checkpoint  == True:
+    checkdata = np.load(checkfile_path)
     counter = checkdata['counter']
 
 start = 1126224017  + np.int(60*counter) #1127000000 #O1 start GPS 1126051217 1126224017
@@ -213,7 +214,6 @@ if myid == 0:
     H1_PSD_fits = []
     L1_PSD_fits = []
     if checkpoint  == True:
-        checkdata = np.load(checkfile_path)
         Z_p += checkdata['Z_p']
         M_p_pp += checkdata['M_p_pp']
         S_p = None
