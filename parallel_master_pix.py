@@ -154,7 +154,15 @@ map_in = comm.bcast(map_in, root=0)
 
 # define start and stop time to search
 # in GPS seconds
-start = 1126297600#1126224017#1127000000 #O1 start GPS 1126051217 1126224017
+counter = 0
+
+if checkpoint  == True:
+    counter = checkdata['counter']
+
+start = 1126224017  + np.int(60*counter) #1127000000 #O1 start GPS 1126051217 1126224017
+
+#if checkpoint == True : start = start
+        
 stop  = 1129000000 #1137254417  #O1 end GPS     
 
 
@@ -201,7 +209,6 @@ if myid == 0:
     Z_p = np.zeros(npix_out)
     S_p = np.zeros(npix_out)
     M_p_pp = 0.
-    counter = 0
     conds = []
     H1_PSD_fits = []
     L1_PSD_fits = []
@@ -210,7 +217,6 @@ if myid == 0:
         Z_p += checkdata['Z_p']
         M_p_pp += checkdata['M_p_pp']
         S_p = None
-        counter = checkdata['counter']
         conds = checkdata['conds']
         print 'we are at minute', counter
     
