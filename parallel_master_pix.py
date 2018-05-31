@@ -481,7 +481,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print dt_tot
                 
                 
-                if counter % (nproc*4) == 0:    ##
+                if counter % (nproc) == 0:    ##
                     
                     # f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     # print >>f, 'sim = ', sim
@@ -550,8 +550,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                     
-                    if counter % (nproc*30) == 0:
-                        np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                    #if counter % (nproc) == 0:
+                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
                         
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     
