@@ -44,9 +44,8 @@ def map_in_gauss(nside_in, noise_lvl):
     nside = nside_in
     
     if noise_lvl == 1: alpha = 1.
-    elif noise_lvl == 2: alpha = 1.e-36
-    elif noise_lvl == 3: alpha = 3.e-37
-    elif noise_lvl == 4: alpha = 1.e-38 ##change around when runs are done
+    elif noise_lvl == 2: alpha = 1.e-38
+    elif noise_lvl == 3: alpha = 3.e-39
     
     lmax = nside/4
     alm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=np.complex)
@@ -576,10 +575,10 @@ class Telescope(object):
     
         self.noise_lvl = noise_lvl
         self.alpha = 1.
-        if noise_lvl == 1: self.alpha = 1.
-        elif noise_lvl == 2: self.alpha = 3.e-37
-        elif noise_lvl == 3: self.alpha = 1.e-40
-        elif noise_lvl == 4: self.alpha = 1.e-38 ##change around when runs are done
+
+        if noise_lvl == 1: alpha = 1.
+        elif noise_lvl == 2: alpha = 1.e-38
+        elif noise_lvl == 3: alpha = 3.e-39
         
         print 'alpha is', self.alpha
 
