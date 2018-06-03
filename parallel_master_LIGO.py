@@ -489,7 +489,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #print dt_tot
                 
                 
-                if counter % (nproc*4) == 0:    ##
+                if counter % (nproc*1) == 0 or checkpoint == True :    ##
                     
                     # f = open('%s/M%s.txt' % (out_path,counter), 'w')
                     # print >>f, 'sim = ', sim
