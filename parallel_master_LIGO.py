@@ -157,6 +157,10 @@ counter = 0
 if checkpoint  == True:
     checkdata = np.load(checkfile_path)
     counter = checkdata['counter']
+    if myid == 0:
+        print '@@@@@@@@@@@@@@@@@@@@@@'
+        print 'according to checkfile were at minute ', counter
+        print '@@@@@@@@@@@@@@@@@@@@@@'
 
 start = 1126224017  + np.int(60*counter) #1127000000 #O1 start GPS 1126051217 1126224017
 stop  = 1129000000 #1137254417  #O1 end GPS     
@@ -205,7 +209,6 @@ if myid == 0:
     Z_p = np.zeros(npix_out)
     S_p = np.zeros(npix_out)
     M_p_pp = 0.
-    counter = 0
     conds = []
     H1_PSD_fits = []
     L1_PSD_fits = []
@@ -215,7 +218,7 @@ if myid == 0:
         M_p_pp += checkdata['M_p_pp']
         S_p = None
         conds = checkdata['conds']
-        print 'we are at minute', counter
+
     
     
 else:
