@@ -522,10 +522,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                             new_fits.append(fits1[i][mark:mark2])
                         mark+=2*nproc
                     
-                    plt.matshow(new_fits,norm=LogNorm())
-                    plt.colorbar()
-                    plt.savefig('%s/psdfits_mat%s.pdf' % (out_path,counter))
-                    plt.close('all')
+                    # plt.matshow(new_fits,norm=LogNorm())
+                    # plt.colorbar()
+                    # plt.savefig('%s/psdfits_mat%s.pdf' % (out_path,counter))
+                    # plt.close('all')
+                    
+                    np.savez('%s/new_fits' % out_path, new_fits = new_fits)
+                    
                     # plt.figure()
                     # plt.plot(fits1[0])
                     # plt.plot(fits1[1])
