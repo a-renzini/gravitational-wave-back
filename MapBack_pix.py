@@ -139,6 +139,7 @@ class Dect(object):
         self._nside = nside
         lmax = nside/2                                                                                                        
         self.lmax = lmax
+        self.name = dect_name
         
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
@@ -182,6 +183,50 @@ class Dect(object):
             self._vec = np.array([4.54637409900e+06, 8.42989697626e+05, 4.37857696241e+06])
             
             self._alpha = 225.0*np.pi/180.         #np.radians()
+
+        #######################
+        
+        elif dect_name =='A':
+            self._lon = 0.
+            self._lat = 0.
+            self._vec = np.array([self.R_earth,0.,0.])
+            
+            self._alpha = 0.         #np.radians()
+            
+        elif dect_name =='B':
+            self._lon = np.pi/2.
+            self._lat = 0.
+            self._vec = np.array([0.,self.R_earth,0.])
+            
+            self._alpha = np.pi         #np.radians()
+            
+        elif dect_name =='C':
+            self._lon = np.pi
+            self._lat = 0.
+            self._vec = np.array([-self.R_earth,0.,0.])
+            
+            self._alpha = 0.         #np.radians()
+        
+        elif dect_name =='D':
+            self._lon = -np.pi/2.
+            self._lat = 0.
+            self._vec = np.array([0.,-self.R_earth,0.])
+            
+            self._alpha = np.pi         #np.radians()
+            
+        elif dect_name =='E':
+            self._lon = 0.0001
+            self._lat = -np.pi/2.-0.0001
+            self._vec = np.array([0.,-self.R_earth*1.e-6,-self.R_earth])
+            
+            self._alpha = 0.         #np.radians()
+            
+        elif dect_name =='F':
+            self._lon = 0.0001-0.0001
+            self._lat = np.pi/2.
+            self._vec = np.array([0.,-self.R_earth*1.e-6,self.R_earth])
+            
+            self._alpha = 0.         #np.radians()
         
         else:
             dect_name = __import__(dect_name)
@@ -258,7 +303,6 @@ class Dect(object):
         b = -cos(th)*sin(ph)
         c = sin(th)
         norm = np.sqrt(a**2+b**2+c**2)
-        
         return 1./norm * np.array([a,b,c])
         
     def v_(self):
@@ -268,8 +312,14 @@ class Dect(object):
         b = sin(th)*cos(ph)
         c = 0.
         norm = np.sqrt(a**2+b**2+c**2)
-        
-        return 1./norm * np.array([a,b,c])    
+        vec = np.array([a,b,c])
+        if norm == 0.: 
+            norm = 1.
+        if self.name == 'E':
+            vec = np.array([0.,-1.,0.])
+        if self.name == 'F':
+            vec = np.array([0.,1.,0.])
+        return 1./norm * vec     
         
     def u_vec(self):
         a_p = self._alpha - np.pi/4.
@@ -537,6 +587,7 @@ class Telescope(object):
             self.az_b[i], self.el_b[i], self.baseline_length[i] = self.vec2azel(self.detectors[a].vec(),self.detectors[b].vec())
             self.latMid[i], self.lonMid[i], self.azMid[i] = self.midpoint(self.detectors[a].lat(),self.detectors[a].lon(),self.detectors[b].lat(),self.detectors[b].lon())
         # gamma functs
+                
         self.npix_in = hp.nside2npix(self._nside_in)
         self.npix_out = hp.nside2npix(self._nside_out)
 
