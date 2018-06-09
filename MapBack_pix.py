@@ -1485,7 +1485,7 @@ class Telescope(object):
     # ********* Projector *********
     # returns p = {lm} map of inverse-noise-filtered time-stream
 
-    def summer(self, ct_split, strains, pows, freq, pix_b, q_n , A = False):     
+    def summer(self, ct_split, strains, pows, freq, pix_b, q_n , norm):     
                    
         nside=self._nside_out
         lmax=self._lmax
@@ -1550,11 +1550,11 @@ class Telescope(object):
         #fig = plt.figure()
         #hp.mollview(S_p)
         #plt.savefig('clean.pdf')
-        if A == False: return z_p, M_pp 
+        if norm == False: return z_p, M_pp 
         else: return z_p, M_pp, A_pp #/norm
 
 
-    def projector(self,ctime, s, psds, freqs,pix_bs, q_ns):
+    def projector(self,ctime, s, psds, freqs,pix_bs, q_ns, norm = False):
         
         #just a summer wrapper really
         
@@ -1569,7 +1569,7 @@ class Telescope(object):
             a, b = self.combo_tuples[i]
             pows.append(psds[a]*(psds[b]))      #(or sqrt)
                 
-        z_p, M_pp = self.summer(ctime, s, pows, freqs, pix_bs, q_ns)
+        z_p, M_pp = self.summer(ctime, s, pows, freqs, pix_bs, q_ns, norm)
         
         #print np.mean(data_lm)          
         

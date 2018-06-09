@@ -393,7 +393,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
                 print 'time: ', my_ctime[0]
             
-                z_p, my_M_p_pp, my_A_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, A = True)
+                z_p, my_M_p_pp, my_A_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
                 cond = np.linalg.cond(my_M_p_pp)
             
             if myid == 0:
