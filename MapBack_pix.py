@@ -1485,7 +1485,7 @@ class Telescope(object):
     # ********* Projector *********
     # returns p = {lm} map of inverse-noise-filtered time-stream
 
-    def summer(self, ct_split, strains, pows, freq, pix_b, q_n ):     
+    def summer(self, ct_split, strains, pows, freq, pix_b, q_n , A = False):     
                    
         nside=self._nside_out
         lmax=self._lmax
@@ -1507,7 +1507,8 @@ class Telescope(object):
     
         vec_p_out = hp.pix2vec(self._nside_out,np.arange(npix_out))
         
-        z_p =  np.zeros(npix_out)
+        z_p = np.zeros(npix_out)
+        A_pp = np.zeros(npix_out)
         M_pp = np.zeros((npix_out,npix_out))
         
         for idx_b in range(self._nbase):
@@ -1529,6 +1530,10 @@ class Telescope(object):
                             * self.E_f(freq)[:]/ pf[:] * gammaI_rot_ud[ip]      ## minus sign? changed it to +
                             *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))) 
                 
+                A_pp[ip] +=  2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2
+                    * gammaI_rot_ud[ip] * gammaI_rot_ud[ip]*(np.cos((bdotp[ip]-bdotp[ip])*freq[:]) ))
+                
+                
                 for jp in range(ip,npix_out):
 
                     val = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2/ pf[:]
@@ -1545,9 +1550,9 @@ class Telescope(object):
         #fig = plt.figure()
         #hp.mollview(S_p)
         #plt.savefig('clean.pdf')
-        
-        return z_p, M_pp#/norm
- 
+        if A == False: return z_p, M_pp 
+        else: return z_p, M_pp, A_pp #/norm
+
 
     def projector(self,ctime, s, psds, freqs,pix_bs, q_ns):
         
