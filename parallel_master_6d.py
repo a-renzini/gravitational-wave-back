@@ -441,7 +441,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 print 'this is id 0'
                 Z_p += z_buffer
                 M_p_pp += M_p_pp_buffer 
-                A_p += A_pp_buffer   
+                A_pp += A_pp_buffer   
                 
                 conds_array = np.array(conds_array)
                 np.append(conds,conds_array)
@@ -564,10 +564,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     #     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                     #     plt.close('all')
                     
-                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_norm = sum(A_pp),counter = counter, conds = conds, map_in = map_in_save )
+                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_pp = A_pp,counter = counter, conds = conds, map_in = map_in_save )
                     
                     #if counter % (nproc) == 0:
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp,A_pp = A_pp, counter = counter, conds = conds, map_in = map_in_save )
                         
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     
