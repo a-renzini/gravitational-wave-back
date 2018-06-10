@@ -1569,12 +1569,13 @@ class Telescope(object):
             a, b = self.combo_tuples[i]
             pows.append(psds[a]*(psds[b]))      #(or sqrt)
                 
-        z_p, M_pp = self.summer(ctime, s, pows, freqs, pix_bs, q_ns, norm)
+        z_p, M_pp, A_pp = self.summer(ctime, s, pows, freqs, pix_bs, q_ns, norm)
         
         #print np.mean(data_lm)          
         
-        return z_p, M_pp
-
+        if norm == False: return z_p, M_pp
+        else: return z_p, M_pp, A_pp
+        
     # ********* Scanner *********
     #to use scanner, re-check l, m ranges and other things. otherwise use scanner_1    
 
