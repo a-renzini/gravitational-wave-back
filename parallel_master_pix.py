@@ -108,7 +108,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['H1','L1','V1']#,'A1']
+dects = ['H1','L1','V1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -141,13 +141,20 @@ if myid == 0:
         hp.mollview(map_in,norm = 'hist', cmap = jet)
         plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
         plt.close('all')
-
+    
     else:
+        
+        cbar = True
+        if maptyp == '1pole': 
+            cbar = False
+            print 'the monopole is ',map_in[0]
+            
         plt.figure()
-        hp.mollview(map_in)
+        hp.mollview(map_in,cbar = cbar)
         plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
         plt.close('all')
-
+        
+                
 else: map_in = None
 
 map_in = comm.bcast(map_in, root=0)
@@ -210,6 +217,7 @@ if myid == 0:
     Z_p = np.zeros(npix_out)
     S_p = np.zeros(npix_out)
     M_p_pp = 0.
+    A_pp = 0.
     conds = []
     H1_PSD_fits = []
     L1_PSD_fits = []
@@ -217,6 +225,7 @@ if myid == 0:
         Z_p += checkdata['Z_p']
         M_p_pp += checkdata['M_p_pp']
         S_p = None
+        A_pp += checkdata['A_pp'] 
         conds = checkdata['conds']
         print 'we are at minute', counter
     
@@ -225,6 +234,7 @@ else:
     Z_p = None
     S_p = None
     M_p_pp = None
+    A_pp = None
     counter = 0
 
 if checkpoint == True:
@@ -270,6 +280,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             #create empty lm objects:
         
             z_p = np.zeros(npix_out)
+            my_A_pp = np.zeros(npix_out)
             my_M_p_pp = np.zeros((npix_out,npix_out))
             cond = 0.
             pix_bs_up = np.zeros(nbase)
@@ -382,12 +393,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
                 print 'time: ', my_ctime[0]
             
-                z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns)
+                z_p, my_M_p_pp, my_A_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
                 cond = np.linalg.cond(my_M_p_pp)
             
             if myid == 0:
                 z_buffer = np.zeros_like(z_p)
                 M_p_pp_buffer = np.zeros_like(my_M_p_pp)   
+                A_pp_buffer = np.zeros_like(z_p)
                 conds_array = np.zeros(nproc)
                 a_buffer = nproc * [0.,0.,0.]
                 pdx_H1 =  np.zeros_like(a_buffer)
@@ -397,6 +409,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             else:
                 z_buffer = None
                 M_p_pp_buffer = None
+                A_pp_buffer = None
                 conds_array = None
                 pdx_H1 = None
                 pdx_L1 = None
@@ -406,6 +419,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
+                comm.Reduce(my_A_pp, A_pp_buffer, root = 0, op = MPI.SUM)
                 conds_array = comm.gather(cond, root = 0)
                 pdx_H1 = comm.gather(psds[0],root = 0)
                 pdx_L1 = comm.gather(psds[1], root = 0)
@@ -418,6 +432,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 z_buffer += z_p
                 counter += 1
                 M_p_pp_buffer += my_M_p_pp
+                A_pp_buffer += my_A_pp
                 conds.append(cond)
 
 
@@ -425,7 +440,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 print 'this is id 0'
                 Z_p += z_buffer
-                M_p_pp += M_p_pp_buffer    
+                M_p_pp += M_p_pp_buffer 
+                A_pp += A_pp_buffer   
                 
                 conds_array = np.array(conds_array)
                 np.append(conds,conds_array)
@@ -548,10 +564,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     #     plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
                     #     plt.close('all')
                     
-                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_pp = A_pp,counter = counter, conds = conds, map_in = map_in_save )
                     
                     #if counter % (nproc) == 0:
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, conds = conds, map_in = map_in_save )
+                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp,A_pp = A_pp, counter = counter, conds = conds, map_in = map_in_save )
                         
                     print 'saved dirty_map, clean_map and checkfile @ min', counter
                     
