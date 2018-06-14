@@ -71,16 +71,20 @@ for i in range(len(fits_paths)):
     #
     # fig = plt.figure()
     
+    fwhm = 5*np.pi/180.
+    map_in = hp.ud_grade(map_in,nside_out = 64)
+    map_in = hp.sphtfunc.smoothing(map_in,fwhm = fwhm)
+    
     if maptyp in planckmaps:
         
         jet = cm.jet
         jet.set_under("w")
-        hp.mollview(hp.ud_grade(map_in, nside_out = 16),norm = 'hist', cmap = jet)
+        hp.mollview(map_in,norm = 'hist', cmap = jet)
         plt.savefig('%s/fitsmap%s.pdf' % (out_path,i)  )
         plt.close('all')
         
     else:
-
+        
         hp.mollview(map_in)
         plt.savefig('%s/fitsmap%s.pdf' % (out_path,i))
         plt.close('all')
