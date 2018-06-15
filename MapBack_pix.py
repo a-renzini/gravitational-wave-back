@@ -173,14 +173,14 @@ class Dect(object):
         elif dect_name =='G':
             self._lon = 0.1710
             self._lat = 0.8326
-            self._vec = np.array([4.54637409900e+06, 8.42989697626e+05, 4.37857696241e+06])
+            self._vec = np.array([4.2296e+6, 730394., 4.7178e+6])
             
             self._alpha = 68.8*np.pi/180.         #np.radians()
             
         elif dect_name =='K':
             self._lon = 2.39424267
             self._lat = 0.63268185
-            self._vec = np.array([4.54637409900e+06, 8.42989697626e+05, 4.37857696241e+06])
+            self._vec = np.array([-3.7728e+6,3.4961e+6,3.77145e+6])
             
             self._alpha = 225.0*np.pi/180.         #np.radians()
 
@@ -588,6 +588,9 @@ class Telescope(object):
             self.latMid[i], self.lonMid[i], self.azMid[i] = self.midpoint(self.detectors[a].lat(),self.detectors[a].lon(),self.detectors[b].lat(),self.detectors[b].lon())
         # gamma functs
                 
+        np.savez('baseline_lengths.npz', baseline_length = self.baseline_length)
+        print 'saved baseline_lengths.npz'
+        
         self.npix_in = hp.nside2npix(self._nside_in)
         self.npix_out = hp.nside2npix(self._nside_out)
 
@@ -816,7 +819,7 @@ class Telescope(object):
         # Cos(elevation+90) = (x*dx + y*dy + z*dz) / Sqrt((x^2+y^2+z^2)*(dx^2+dy^2+dz^2))
         # Cos(azimuth) = (-z*x*dx - z*y*dy + (x^2+y^2)*dz) / Sqrt((x^2+y^2)(x^2+y^2+z^2)(dx^2+dy^2+dz^2))
         # Sin(azimuth) = (-y*dx + x*dy) / Sqrt((x^2+y^2)(dx^2+dy^2+dz^2))
-    
+        
         v = v2-v1
         d = np.sqrt(np.dot(v,v))
         cos_el = np.dot(v2,v)/np.sqrt(np.dot(v2,v2)*np.dot(v,v))
@@ -872,7 +875,8 @@ class Telescope(object):
     def geometry_up(self,ct_split, pol = False):		#ct_split = ctime_i
         
         #returns the baseline pixel p and the boresight quaternion q_n
-        nside = self._nside_in*2
+        nside = self._nside_in*8
+        print 'nside for bpix is: ' , nside
         mid_idx = int(len(ct_split)/2)
         
         q_b = []
