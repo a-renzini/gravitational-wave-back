@@ -588,7 +588,7 @@ class Telescope(object):
             self.latMid[i], self.lonMid[i], self.azMid[i] = self.midpoint(self.detectors[a].lat(),self.detectors[a].lon(),self.detectors[b].lat(),self.detectors[b].lon())
         # gamma functs
                 
-        np.savez('baseline_lengths.npz', baseline_length = self.baseline_length)
+        np.savez('baseline_lengths.npz', baseline_length = self.baseline_length, dects = dects, combos = self.combo_tuples )
         print 'saved baseline_lengths.npz'
         
         self.npix_in = hp.nside2npix(self._nside_in)
@@ -860,11 +860,14 @@ class Telescope(object):
         
         for i in range(self._nbase):
             a, b = self.combo_tuples[i]
+
             q_b.append(self.Q.rotate_quat(self.Q.azel2bore(np.degrees(self.az_b[i]), np.degrees(self.el_b[i]), None, None, np.degrees(self.detectors[b].lon()), np.degrees(self.detectors[b].lat()), ct_split[mid_idx])[0]))
             q_n.append(self.Q.rotate_quat(self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid[i]), np.degrees(self.latMid[i]), ct_split[mid_idx])[0]))
             p[i], s2p[i], c2p[i] = self.Q.quat2pix(q_b[i], nside=nside, pol=True)
             n[i] = self.Q.quat2pix(q_n[i], nside=nside, pol=True)[0]
-        
+            
+            print a, b, p[i]
+            
         #p, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True)
         #n, s2n, c2n = self.Q.quat2pix(q_n, nside=nside, pol=True)  
         #theta_b, phi_b = hp.pix2ang(nside,p)
@@ -1018,6 +1021,8 @@ class Telescope(object):
         for pix in range(len(map_in)):
             map_poi.append(np.random.poisson(map_norm[pix]))
         
+        # hp.write_map('map_poi.fits',np.array(map_poi))
+        # exit()
         return np.array(map_poi)#*norm
         
  #   def cutout(self,x, freqs,low = 20, high = 300):
@@ -1171,16 +1176,21 @@ class Telescope(object):
 
             frexx_notch,Pxx_notch = self.Pdx_notcher(frexx,Pxx)
 
-            frexx
+            try:
+                fit = curve_fit(self.PDX, frexx_notch[100:600], Pxx_notch[100:600])#, bounds = ([0.,0.,0.],[2.,2.,2.])) 
+                psd_params = fit[0]
+                
+            except RuntimeError:
+                print("Error - curve_fit failed")
+                psd_params = [10.,10.,10.]
+                
             
-            
-            fit = curve_fit(self.PDX, frexx_notch[100:600], Pxx_notch[100:600])#, bounds = ([0.,0.,0.],[2.,2.,2.])) 
-            
-            psd_params = fit[0]
             
             a,b,c = psd_params
             min = 0.1
             max = 1.9
+            
+            print psd_params
             
             if a < min or a > max: flags[idx_str] = True
             if b < 2*min or b > 2*max: flags[idx_str] = True
