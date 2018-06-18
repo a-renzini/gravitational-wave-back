@@ -866,8 +866,6 @@ class Telescope(object):
             p[i], s2p[i], c2p[i] = self.Q.quat2pix(q_b[i], nside=nside, pol=True)
             n[i] = self.Q.quat2pix(q_n[i], nside=nside, pol=True)[0]
             
-            print a, b, p[i]
-            
         #p, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True)
         #n, s2n, c2n = self.Q.quat2pix(q_n, nside=nside, pol=True)  
         #theta_b, phi_b = hp.pix2ang(nside,p)
@@ -1190,7 +1188,7 @@ class Telescope(object):
             min = 0.1
             max = 1.9
             
-            print psd_params
+            #print psd_params
             
             if a < min or a > max: flags[idx_str] = True
             if b < 2*min or b > 2*max: flags[idx_str] = True
@@ -1522,7 +1520,7 @@ class Telescope(object):
         vec_p_out = hp.pix2vec(self._nside_out,np.arange(npix_out))
         
         z_p = np.zeros(npix_out)
-        A_pp = np.zeros(npix_out)
+        A_pp = np.zeros((npix_out,npix_out))
         M_pp = np.zeros((npix_out,npix_out))
         
         for idx_b in range(self._nbase):
@@ -1544,7 +1542,7 @@ class Telescope(object):
                             * self.E_f(freq)[:]/ pf[:] * gammaI_rot_ud[ip]      ## minus sign? changed it to +
                             *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))) 
                 
-                A_pp[ip] +=  2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2
+                #A_pp[ip] +=  2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2
                     * gammaI_rot_ud[ip] * gammaI_rot_ud[ip]*(np.cos((bdotp[ip]-bdotp[ip])*freq[:]) ))
                 
                 
@@ -1554,7 +1552,15 @@ class Telescope(object):
                     * gammaI_rot_ud[ip] * gammaI_rot_ud[jp]
                     *(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
                     M_pp[ip,jp] += val
-                    if ip!= jp : M_pp[jp,ip] += val
+                    
+                    val2 = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2
+                    * gammaI_rot_ud[ip] * gammaI_rot_ud[jp]
+                    *(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
+                    A_pp[ip,jp] += val2
+                    
+                    if ip!= jp : 
+                        M_pp[jp,ip] += val
+                        A_pp[jp,ip] += val2
         
         
         #M_pp_inv = np.linalg.pinv(M_pp,rcond=1.e-5)
