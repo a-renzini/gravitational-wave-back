@@ -108,7 +108,7 @@ high_cut = 300.
 
     
 #DETECTORS
-dects = ['A','B','C', 'D', 'E', 'F']
+dects = ['H1','L1','V1','G','K']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -280,7 +280,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             #create empty lm objects:
         
             z_p = np.zeros(npix_out)
-            my_A_pp = np.zeros(npix_out)
+            my_A_pp = np.zeros((npix_out,npix_out))
             my_M_p_pp = np.zeros((npix_out,npix_out))
             cond = 0.
             pix_bs_up = np.zeros(nbase)
@@ -399,7 +399,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             if myid == 0:
                 z_buffer = np.zeros_like(z_p)
                 M_p_pp_buffer = np.zeros_like(my_M_p_pp)   
-                A_pp_buffer = np.zeros_like(z_p)
+                A_pp_buffer = np.zeros_like(my_M_p_pp)
                 conds_array = np.zeros(nproc)
                 a_buffer = nproc * [0.,0.,0.]
                 pdx_H1 =  np.zeros_like(a_buffer)
