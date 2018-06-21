@@ -162,7 +162,7 @@ if checkpoint  == True:
         print 'according to checkfile were at minute ', counter
         print '@@@@@@@@@@@@@@@@@@@@@@'
 
-start = 1126224017  + np.int(60*counter) #1127000000 #O1 start GPS 1126051217 1126224017
+start = 1126224017 #1126224017  + np.int(60*counter) #1127000000 #O1 start GPS 1126051217 1126224017
 stop  = 1129000000 #1137254417  #O1 end GPS     
 
 
@@ -333,14 +333,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 psds_f = []
             
                 for i in range(ndet):
-                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs)#**2)
+                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2]))#**2)
             
                 if sim == False:
                     for i in range(ndet):
-                        strains_f.append(run.filter(strains[i], low_cut,high_cut,psds[i])[mask])
+                        strains_f.append(run.filter(strains[i], low_cut,high_cut)[mask])
                     
-                    strains_f = [(strains_f[0]*np.conj(strains_f[1]))] #become correlated strains
-                
+                    strains_corr = [(strains_f[0]*np.conj(strains_f[1]))] #become correlated strains
+                    
                     
                              #(psds[i](freqs)*fs**2) 
                     #psds_f[i] = np.ones_like(psds_f[i])       ######weightless
@@ -362,8 +362,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     strains_corr = run.injector(strains_in,my_ctime,low_cut,high_cut,poi, sim)[0]
                     strains_corr = run.noisy(strains_corr,psds_f,mask)
                 
-                
-                    strains_f = strains_corr
 
             
                 '''
@@ -397,7 +395,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
                 print 'time: ', my_ctime[0]
             
-                z_p, my_M_p_pp, my_A_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
+                z_p, my_M_p_pp, my_A_pp = run.projector(my_ctime,strains_corr,psds_f,freqs,pix_bs, q_ns, norm = True)
                 cond = np.linalg.cond(my_M_p_pp)
             
             if myid == 0:

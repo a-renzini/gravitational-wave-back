@@ -1139,10 +1139,10 @@ class Telescope(object):
             
             streams = fakestreams
         
-        if sim == False:
-            
-            for i in range(len(strains_in)):
-                streams.append(self.filter(strains_in[i], low_f,high_f))
+        # if sim == False:
+        #
+        #     for i in range(len(strains_in)):
+        #         streams.append(self.filter(strains_in[i], low_f,high_f))
 
         #**** psd ******
         flags = np.zeros(len(strains_in), dtype = bool)
@@ -1156,8 +1156,8 @@ class Telescope(object):
             strain_in_nowin *= signal.tukey(Nt,alpha=0.05)
             strain_in *= np.blackman(Nt)
 
-            hf = np.fft.rfft(strain_in, n=2*Nt)#, norm = 'ortho') 
-            hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt)#, norm = 'ortho') 
+            hf = np.fft.rfft(strain_in, n=2*Nt, norm = 'ortho') 
+            hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt, norm = 'ortho') 
     
             hf = hf[:Nt/2+1]
             hf_nowin = hf_nowin[:Nt/2+1]
@@ -1168,7 +1168,7 @@ class Telescope(object):
     
             Pxx, frexx = mlab.psd(strain_in_nowin, Fs=fs, NFFT=2*fstar,noverlap=fstar/2,window=np.blackman(2*fstar),scale_by_freq=True)
             hf_psd = interp1d(frexx,Pxx)
-            hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())/(fs**2)) 
+            hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())) 
             
             #*******************
 
@@ -1197,8 +1197,9 @@ class Telescope(object):
             if flags[idx_str] == True: print 'bad segment!  '
             #Norm
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
-            psd_params[0] = norm*psd_params[0] 
-            
+            print norm
+            psd_params[0] = psd_params[0]*np.sqrt(norm) 
+            a = a*np.sqrt(norm)
             
             # plt.figure()
             # plt.loglog(hf_psd_data[mask])
@@ -1210,7 +1211,8 @@ class Telescope(object):
             # print norm
             
             # plt.figure()
-            # plt.loglog(frexx,Pxx,label = 'PSD from data')
+            # plt.loglog(freqs,hf_psd_data, label = 'data')
+            # #plt.loglog(frexx,Pxx,label = 'PSD from data')
             # plt.loglog(frexx,self.PDX(frexx,a,b,c),'r--',label = 'Fitted function')
             # #plt.loglog(frexxes,pixxes*1e-48)
             # #plt.loglog(frexx,interp1d(frexxes,pixxes)(frexx)*10E-47)
@@ -1223,9 +1225,11 @@ class Telescope(object):
             # plt.xlim((1,1500))
             # plt.axvspan(low_f,high_f, alpha=0.5, color='#FFF700', zorder=-11)
             # # plt.ylim((1.e-47,1.e-43))
-            # plt.savefig('PSD.pdf' )
-
+            # plt.savefig('psd_ortho.png' )
+            # plt.close('all')
             #hf_psd=interp1d(frexx,Pxx*norm)
+            
+            
             psds.append(psd_params)
             #print frexx, Pxx, len(Pxx)
     
@@ -1274,11 +1278,12 @@ class Telescope(object):
         '''WINDOWING & RFFTING.'''
         
         Nt = len(strain_in)
+        print Nt
         Nt = lf.bestFFTlength(Nt)
         strain_in = strain_in[:Nt]
         strain_in_cp = np.copy(strain_in)
         strain_in_nowin = np.copy(strain_in)
-        strain_in_nowin *= signal.tukey(Nt,alpha=0.0001)
+        strain_in_nowin *= signal.tukey(Nt,alpha=0.05)
         #strain_in *= np.blackman(Nt)
         freqs = np.fft.rfftfreq(2*Nt, dt)
         #print '=rfft='
@@ -1287,30 +1292,18 @@ class Telescope(object):
         hf_nowin = hf_nowin[:Nt/2+1]
         freqs = freqs[:Nt/2+1]
         
-        #hf_back =  np.fft.irfft(hf_nowin, norm = 'ortho')
-        #print np.average(hf_back), ' , ' , np.std(hf_back), '  ,  ', len(hf_back)
+        # plt.figure()
+        # plt.loglog(freqs,np.abs(hf_nowin)**2)
+        # plt.savefig('hf_nowin.png' )
+
+
         
         
         hf_copy = np.copy(hf_nowin)
         
-        #print '++'
-        
-                
-        '''the PSD. '''
-        #Pxx, frexx = mlab.psd(strain_in_nowin, Fs=fs, NFFT=2*fs,noverlap=fs/2,window=np.blackman(2*fs),scale_by_freq=True)
-        #hf_psd = interp1d(frexx,Pxx)
-        #hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())/(fs**2))
-        
-        #if sim: return simulated noise
-        # strain_in = sim noise
         
         #Norm
         mask = (freqs>low_f) & (freqs < high_f)
-        #norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])
-        
-        #print norm
-        
-        #hf_psd=interp1d(frexx,Pxx*norm)
         
         
         '''NOTCHING. '''
@@ -1333,25 +1326,21 @@ class Telescope(object):
             hf_nowin = hf_nowin*(1.-self.gaussian(pixels,notch_pix,sigma_fs[i]*samp_hz))
             i+=1           
         
-        
+        # plt.figure()
+        # plt.loglog(freqs[mask],np.abs(hf_nowin[mask])**2)
+        # plt.savefig('hf_notchin.png' )
         #BPING HF
-
         gauss_lo = self.halfgaussian(pixels,low_f*samp_hz,samp_hz)
         gauss_hi = self.halfgaussian(pixels,high_f*samp_hz,samp_hz)
 
         hf_nbped = hf_nowin*(1.-gauss_lo)*(gauss_hi)            ####
-        
-        mask1 = (freqs>30.) & (freqs < 1000.)
-        
+
         # plt.figure()
-        # plt.plot(freqs[mask1],np.abs(hf_copy[mask1]))
-        # plt.loglog(freqs[mask1],np.abs(hf_nowin[mask1]))
-        # for xc in self.notches():
-        #     plt.axvline(x=xc,linewidth = 0.5)
+        # plt.loglog(freqs[mask],np.abs(hf_nbped[mask])**2)
         # plt.savefig('hf_nbped.png' )
         # plt.close('all')
-        
-        return hf_nbped#, hf_psd
+
+        return hf_nowin#, hf_psd
         
 
     # ********* Data Segmenter *********
@@ -1529,6 +1518,9 @@ class Telescope(object):
 
             rot_m_array = self.rotation_pix(np.arange(npix_in), q_n[idx_b])  
             gammaI_rot = self.gammaI[idx_b][rot_m_array]
+            
+            #hp.fitsfunc.write_map('gammaI_rot.fits', gammaI_rot) 
+            
             gammaI_rot_ud = hp.ud_grade(gammaI_rot,nside_out = self._nside_out) 
             
             vec_b = hp.pix2vec(self._nside_in,pix_b[idx_b])
@@ -1536,6 +1528,8 @@ class Telescope(object):
             
             df = strains[idx_b]
             pf = pows[idx_b][mask]
+            
+            
             
             for ip in range(npix_out):
                 z_p[ip] += 8.*np.pi/npix_out * delf*np.sum(window[:] 
@@ -1549,13 +1543,11 @@ class Telescope(object):
                 for jp in range(ip,npix_out):
 
                     val = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2/ pf[:]
-                    * gammaI_rot_ud[ip] * gammaI_rot_ud[jp]
-                    *(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
+                    * gammaI_rot_ud[ip] * gammaI_rot_ud[jp]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
                     M_pp[ip,jp] += val
                     
                     val2 = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2
-                    * gammaI_rot_ud[ip] * gammaI_rot_ud[jp]
-                    *(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
+                    * gammaI_rot_ud[ip] * gammaI_rot_ud[jp]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
                     A_pp[ip,jp] += val2
                     
                     if ip!= jp : 

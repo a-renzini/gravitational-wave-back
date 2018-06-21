@@ -337,7 +337,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 psds_f = []
            
                 for i in range(ndet):
-                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2])*fs)#**2)
+                    psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2]))#*fs)#**2)
             
                 if sim == False:
                     for i in range(ndet):
