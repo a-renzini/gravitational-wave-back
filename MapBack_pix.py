@@ -47,7 +47,7 @@ def map_in_gauss(nside_in, noise_lvl):
     elif noise_lvl == 2: alpha = 1.e-38
     elif noise_lvl == 3: alpha = 3.e-39
     elif noise_lvl == 4: alpha = 5.e-40
-    elif noise_lvl == 5: alpha = 1.e-40
+    elif noise_lvl == 5: alpha = 1.e-43
 
     
     lmax = nside/4
@@ -637,7 +637,7 @@ class Telescope(object):
         elif noise_lvl == 2: alpha = 1.e-38
         elif noise_lvl == 3: alpha = 3.e-39
         elif noise_lvl == 4: alpha = 5.e-40
-        elif noise_lvl == 5: alpha = 1.e-40
+        elif noise_lvl == 5: alpha = 1.e-43
         
         
         self.alpha = alpha
@@ -1197,7 +1197,7 @@ class Telescope(object):
             if flags[idx_str] == True: print 'bad segment!  '
             #Norm
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
-            print norm
+            #print norm
             psd_params[0] = psd_params[0]*np.sqrt(norm) 
             a = a*np.sqrt(norm)
             
@@ -1209,29 +1209,28 @@ class Telescope(object):
             # plt.savefig('norm.pdf' )
             #
             # print norm
-            np.savez('PSDplot.npz', freqs = freqs, psd_data = hf_psd_data,frexx = frexx,Pxx = Pxx, params = psd_params[0], norm = norm, notches = self.notches(), low_f = low_f, high_f = high_f  )
-            plt.figure()
-            plt.loglog(freqs,hf_psd_data, label = 'data')
-            plt.loglog(frexx,Pxx,label = 'PSD from data')
-            plt.loglog(frexx,self.PDX(frexx,a,b,c),'r--',label = 'Fitted function')
-            plt.loglog(frexx,self.PDX(frexx,a,b,c)/norm,'g--',label = 'Fitted function')
-
-            #plt.loglog(frexxes,pixxes*1e-48)
-            #plt.loglog(frexx,interp1d(frexxes,pixxes)(frexx)*10E-47)
-            plt.axvline(x=self.notches()[0],linewidth = 0.5,label = 'Frequency notches')
-            for xc in self.notches()[1:]:
-                plt.axvline(x=xc,linewidth = 0.5)
-            plt.legend()
-            plt.xlabel('frequency (Hz)')
-            plt.ylabel('PSD')
-            plt.xlim((1,1500))
-            plt.axvspan(low_f,high_f, alpha=0.5, color='#FFF700', zorder=-11)
-            # plt.ylim((1.e-47,1.e-43))
-            plt.savefig('psd_ortho.png' )
-            plt.close('all')
-            hf_psd=interp1d(frexx,Pxx*norm)
-            
-            exit()
+            # np.savez('PSDplot.npz', freqs = freqs, psd_data = hf_psd_data,frexx = frexx,Pxx = Pxx, params = psd_params[0], norm = norm, notches = self.notches(), low_f = low_f, high_f = high_f  )
+            # plt.figure()
+            # plt.loglog(freqs,hf_psd_data, label = 'data')
+            # plt.loglog(frexx,Pxx,label = 'PSD from data')
+            # plt.loglog(frexx,self.PDX(frexx,a,b,c),'r--',label = 'Fitted function')
+            # plt.loglog(frexx,self.PDX(frexx,a,b,c)/norm,'g--',label = 'Fitted function')
+            #
+            # #plt.loglog(frexxes,pixxes*1e-48)
+            # #plt.loglog(frexx,interp1d(frexxes,pixxes)(frexx)*10E-47)
+            # plt.axvline(x=self.notches()[0],linewidth = 0.5,label = 'Frequency notches')
+            # for xc in self.notches()[1:]:
+            #     plt.axvline(x=xc,linewidth = 0.5)
+            # plt.legend()
+            # plt.xlabel('frequency (Hz)')
+            # plt.ylabel('PSD')
+            # plt.xlim((1,1500))
+            # plt.axvspan(low_f,high_f, alpha=0.5, color='#FFF700', zorder=-11)
+            # # plt.ylim((1.e-47,1.e-43))
+            # plt.savefig('psd_ortho.png' )
+            # plt.close('all')
+            # hf_psd=interp1d(frexx,Pxx*norm)
+            #
             
             psds.append(psd_params)
             #print frexx, Pxx, len(Pxx)
