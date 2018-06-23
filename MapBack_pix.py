@@ -47,7 +47,7 @@ def map_in_gauss(nside_in, noise_lvl):
     elif noise_lvl == 2: alpha = 1.e-38
     elif noise_lvl == 3: alpha = 3.e-39
     elif noise_lvl == 4: alpha = 5.e-40
-    elif noise_lvl == 5: alpha = 1.e-44
+    elif noise_lvl == 5: alpha = 2.e-44
 
     
     lmax = nside/4
