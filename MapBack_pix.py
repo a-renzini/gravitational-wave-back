@@ -47,7 +47,7 @@ def map_in_gauss(nside_in, noise_lvl):
     elif noise_lvl == 2: alpha = 1.e-38
     elif noise_lvl == 3: alpha = 3.e-39
     elif noise_lvl == 4: alpha = 5.e-40
-    elif noise_lvl == 5: alpha = 1.e-43
+    elif noise_lvl == 5: alpha = 1.e-44
 
     
     lmax = nside/4
@@ -637,7 +637,7 @@ class Telescope(object):
         elif noise_lvl == 2: alpha = 1.e-38
         elif noise_lvl == 3: alpha = 3.e-39
         elif noise_lvl == 4: alpha = 5.e-40
-        elif noise_lvl == 5: alpha = 1.e-43
+        elif noise_lvl == 5: alpha = 1.e-44
         
         
         self.alpha = alpha
@@ -1209,7 +1209,8 @@ class Telescope(object):
             # plt.savefig('norm.pdf' )
             #
             # print norm
-            # np.savez('PSDplot.npz', freqs = freqs, psd_data = hf_psd_data,frexx = frexx,Pxx = Pxx, params = psd_params[0], norm = norm, notches = self.notches(), low_f = low_f, high_f = high_f  )
+            #np.savez('PSDplot.npz', freqs = freqs, psd_data = hf_psd_data,frexx = frexx,Pxx = Pxx, params = psd_params, norm = norm, notches = self.notches(), low_f = low_f, high_f = high_f  )
+
             # plt.figure()
             # plt.loglog(freqs,hf_psd_data, label = 'data')
             # plt.loglog(frexx,Pxx,label = 'PSD from data')
