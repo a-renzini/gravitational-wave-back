@@ -44,10 +44,9 @@ def map_in_gauss(nside_in, noise_lvl):
     nside = nside_in
     
     if noise_lvl == 1: alpha = 1.
-    elif noise_lvl == 2: alpha = 1.e-38
-    elif noise_lvl == 3: alpha = 3.e-39
-    elif noise_lvl == 4: alpha = 5.e-40
-    elif noise_lvl == 5: alpha = 2.e-44
+    elif noise_lvl == 2: alpha = 1.e-42
+    elif noise_lvl == 3: alpha = 1.e-43
+    elif noise_lvl == 4: alpha = 2.e-44
 
     
     lmax = nside/4
@@ -520,7 +519,7 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out, lmax, fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, data_run = 'O1'): #Dect list
+    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, data_run = 'O1'): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
@@ -530,7 +529,6 @@ class Telescope(object):
         self.R_earth = 6378137
         self._nside_in = nside_in
         self._nside_out = nside_out
-        self._lmax = lmax
         self.fs = fs
         self.low_f = low_f
         self.high_f = high_f
@@ -604,40 +602,15 @@ class Telescope(object):
             a, b = self.combo_tuples[i]
             self.gammaI.append((5./(8.*np.pi))*self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross())
                 
-        # hp.mollview(self.gammaI[0])
-        # plt.savefig('gammaI.pdf')
-
-        #self.gammaQ = self.H1.get_Fplus()*self.L1.get_Fcross()-self.H1.get_Fcross()*self.L1.get_Fplus()
-        #self.gammaU = self.H1.get_Fplus()*self.L1.get_Fplus()-self.H1.get_Fcross()*self.L1.get_Fcross()
-        #self.gammaV = self.H1.get_Fplus()*self.L1.get_Fcross()+self.H1.get_Fcross()*self.L1.get_Fplus()
-        
-        
-        # cache 3j symbols
-        self.threej_0 = np.zeros((2*lmax+1,2*lmax+1,2*lmax+1))
-        self.threej_m = np.zeros((2*lmax+1,2*lmax+1,2*lmax+1,2*lmax+1,2*lmax+1))
-        for l in range(lmax+1):
-            for m in range(-l,l+1):
-                for lp in range(lmax+1):
-                    lmin0 = np.abs(l - lp)
-                    lmax0 = l + lp
-                    self.threej_0[lmin0:lmax0+1,l,lp] = threej(l, lp, 0, 0)
-                    for mp in range(-lp,lp+1):
-                        # remaining m index
-                        mpp = -(m+mp)
-                        lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                        lmax_m = l + lp
-                        self.threej_m[lmin_m:lmax_m+1,l,lp,m,mp] = threej(lp, l, mp, m) ###
-        
-        #Simulation tools
+                #Simulation tools
     
         self.noise_lvl = noise_lvl
         self.alpha = 1.
 
         if noise_lvl == 1: alpha = 1.
-        elif noise_lvl == 2: alpha = 1.e-38
-        elif noise_lvl == 3: alpha = 3.e-39
-        elif noise_lvl == 4: alpha = 5.e-40
-        elif noise_lvl == 5: alpha = 1.e-44
+        elif noise_lvl == 2: alpha = 1.e-42
+        elif noise_lvl == 3: alpha = 1.e-43
+        elif noise_lvl == 4: alpha = 2.e-44
         
         
         self.alpha = alpha
@@ -1019,7 +992,7 @@ class Telescope(object):
         for pix in range(len(map_in)):
             map_poi.append(np.random.poisson(map_norm[pix]))
         
-        # hp.write_map('map_poi.fits',np.array(map_poi))
+        hp.write_map('map_poi.fits',np.array(map_poi))
         # exit()
         return np.array(map_poi)#*norm
         
@@ -1216,9 +1189,9 @@ class Telescope(object):
             # plt.loglog(frexx,Pxx,label = 'PSD from data')
             # plt.loglog(frexx,self.PDX(frexx,a,b,c),'r--',label = 'Fitted function')
             # plt.loglog(frexx,self.PDX(frexx,a,b,c)/norm,'g--',label = 'Fitted function')
-            #
-            # #plt.loglog(frexxes,pixxes*1e-48)
-            # #plt.loglog(frexx,interp1d(frexxes,pixxes)(frexx)*10E-47)
+
+            #plt.loglog(frexxes,pixxes*1e-48)
+            #plt.loglog(frexx,interp1d(frexxes,pixxes)(frexx)*10E-47)
             # plt.axvline(x=self.notches()[0],linewidth = 0.5,label = 'Frequency notches')
             # for xc in self.notches()[1:]:
             #     plt.axvline(x=xc,linewidth = 0.5)
@@ -1232,7 +1205,6 @@ class Telescope(object):
             # plt.close('all')
             # hf_psd=interp1d(frexx,Pxx*norm)
             #
-            
             psds.append(psd_params)
             #print frexx, Pxx, len(Pxx)
     
@@ -1492,10 +1464,7 @@ class Telescope(object):
     def summer(self, ct_split, strains, pows, freq, pix_b, q_n , norm):     
                    
         nside=self._nside_out
-        lmax=self._lmax
-                
-        sum_lm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=complex)
-        
+                        
         mask = (freq>self.low_f) & (freq < self.high_f)
         freq = freq[mask]
         window = np.ones_like(freq)
@@ -1512,6 +1481,7 @@ class Telescope(object):
         vec_p_out = hp.pix2vec(self._nside_out,np.arange(npix_out))
         
         z_p = np.zeros(npix_out)
+        A_p = np.zeros(npix_out)
         A_pp = np.zeros((npix_out,npix_out))
         M_pp = np.zeros((npix_out,npix_out))
         
@@ -1539,8 +1509,8 @@ class Telescope(object):
                             * self.E_f(freq)[:]/ pf[:] * gammaI_rot_ud[ip]      ## minus sign? changed it to +
                             *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))) 
                 
-                #A_pp[ip] +=  2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2
-                    #* gammaI_rot_ud[ip] * gammaI_rot_ud[ip]*(np.cos((bdotp[ip]-bdotp[ip])*freq[:]) ))
+                A_p[ip] +=  2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2
+                    * gammaI_rot_ud[ip] * gammaI_rot_ud[ip]*(np.cos((bdotp[ip]-bdotp[ip])*freq[:]) ))
                 
                 
                 for jp in range(ip,npix_out):
@@ -1566,7 +1536,7 @@ class Telescope(object):
         #hp.mollview(S_p)
         #plt.savefig('clean.pdf')
         if norm == False: return z_p, M_pp 
-        else: return z_p, M_pp, A_pp #/norm
+        else: return z_p, M_pp, A_p, A_pp #/norm
 
 
     def projector(self,ctime, s, psds, freqs,pix_bs, q_ns, norm = False):
@@ -1576,7 +1546,6 @@ class Telescope(object):
         print 'proj run'
             
         nside=self._nside_out
-        lmax=self._lmax
         
         pows = []
         
@@ -1584,282 +1553,13 @@ class Telescope(object):
             a, b = self.combo_tuples[i]
             pows.append(psds[a]*(psds[b]))      #(or sqrt)
                 
-        z_p, M_pp, A_pp = self.summer(ctime, s, pows, freqs, pix_bs, q_ns, norm)
+        z_p, M_pp, A_p, A_pp = self.summer(ctime, s, pows, freqs, pix_bs, q_ns, norm)
         
         #print np.mean(data_lm)          
         
         if norm == False: return z_p, M_pp
-        else: return z_p, M_pp, A_pp
+        else: return z_p, M_pp, A_p, A_pp
         
-    # ********* Scanner *********
-    #to use scanner, re-check l, m ranges and other things. otherwise use scanner_1    
-
-    def scan(self, ct_split, low_f, high_f, m_lm): 
-
-        nside=self._nside_out
-        lmax=self._lmax 
-        npix = self.npix_out
-        
-        tstream = 0.+0.j
-        t00 = 0.+0.j
-        
-        #        for idx_t, ct_split in enumerate(ctime):
-            
-        mid_idx = int(len(ct_split)/2)
-
-        q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1.lon()), np.degrees(self.H1.lat()), ct_split[mid_idx])
-        q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
-
-        pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
-    
-        p = pix_b
-        print p          
-        quat = q_n
-
-        theta_b, phi_b = hp.pix2ang(nside,p)
-        
-        #print theta_b, phi_b
-        
-        rot_m_array = self.rotation_pix(np.arange(npix), quat) #rotating around the bisector of the gc 
-        gammaI_rot = self.gammaI[rot_m_array]
-        
-        # Expand rotated gammas into lm
-        glm = hp.map2alm(gammaI_rot, lmax, pol=False)              
-        
-        for l in range(lmax+1): #
-            
-            for m in range(-l,l+1): #
-    
-                idx_lm = hp.Alm.getidx(lmax,l,m)
-                if m < 0: idx_lm = hp.Alm.getidx(lmax,l,-m)
-                
-                for lp in range(lmax+1):
-                    
-                    for mp in range(lp+1):
-                        #print '+'
-                        # remaining m index
-                        mpp = m+mp
-                        lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                        lmax_m = l + lp
-                        
-                        #print lp, mp, glm[hp.Alm.getidx(lmax,lp,mp)]
-                        
-                        for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                            tstream += ((-1)**mpp*self.freq_factor(lpp)*(0+1.j)**lpp
-                            *(sph_harm(-mpp, lpp, theta_b, phi_b))
-                                                *(glm[hp.Alm.getidx(lmax,lp,mp)])
-                                                *np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                                self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*m_lm[idx_lm]) 
-                             
-                    for mp in range(-lp,0):
-                        
-                        mpp = m+mp
-                        lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                        lmax_m = l + lp
-                        
-                        #print lp, mp, ((-1)**mp*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)]))
-                        
-                        for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                            tstream += ((-1)**mpp*self.freq_factor(lpp,low_f,high_f)*(0+1.j)**lpp
-                            *(sph_harm(-mpp, lpp, theta_b, phi_b))
-                                                *((-1)**mp*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)]))
-                                                *np.sqrt((2*l+1)*(2*lp+1)*(2*lpp+1)/4./np.pi)*
-                                                self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]*m_lm[idx_lm])
-                            #print self.threej_m[lpp,l,lp,m,mp], 'negs'
-                            
-        return (tstream + np.conj(tstream))*np.ones_like(ct_split, dtype = complex)
-
-    def M_lm_lpmp_t(self,ct_split, psds_split_t,freq,pix_b,q_n): 
-        
-        nside=self._nside_out
-        lmax=self._lmax 
-        al = hp.Alm.getidx(lmax,lmax,lmax)+1
-            
-        npix = self.npix_out       
-        
-        
-        M_lm_lpmp = np.zeros((al,al), dtype = complex)
-        #integral = np.ndarray(shape = (al,al), dtype = complex)
-        #hit_lm = np.zeros(len(scanned_lm), dtype = complex)
-        #print M_lm_lpmp
-        
-        mask = (freq>self.low_f) & (freq < self.high_f)
-        freq = freq[mask]
-        
-        df = self.fs/float(len(freq))#/len(psds_split_t[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
-        print 'df: ', df
-        #geometry
-        
-        mid_idx = int(len(ct_split)/2)
-     
-        # # get quaternions for H1->L1 baseline (use as boresight)
-        # q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1.lon()), np.degrees(self.H1.lat()), ct_split[mid_idx])
-        # # get quaternions for bisector pointing (use as boresight)
-        # q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
-        # pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
-        #
-        # p = pix_b
-        # quat = q_n
-        # # polar angles of baseline vector
-        theta_b, phi_b = hp.pix2ang(nside,pix_b)
-        
-        
-        for idx_b in range(self._nbase):
-            
-            #print '==', idx_b, '++'
-            
-            a, b = self.combo_tuples[idx_b]
-            weight = np.ones_like(psds_split_t[a])/(psds_split_t[a]*psds_split_t[b])
-            weight = weight[mask]           #so we're only integrating on the interesting freqs
-            
-            rot_m_array = self.rotation_pix(np.arange(npix), q_n[idx_b]) #rotating around the bisector of the gc 
-            gammaI_rot = self.gammaI[idx_b][rot_m_array]
-            glm = hp.map2alm(gammaI_rot, lmax, pol=False)
-            
-            for l in range(lmax+1): #
-                for m in range(l+1): #
-                
-                    idx_lm = hp.Alm.getidx(lmax,l,m)
-                    #print idx_lm
-                
-                    for lt in range(lmax+1): #
-                        for mt in range(lt+1): #
-                
-                            idx_ltmt = hp.Alm.getidx(lmax,lt,mt)
-                            #print '(',idx_lm, idx_ltmt, ')'
-                        
-                            for lp in range(lmax+1): #
-                                for mp in range(-lp,lp+1): #
-                                    # remaining m index
-                                    mpp = -(m+mp)
-                                    lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                                    lmax_m = l + lp
-                                
-                                    for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                                        for lpt in range(lmax+1): #
-                                            for mpt in range(-lpt,lpt+1): #
-                                                # remaining mt index
-                                                mppt = -(mt+mpt)
-                                                lmin_mt = np.max([np.abs(lt - lpt), np.abs(mt + mpt)])
-                                                lmax_mt = lt + lpt
-                                            
-                                                for idxlt, lppt in enumerate(range(lmin_mt,lmax_mt+1)):
-                                                        
-                                                    if mp > 0: rmp_rglm = glm[hp.Alm.getidx(lmax,lp,mp)] 
-                                                    else: rmp_rglm = (-1)**mp*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])
-                                                    if mpt > 0:rmpt_rgltmt = glm[hp.Alm.getidx(lmax,lpt,mpt)] 
-                                                    else: rmpt_rgltmt = (-1)**mpt*np.conj(glm[hp.Alm.getidx(lmax,lpt,-mpt)] )
-                                                    
-                                                    
-                                                    M_lm_lpmp[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*
-                                                    self.dfreq_factor(freq,lppt,idx_b)*weight)*df
-                                                    *np.conj(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
-                                                    *rmp_rglm*self.coupK(lp,l,lpp,mp,m))*
-                                                    (4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
-                                                    *rmpt_rgltmt*self.coupK(lpt,lt,lppt,mpt,mt)))                                                    
-                                                    
-                                                    
-                                                   
-            #print M_lm_lpmp[idx_lm,idx_ltmt]                
-        #norm = np.abs(np.sum(np.abs(hit_lm)))
-        return M_lm_lpmp #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
-
-    def M_lm_lpmp_t_2(self,ct_split, psds_split_t,freq,pix_b,q_n): 
-        
-        nside=self._nside_out
-        lmax=self._lmax 
-        al = hp.Alm.getidx(lmax,lmax,lmax)+1
-            
-        npix = self.npix_out       
-        
-        
-        M_lm_lpmp = np.zeros((al,al), dtype = complex)
-        #integral = np.ndarray(shape = (al,al), dtype = complex)
-        #hit_lm = np.zeros(len(scanned_lm), dtype = complex)
-        #print M_lm_lpmp
-        
-        mask = (freq>self.low_f) & (freq < self.high_f)
-        freq = freq[mask]
-        
-        df = self.fs/float(len(freq))#/len(psds_split_t[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
-        print 'df: ', df
-        #geometry
-        
-        mid_idx = int(len(ct_split)/2)
-     
-        # # get quaternions for H1->L1 baseline (use as boresight)
-        # q_b = self.Q.azel2bore(np.degrees(self.az_b), np.degrees(self.el_b), None, None, np.degrees(self.H1.lon()), np.degrees(self.H1.lat()), ct_split[mid_idx])
-        # # get quaternions for bisector pointing (use as boresight)
-        # q_n = self.Q.azel2bore(0., 90.0, None, None, np.degrees(self.lonMid), np.degrees(self.latMid), ct_split[mid_idx])[0]
-        # pix_b, s2p, c2p = self.Q.quat2pix(q_b, nside=nside, pol=True) #spin-2
-        #
-        # p = pix_b
-        # quat = q_n
-        # # polar angles of baseline vector
-        theta_b, phi_b = hp.pix2ang(nside,pix_b)
-        
-        
-        for idx_b in range(self._nbase):
-            
-            #print '==', idx_b, '++'
-            
-            a, b = self.combo_tuples[idx_b]
-            weight = np.ones_like(psds_split_t[a])/(psds_split_t[a]*psds_split_t[b])
-            weight = weight[mask]           #so we're only integrating on the interesting freqs
-            
-            rot_m_array = self.rotation_pix(np.arange(npix), q_n[idx_b]) #rotating around the bisector of the gc 
-            gammaI_rot = self.gammaI[idx_b][rot_m_array]
-            glm = hp.map2alm(gammaI_rot, lmax, pol=False)
-            
-            for l in range(lmax+1): #
-                for m in range(l+1): #
-                
-                    idx_lm = hp.Alm.getidx(lmax,l,m)
-                    #print idx_lm
-                
-                    for lt in range(lmax+1): #
-                        for mt in range(lt+1): #
-                
-                            idx_ltmt = hp.Alm.getidx(lmax,lt,mt)
-                            #print '(',idx_lm, idx_ltmt, ')'
-                        
-                            for lp in range(lmax+1): #
-                                for mp in range(-lp,lp+1): #
-                                    # remaining m index
-                                    mpp = -(m+mp)
-                                    lmin_m = np.max([np.abs(l - lp), np.abs(m + mp)])
-                                    lmax_m = l + lp
-                                
-                                    for idxl, lpp in enumerate(range(lmin_m,lmax_m+1)):
-                                        for lpt in range(lmax+1): #
-                                            for mpt in range(-lpt,lpt+1): #
-                                                # remaining mt index
-                                                mppt = -(mt+mpt)
-                                                lmin_mt = np.max([np.abs(lt - lpt), np.abs(mt + mpt)])
-                                                lmax_mt = lt + lpt
-                                            
-                                                for idxlt, lppt in enumerate(range(lmin_mt,lmax_mt+1)):
-                                                        
-                                                    if mp > 0: rmp_rglm = glm[hp.Alm.getidx(lmax,lp,mp)] 
-                                                    else: rmp_rglm = (-1)**mp*np.conj(glm[hp.Alm.getidx(lmax,lp,-mp)])
-                                                    if mpt > 0:rmpt_rgltmt = glm[hp.Alm.getidx(lmax,lpt,mpt)] 
-                                                    else: rmpt_rgltmt = (-1)**mpt*np.conj(glm[hp.Alm.getidx(lmax,lpt,-mpt)] )
-                                                    
-                                                    
-                                                    M_lm_lpmp[idx_lm,idx_ltmt] += (np.sum(self.dfreq_factor(freq,lpp,idx_b)*
-                                                    self.dfreq_factor(freq,lppt,idx_b)*weight)*df
-                                                    *(4*np.pi*(0.+1.j)**lpp*np.conj(sph_harm(mpp, lpp, theta_b[idx_b], phi_b[idx_b]))
-                                                    *rmp_rglm*self.coupK(lp,l,lpp,mp,m))*
-                                                    (4*np.pi*(0.+1.j)**lppt*np.conj(sph_harm(mppt, lppt, theta_b[idx_b], phi_b[idx_b]))
-                                                    *rmpt_rgltmt*self.coupK(lpt,lt,lppt,mpt,mt)))                                                    
-                                                    
-                                                    
-                                                   
-            #print M_lm_lpmp[idx_lm,idx_ltmt]                
-        #norm = np.abs(np.sum(np.abs(hit_lm)))
-        return M_lm_lpmp #hp.alm2map(scanned_lm/hits,nside,lmax=lmax)
-
-    # ********* Decorrelator *********    
 
     # ********* S(f) *********
 
