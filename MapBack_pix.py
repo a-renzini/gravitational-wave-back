@@ -1253,7 +1253,6 @@ class Telescope(object):
         '''WINDOWING & RFFTING.'''
         
         Nt = len(strain_in)
-        print Nt
         Nt = lf.bestFFTlength(Nt)
         strain_in = strain_in[:Nt]
         strain_in_cp = np.copy(strain_in)

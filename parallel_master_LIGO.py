@@ -191,14 +191,14 @@ map_in = comm.bcast(map_in, root=0)
 # if checkpoint = True make sure to start from end of checkpoint
 
 counter = 0         #counter = number of mins analysed
+start = 1126224017  #start = start time of O1 ...
 
 if checkpoint  == True:
     checkdata = np.load(checkfile_path)
-    counter = checkdata['counter']
-
-start = 1126224017  + np.int(60*counter) #O1 start GPS 1126051217
+    counter = checkdata['counter'] 
+    start = np.int(checkdata['checkstart'])  # ... start = checkpointed endtime
         
-stop  = 1129000000  #O1 end GPS     
+stop  = 1137254417  #O1 end GPS     
 
 
 ##########################################################################
@@ -266,6 +266,7 @@ if myid == 0:
     A_pp = 0.
     A_p = 0.
     conds = []
+    endtime = 0
     H1_PSD_fits = []
     L1_PSD_fits = []
     if checkpoint  == True:
@@ -275,7 +276,7 @@ if myid == 0:
         A_p += checkdata['A_p'] 
         A_pp += checkdata['A_pp'] 
         conds = checkdata['conds']          # keep appending to conds array
-        print 'we are at minute', counter   
+        print 'we are at minute', counter , 'with startime' , start   
    
 # (objs are empty for ID neq 0 ) 
 
@@ -477,9 +478,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 q_ns = run.geometry(my_ctime)[1]
                 pix_ns = run.geometry(my_ctime)[2]
             
-            
+                
+                ### NEW : KEEPING TRACK OF TIME
+                # print the start time and save the end time of each segment; will select the max_endtime
+                # to hand down to the checkfile
+                
                 print 'time: ', my_ctime[0]
-            
+                
+                my_endtime = my_ctime[-1]
             
                 # THIS IS IT: apply the projector() to the correlated data
                 # saving:
@@ -513,6 +519,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 M_p_pp_buffer = np.zeros_like(my_M_p_pp)   
                 A_pp_buffer = np.zeros_like(my_M_p_pp)
                 conds_array = np.zeros(nproc)
+                endtimes_array = np.zeros(nproc)
                 a_buffer = nproc * [0.,0.,0.]
                 pdx_H1 =  np.zeros_like(a_buffer)
                 pdx_L1 =  np.zeros_like(a_buffer)
@@ -526,6 +533,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 A_pp_buffer = None
                 A_p_buffer = None
                 conds_array = None
+                endtimes_array = None
                 pdx_H1 = None
                 pdx_L1 = None
                 b_buffer = None
@@ -542,13 +550,24 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 comm.Reduce(my_A_pp, A_pp_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_A_p, A_p_buffer, root = 0, op = MPI.SUM)
                 conds_array = comm.gather(cond, root = 0)
+                endtimes_array = comm.gather(my_endtime, root = 0)
                 pdx_H1 = comm.gather(psds[0],root = 0)
                 pdx_L1 = comm.gather(psds[1], root = 0)
                 b_buffer = comm.gather(pix_bs_up,root = 0) # saving the high res b_pixes to use in plots 
-
                 
-                if myid ==0: counter += nproc
+                
+                if myid ==0: 
+                    
+                    counter += nproc
+                    endtime = max(endtimes_array)
+                    
+                    from astropy.time import Time
+                    t = Time(endtime, format='unix')
+                    t = np.int(Time(t, format='gps').value)
+                    
+                    endtime = t
 
+                    
             else:
                 z_buffer += z_p
                 counter += 1
@@ -556,6 +575,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 A_pp_buffer += my_A_pp
                 A_p_buffer += my_A_p
                 conds.append(cond)
+                endtime = my_endtime
 
                 
             # LAST STEPS: 
@@ -609,7 +629,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 step = 1
                 
-                
                 if counter % (nproc*step) == 0 or checkpoint == True:    
                     
                     fits1 = 0.
@@ -631,15 +650,16 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # M_p_pp    "     beam-pattern
                     # A_p , A_pp "    norms 
                     # counter number of minutes analysed
+                    # checkstart is the max endtime of the run - will be the new start of the next one
                     # conds progressive conditions on M_p_pp 
                     # map_in input map for the simulated data 
                     
-                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp,counter = counter, conds = conds, map_in = map_in_save )
+                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save )
                     
                     #if counter % (nproc) == 0:
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp, counter = counter, conds = conds, map_in = map_in_save )
+                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save )
                         
-                    print 'saved dirty_map, clean_map and checkfile @ min', counter
+                    print 'saved dirty_map, clean_map and checkfile @ min', counter, 'with endtime', endtime
                   
                     
             #empty the lists to refill with other nproc segments
