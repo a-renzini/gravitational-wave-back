@@ -377,6 +377,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 my_ctime = ctime_nproc[my_idx[0]]
                 my_h1 = strain1_nproc[my_idx[0]]
                 my_l1 = strain2_nproc[my_idx[0]]
+                my_endtime = my_ctime[-1]
             
             
             
@@ -421,6 +422,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 avoid = True
                 psds[0] = np.array([ 0.,   0.,   0.])
                 psds[1] = np.copy(psds[0])
+            
                 
             if avoid is not True: 
                 
@@ -485,7 +487,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 print 'time: ', my_ctime[0]
                 
-                my_endtime = my_ctime[-1]
+                #my_endtime = my_ctime[-1]
             
                 # THIS IS IT: apply the projector() to the correlated data
                 # saving:
