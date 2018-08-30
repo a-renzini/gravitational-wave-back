@@ -675,14 +675,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
 
 # FINALE: WHEN WE REACH THE END OF THE RUN 
-
+print 'looks like its really over...! save the last dance.npz'
 if myid == 0:
+    
+    hp.fitsfunc.write_map('%s/S_p_last.fits' % out_path, S_p*1.e30) 
+    np.savez('%s/checkfile_last.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save )
 
-    hp.mollview(Z_p)
-    plt.savefig('%s/Z_p%s.pdf' % (out_path,counter))
-
-    hp.mollview(S_p)
-    plt.savefig('%s/S_p%s.pdf' % (out_path,counter))
     
 
     
