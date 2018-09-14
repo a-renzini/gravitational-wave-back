@@ -519,7 +519,7 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, data_run = 'O1'): #Dect list
+    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, alpha=3., f0=1., noise_lvl=1, data_run = 'O1'): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
@@ -533,6 +533,8 @@ class Telescope(object):
         self.low_f = low_f
         self.high_f = high_f
         
+        self.alpha = alpha
+        self.f0 = f0
         # ********* Fixed Setup Constants *********
 
         # Configuration: radians and metres, Earth-centered frame
@@ -1472,7 +1474,9 @@ class Telescope(object):
         mask = (freq>self.low_f) & (freq < self.high_f)
         freq = freq[mask]
         window = np.ones_like(freq)
-
+        
+        alpha = self.alpha
+        f0 = self.f0
 
         delf = self.fs/float(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         #geometry 
@@ -1510,20 +1514,20 @@ class Telescope(object):
             
             for ip in range(npix_out):
                 z_p[ip] += 8.*np.pi/npix_out * delf*np.sum(window[:] 
-                            * self.E_f(freq)[:]/ pf[:] * gammaI_rot_ud[ip]      ## minus sign? changed it to +
+                            * self.E_f(freq,alpha,f0)[:]/ pf[:] * gammaI_rot_ud[ip]      ## minus sign? changed it to +
                             *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))) 
                 
-                A_p[ip] +=  2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2
+                A_p[ip] +=  2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq,alpha,f0)[:]**2
                     * gammaI_rot_ud[ip] * gammaI_rot_ud[ip]*(np.cos((bdotp[ip]-bdotp[ip])*freq[:]) ))
                 
                 
                 for jp in range(ip,npix_out):
 
-                    val = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2/ pf[:]
+                    val = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq,alpha,f0)[:]**2/ pf[:]
                     * gammaI_rot_ud[ip] * gammaI_rot_ud[jp]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
                     M_pp[ip,jp] += val
                     
-                    val2 = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq)[:]**2
+                    val2 = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * self.E_f(freq,alpha,f0)[:]**2
                     * gammaI_rot_ud[ip] * gammaI_rot_ud[jp]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
                     A_pp[ip,jp] += val2
                     
