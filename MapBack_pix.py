@@ -758,7 +758,7 @@ class Telescope(object):
         return quatmap_rot_pix
 
     def E_f(self,f,alpha=3.,f0=1.):
-        return (f/f0)**(alpha-3.)
+        return (f/f0)**alpha/f**3.
     
     def coupK(self,l,lp,lpp,m,mp):
         return np.sqrt((2*l+1.)*(2*lp+1.)*(2*lpp+1.)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]
@@ -777,7 +777,10 @@ class Telescope(object):
         km_mpc = 3.086e+19 # km/Mpc conversion
         c = 3.e8 # speed of light 
         #fac = 8.*np.pi**3/3./H0**2 * km_mpc**2 * f**3*(f/f0)**(alpha-3.) * spherical_jn(ell, 2.*np.pi*f*b/c)
-        fac =  spherical_jn(ell, 2.*np.pi*(f)*b/c)*self.E_f(f)
+        alpha = self.alpha
+        f0 = self.f0
+        
+        fac =  spherical_jn(ell, 2.*np.pi*(f)*b/c)*self.E_f(f,alpha,f0)
         # add band pass and notches here
         
         return fac
@@ -1024,9 +1027,11 @@ class Telescope(object):
         # plt.savefig('test/map_poi_now.pdf' )
         # plt.close('all')
         #
+        alpha = self.alpha
+        f0 = self.f0
         
         for idx_f,f in enumerate(freqs):     #maybe E_f is squared?
-            df[idx_f] = 4.*np.pi/npix_in * delta_freq*np.sum(window[idx_f] * self.E_f(f) * gammaI_rot[:] * map_in[:]*(np.cos(bdotp_in[:]*f) + np.sin(bdotp_in[:]*f)*1.j)) 
+            df[idx_f] = 4.*np.pi/npix_in * delta_freq*np.sum(window[idx_f] * self.E_f(f,alpha,f0) * gammaI_rot[:] * map_in[:]*(np.cos(bdotp_in[:]*f) + np.sin(bdotp_in[:]*f)*1.j)) 
         
         return df
     

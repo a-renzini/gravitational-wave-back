@@ -122,6 +122,11 @@ sim = False
 low_f = 80.
 high_f = 300.
 
+
+# spectral shape of the GWB
+
+alpha = 0. 
+f0 = 100.
     
 # DETECTORS (should make this external input)
 
@@ -154,7 +159,7 @@ if myid == 0:
 # INITIALISE THE CLASS  ######################
 # args of class: nsides in/out; sampling frequency; freq cuts; declared detectors; the path of the checkfile; SNR level
 
-run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl)
+run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl,alpha,f0)
 
 ##############################################
 
