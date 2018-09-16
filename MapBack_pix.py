@@ -519,7 +519,7 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, alpha=3., f0=1., noise_lvl=1, data_run = 'O1'): #Dect list
+    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, alpha=3., f0=1., data_run = 'O1'): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
@@ -535,6 +535,7 @@ class Telescope(object):
         
         self.alpha = alpha
         self.f0 = f0
+
         # ********* Fixed Setup Constants *********
 
         # Configuration: radians and metres, Earth-centered frame
