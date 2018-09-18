@@ -761,12 +761,12 @@ class Telescope(object):
         return quatmap_rot_pix
 
     def E_f(self,f,alpha=3.,f0=1.):
-        return (f/f0)**alpha/f**3.
+        return (f/f0)**(alpha-3.)
     
     def coupK(self,l,lp,lpp,m,mp):
         return np.sqrt((2*l+1.)*(2*lp+1.)*(2*lpp+1.)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]
 
-    def dfreq_factor(self,f,ell,idx_base,H0=68.0,f0=100.):
+    def dfreq_factor(self,f,ell,idx_base,H0=68.0):
         # f : frequency (Hz)
         # ell : multipole
         # alpha: spectral index
