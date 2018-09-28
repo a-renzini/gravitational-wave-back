@@ -125,7 +125,7 @@ high_f = 300.
 
 # spectral shape of the GWB
 
-alpha = 0. 
+alpha = 2./3. 
 f0 = 100.
     
 # DETECTORS (should make this external input)
@@ -505,7 +505,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 z_p, my_M_p_pp, my_A_p, my_A_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
                 cond = np.linalg.cond(my_M_p_pp)
-            
+
+                
             # out of the loop: each proc has a personal set of dirty maps and beam-patterns
             # create buffers now to accumulate these operators
             
