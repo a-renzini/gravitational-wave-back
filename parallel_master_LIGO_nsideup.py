@@ -219,12 +219,6 @@ if myid == 0:
     segs_begin = list(segs_begin)
     segs_end = list(segs_end)
     
-    tot_time = sum(np.array(segs_end)-np.array(segs_begin))
-    tot_time /= 60.*60.*24.
-    
-    print tot_time
-    exit()
-    
     i = 0
     while i in np.arange(len(segs_begin)):
         delta = segs_end[i]-segs_begin[i]
