@@ -298,7 +298,7 @@ else:
     A_pp = None
     counter = 0
 
-# broadcast checkpointed input map to every proc 
+# broadcast checkpointed input map to every proc    
 
 if checkpoint == True:
     map_in = comm.bcast(map_in, root=0)   
@@ -446,7 +446,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 if myid == 0:
                     
-                    if analysed % (nproc*10): print 'analysed: ',  analysed, ' - avoided: ', avoided
+                    if analysed % (nproc*10) == 0: print 'analysed: ',  analysed, ' - avoided: ', avoided
                     
                 ################################################################
                 #
