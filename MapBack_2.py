@@ -1152,7 +1152,7 @@ class Telescope(object):
             
             #*******************
             
-            masxx = (frexx>low_f) & (frexx < (high_f+50.))
+            masxx = (frexx>low_f) & (frexx < (high_f+100.))
             
             frexx_cp = np.copy(frexx)
             Pxx_cp = np.copy(Pxx)
@@ -1179,11 +1179,15 @@ class Telescope(object):
             
             #print psd_params
             
-            if a < min or a > max: flags[idx_str] = True
+            if a < min or a > (max/2*1.5): flags[idx_str] = True
             if b < 2*min or b > 2*max: flags[idx_str] = True
-            if c < 2*min or c > 1200*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
+            if c < 2*min or c > 12000*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
+
+            #if a < min or a > (max): flags[idx_str] = True
+            #if c < 2*min or c > 2*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
+
             
-            if flags[idx_str] == True: print 'bad segment!  params', psd_params 
+            if flags[idx_str] == True: print 'bad segment!  params', psd_params, 'ctime', ct_split[0]
             #Norm
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
             # print norm
@@ -1193,18 +1197,22 @@ class Telescope(object):
             # exit()
             
             psd_params[0] = psd_params[0]*np.sqrt(norm) 
-            a = a*np.sqrt(norm)
-            
-            # s = int(1000*np.random.rand(1))
+            a = a*np.sqrt(norm*2.)      #ADDED THE SQRT 2!!!!
+             
+            # if flags[idx_str] == True:
+            #     s = int(ct_split[0])
             #
-            # plt.figure()
-            # plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
-            # plt.loglog(freqs[mask],self.PDX(freqs,np.sqrt(norm),1.,1.)[mask], label = 'theo pdx fit')
-            # plt.loglog(freqs[mask],self.PDX(freqs,a,b,c)[mask], label = 'notched pdx fit')
-            # plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
-            # plt.xlim(20.,1000.)
-            # plt.legend()
-            # plt.savefig('norm%s.pdf' % s)
+            #     plt.figure()
+            #     plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
+            #     plt.loglog(freqs[mask],self.PDX(freqs,np.sqrt(norm),1.,1.)[mask], label = 'theo pdx fit')
+            #     plt.loglog(freqs[mask],self.PDX(freqs,a,b,c)[mask], label = 'notched pdx fit')
+            #     plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
+            #     plt.xlim(20.,1000.)
+            #     plt.legend()
+            #     plt.savefig('norm%s.pdf' % s)
+            #
+            # if flags[idx_str] == True: exit()
+
             
             #
             # print norm
