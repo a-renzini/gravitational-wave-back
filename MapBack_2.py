@@ -43,10 +43,10 @@ def map_in_gauss(nside_in, noise_lvl):
     
     nside = nside_in
     
-    if noise_lvl == 1: alpha = 1.
-    elif noise_lvl == 2: alpha = 1.e-42
-    elif noise_lvl == 3: alpha = 1.e-43
-    elif noise_lvl == 4: alpha = 2.e-44
+    if noise_lvl == 1: beta = 1.
+    elif noise_lvl == 2: beta = 1.e-42
+    elif noise_lvl == 3: beta = 1.e-43
+    elif noise_lvl == 4: beta = 2.e-44
 
     
     lmax = nside/4
@@ -63,7 +63,7 @@ def map_in_gauss(nside_in, noise_lvl):
     #does synfast include the monopole?
     #realistic case: monopole should be larger then others, then dipole 1.e-2
     
-    return (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*alpha
+    return (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*beta
 
 class Generator(object):
     
@@ -608,12 +608,12 @@ class Telescope(object):
                 #Simulation tools
     
         self.noise_lvl = noise_lvl
-        self.alpha = 1.
+        self.beta = 1.
 
-        if noise_lvl == 1: alpha = 1.
-        elif noise_lvl == 2: alpha = 1.e-42
-        elif noise_lvl == 3: alpha = 1.e-43
-        elif noise_lvl == 4: alpha = 2.e-44
+        if noise_lvl == 1: beta = 1.
+        elif noise_lvl == 2: beta = 1.e-42
+        elif noise_lvl == 3: beta = 1.e-43
+        elif noise_lvl == 4: beta = 2.e-44
         
         
         self.alpha = alpha
@@ -633,7 +633,7 @@ class Telescope(object):
     def get_map_in(self, maptyp):
         
         nside = self._nside_in
-        alpha = self.alpha
+        beta = self.beta
         
         lmax = nside/2        #or not?
 
@@ -644,22 +644,22 @@ class Telescope(object):
             
         elif maptyp == '1pole':
             idx = hp.Alm.getidx(lmax,0,0)
-            alm[idx] = (1.+ 0.j)*alpha
+            alm[idx] = (1.+ 0.j)*beta
 
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
         elif maptyp == '2pole':
             idx = hp.Alm.getidx(lmax,1,1)
-            alm[idx] = (1.+ 0.j)*alpha
+            alm[idx] = (1.+ 0.j)*beta
             
             map_in = hp.alm2map(alm,nside=self._nside_in)
 
         elif maptyp == '2pole1':
             idx = hp.Alm.getidx(lmax,1,0)
-            alm[idx] = (1.+ 0.j)*alpha
+            alm[idx] = (1.+ 0.j)*beta
             
             idx = hp.Alm.getidx(lmax,1,1)
-            alm[idx] = (.58+ .73j)*alpha
+            alm[idx] = (.58+ .73j)*beta
             #idx = hp.Alm.getidx(lmax,1,1)
             #alm[idx] = 1.+ 0.j
             
@@ -667,21 +667,21 @@ class Telescope(object):
         
         elif maptyp == '4pole':
             idx = hp.Alm.getidx(lmax,2,2)
-            alm[idx] = (1.+ 0.j)*alpha
+            alm[idx] = (1.+ 0.j)*beta
             
             map_in = hp.alm2map(alm,nside=self._nside_in)
             
         elif maptyp == '8pole':
             idx = hp.Alm.getidx(lmax,3,3)
-            alm[idx] = (1.+ 0.j)*alpha
+            alm[idx] = (1.+ 0.j)*beta
             
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
         elif maptyp == '8pole1':
             idx = hp.Alm.getidx(lmax,3,3)
-            alm[idx] = (1.+ .72j)*alpha
+            alm[idx] = (1.+ .72j)*beta
             idx = hp.Alm.getidx(lmax,3,2)
-            alm[idx] = (.58+ .67j)*alpha
+            alm[idx] = (.58+ .67j)*beta
             
             map_in = hp.alm2map(alm,nside=self._nside_in)
         
@@ -712,7 +712,7 @@ class Telescope(object):
             planckmap = hp.sphtfunc.smoothing(planckmap,fwhm = fwhm)
             map_in = (hp.ud_grade(planckmap,nside_out = self._nside_in))
             max_in = max(map_in)
-            map_in = map_in/max_in*alpha
+            map_in = map_in/max_in*beta
         
         return map_in
         
@@ -761,6 +761,8 @@ class Telescope(object):
         return quatmap_rot_pix
 
     def E_f(self,f,alpha=3.,f0=1.):
+        print 'alpha', alpha, 'f0', f0
+        exit()
         return (f/f0)**(alpha-3.)
     
     def coupK(self,l,lp,lpp,m,mp):
@@ -1198,7 +1200,20 @@ class Telescope(object):
             
             psd_params[0] = psd_params[0]*np.sqrt(norm) 
             a = a*np.sqrt(norm*2.)      #ADDED THE SQRT 2!!!!
-             
+            
+            
+            # s = int(ct_split[0])
+            #
+            # plt.figure()
+            # plt.loglog(freqs[mask],hf_psd_data[mask], label = 'data')
+            # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
+            # plt.loglog(freqs[mask],self.PDX(freqs,np.sqrt(norm),1.,1.)[mask], label = 'theo pdx fit')
+            # plt.loglog(freqs[mask],self.PDX(freqs,a,b,c)[mask], label = 'notched pdx fit')
+            # #plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
+            # plt.xlim(20.,1000.)
+            # plt.legend()
+            # plt.savefig('norm%s.pdf' % s)
+            
             # if flags[idx_str] == True:
             #     s = int(ct_split[0])
             #
@@ -1507,6 +1522,8 @@ class Telescope(object):
         
         alpha = self.alpha
         f0 = self.f0
+        
+        print self.alpha
 
         delf = self.fs/float(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         #geometry 
@@ -1544,6 +1561,8 @@ class Telescope(object):
             
             df = strains[idx_b]
             pf = pows[idx_b][mask]
+            
+            print alpha
             
             Ef = self.E_f(freq,alpha,f0)
             
