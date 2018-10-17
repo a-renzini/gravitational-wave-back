@@ -616,9 +616,9 @@ class Telescope(object):
         elif noise_lvl == 4: beta = 2.e-44
         
         
-        self.alpha = alpha
+        self.beta = beta
         
-        print 'alpha is', self.alpha
+        print 'beta is', self.beta
 
         input_map = self.get_map_in(maptyp)
         self.map_in = input_map.copy()
