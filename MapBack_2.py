@@ -761,8 +761,8 @@ class Telescope(object):
         return quatmap_rot_pix
 
     def E_f(self,f,alpha=3.,f0=1.):
-        print 'alpha', alpha, 'f0', f0
-        exit()
+        #print 'alpha', alpha, 'f0', f0
+        #exit()
         return (f/f0)**(alpha-3.)
     
     def coupK(self,l,lp,lpp,m,mp):
@@ -1522,8 +1522,6 @@ class Telescope(object):
         
         alpha = self.alpha
         f0 = self.f0
-        
-        print self.alpha
 
         delf = self.fs/float(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         #geometry 
@@ -1561,8 +1559,6 @@ class Telescope(object):
             
             df = strains[idx_b]
             pf = pows[idx_b][mask]
-            
-            print alpha
             
             Ef = self.E_f(freq,alpha,f0)
             
