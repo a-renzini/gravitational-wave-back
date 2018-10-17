@@ -126,7 +126,7 @@ high_f = 500.
 # spectral shape of the GWB
 
 alpha = 3. 
-f0 = 100.
+f0 = 1.
     
 # DETECTORS (should make this external input)
 
@@ -441,7 +441,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # params [a,b,c] estimated above sampled at freqs. LENGTH = NUMBER OF DECTS
                 
                 psds_f = []
-           
+                                
                 for i in range(ndet):
                     psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2]))
             
@@ -455,7 +455,28 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         
                         strains_f.append(run.filter(strains[i], low_f,high_f,psds[i])[mask])
                         
-                    
+                        s = int(my_ctime[0])
+                        
+                                                
+                    # plt.figure()
+                    # plt.loglog(freqs[mask],np.abs(strains_f[0])**2, label = 'data')
+                    # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
+                    # plt.loglog(freqs[mask],psds_f[0][mask], label = 'notched pdx fit')
+                    # #plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
+                    # plt.xlim(20.,1000.)
+                    # plt.legend()
+                    # plt.savefig('norm1%s.pdf' % s)
+                    #
+                    # plt.figure()
+                    # plt.loglog(freqs[mask],np.abs(strains_f[1])**2, label = 'data')
+                    # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
+                    # plt.loglog(freqs[mask],psds_f[1][mask], label = 'notched pdx fit')
+                    # #plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
+                    # plt.xlim(20.,1000.)
+                    # plt.legend()
+                    # plt.savefig('norm2%s.pdf' % s)
+                    #
+                    # exit()
                     # ################
                     # s = int(1000*np.random.rand(1))
                     #
