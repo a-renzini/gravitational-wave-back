@@ -768,33 +768,33 @@ class Telescope(object):
     def coupK(self,l,lp,lpp,m,mp):
         return np.sqrt((2*l+1.)*(2*lp+1.)*(2*lpp+1.)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]
 
-    def dfreq_factor(self,f,ell,idx_base,H0=68.0):
-        # f : frequency (Hz)
-        # ell : multipole
-        # alpha: spectral index
-        # b: baseline length (m)
-        # f0: pivot frequency (Hz)
-        # H0: Hubble rate today (km/s/Mpc)
-        
-        b=self.baseline_length[idx_base]
-        
-
-        km_mpc = 3.086e+19 # km/Mpc conversion
-        c = 3.e8 # speed of light 
-        #fac = 8.*np.pi**3/3./H0**2 * km_mpc**2 * f**3*(f/f0)**(alpha-3.) * spherical_jn(ell, 2.*np.pi*f*b/c)
-        alpha = self.alpha
-        f0 = self.f0
-        
-        fac =  spherical_jn(ell, 2.*np.pi*(f)*b/c)*self.E_f(f,alpha,f0)
-        # add band pass and notches here
-        
-        return fac
-
-    def freq_factor(self,ell,alpha=3.,H0=68.0,f0=100.):
-        fmin=self.low_f
-        fmax=self.high_f
-        return integrate.quad(self.dfreq_factor,fmin,fmax,args=(ell))[0]
-    
+    # def dfreq_factor(self,f,ell,idx_base,H0=68.0):
+    #     # f : frequency (Hz)
+    #     # ell : multipole
+    #     # alpha: spectral index
+    #     # b: baseline length (m)
+    #     # f0: pivot frequency (Hz)
+    #     # H0: Hubble rate today (km/s/Mpc)
+    #
+    #     b=self.baseline_length[idx_base]
+    #
+    #
+    #     km_mpc = 3.086e+19 # km/Mpc conversion
+    #     c = 3.e8 # speed of light
+    #     #fac = 8.*np.pi**3/3./H0**2 * km_mpc**2 * f**3*(f/f0)**(alpha-3.) * spherical_jn(ell, 2.*np.pi*f*b/c)
+    #     alpha = self.alpha
+    #     f0 = self.f0
+    #
+    #     fac =  spherical_jn(ell, 2.*np.pi*(f)*b/c)*self.E_f(f,alpha,f0)
+    #     # add band pass and notches here
+    #
+    #     return fac
+    #
+    # def freq_factor(self,ell,alpha=3.,H0=68.0,f0=100.):
+    #     fmin=self.low_f
+    #     fmax=self.high_f
+    #     return integrate.quad(self.dfreq_factor,fmin,fmax,args=(ell))[0]
+    #
     def vec2azel(self,v1,v2):
         # calculate the viewing angle from location at v1 to v2
         # Cos(elevation+90) = (x*dx + y*dy + z*dz) / Sqrt((x^2+y^2+z^2)*(dx^2+dy^2+dz^2))
@@ -905,93 +905,7 @@ class Telescope(object):
 
         
                 
-# **************** Whitening Modules ***************
-
-    def iir_bandstops(self, fstops, fs, order=4):
-        """ellip notch filter
-        fstops is a list of entries of the form [frequency (Hz), df, df2f]                           
-        where df is the pass width and df2 is the stop width (narrower                              
-        than the pass width). Use caution if passing more than one freq at a time,                  
-        because the filter response might behave in ways you don't expect.
-        """
-        nyq = 0.5 * fs
-
-        # Zeros zd, poles pd, and gain kd for the digital filter
-        zd = np.array([])
-        pd = np.array([])
-        kd = 1
-
-        # Notches
-        for fstopData in fstops:
-            fstop = fstopData[0]
-            df = fstopData[1]
-            df2 = fstopData[2]
-            low = (fstop - df) / nyq
-            high = (fstop + df) / nyq
-            low2 = (fstop - df2) / nyq
-            high2 = (fstop + df2) / nyq
-            z, p, k = iirdesign([low,high], [low2,high2], gpass=1, gstop=6,
-                                ftype='ellip', output='zpk')
-            zd = np.append(zd,z)
-            pd = np.append(pd,p)
-
-        # Set gain to one at 100 Hz...better not notch there                                        
-        bPrelim,aPrelim = zpk2tf(zd, pd, 1)
-        outFreq, outg0 = freqz(bPrelim, aPrelim, 100/nyq)
-
-        # Return the numerator and denominator of the digital filter                                
-        b,a = zpk2tf(zd,pd,k)
-        return b, a
-    
-    def get_filter_coefs(self, fs, bandpass=False):
-    
-        # assemble the filter b,a coefficients:
-        coefs = []
-
-        # bandpass filter parameters
-        lowcut=20 #43
-        highcut=300 #260
-        order = 4
-
-        # Frequencies of notches at known instrumental spectral line frequencies.
-        # You can see these lines in the ASD above, so it is straightforward to make this list.
-        notchesAbsolute = np.array([14.0,34.70, 35.30, 35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.49, 510.02, 1009.99])
-        # exclude notch below lowcut
-        notchesAbsolute = notchesAbsolute[notchesAbsolute > lowcut]
-
-        # notch filter coefficients:
-        for notchf in notchesAbsolute:                      
-            bn, an = self.iir_bandstops(np.array([[notchf,1,0.1]]), fs, order=4)
-            coefs.append((bn,an))
-
-        # Manually do a wider notch filter around 510 Hz etc.          
-        bn, an = self.iir_bandstops(np.array([[510,200,20]]), fs, order=4)
-        #coefs.append((bn, an))
-
-        # also notch out the forest of lines around 331.5 Hz
-        bn, an = self.iir_bandstops(np.array([[331.5,10,1]]), fs, order=4)
-        #coefs.append((bn, an))
-
-        if bandpass:
-            # bandpass filter coefficients
-            # do bandpass as last filter
-            nyq = 0.5*fs
-            low = lowcut / nyq
-            high = highcut / nyq
-            bb, ab = butter(order, [low, high], btype='band')
-            coefs.append((bb,ab))
-    
-        return coefs
-
-    def filter_data(self, data_in,coefs):
-        data = data_in.copy()
-        for coef in coefs:
-            b,a = coef
-            # filtfilt applies a linear filter twice, once forward and once backwards.
-            # The combined filter has linear phase.
-            data = filtfilt(b, a, data)
-        return data
-        
+# **************** Whitening Modules *************** 
 
     def poissonify(self,map_in):
         norm = max(map_in)#/2.      #(such that: map/norm will have max value 2)
@@ -1192,14 +1106,13 @@ class Telescope(object):
             if flags[idx_str] == True: print 'bad segment!  params', psd_params, 'ctime', ct_split[0]
             #Norm
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
-            # print norm
             #
             # print np.mean(np.sqrt(hf_psd_data[mask]))/(abs(np.mean(np.real(hf_nowin)))+abs(np.mean(np.imag(hf_nowin))))
             #
-            # exit()
+
             
             psd_params[0] = psd_params[0]*np.sqrt(norm) 
-            a = a*np.sqrt(norm*2.)      #ADDED THE SQRT 2!!!!
+            a = a*np.sqrt(norm)      #ADD THE SQRT 2!!!!
             
             
             # s = int(ct_split[0])
@@ -1523,11 +1436,10 @@ class Telescope(object):
         alpha = self.alpha
         f0 = self.f0
 
-        delf = self.fs/float(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
+        #delf = self.fs/float(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         #geometry 
-        
+        delf = freq[1]-freq[0]
         # print delf, freq[1]-freq[0]
-        # exit()
         
         npix_out = self.npix_out
         npix_in = self.npix_in
@@ -1568,9 +1480,9 @@ class Telescope(object):
                             * Ef[:]/ pf[:] * gammaI_rot_ud[ip]      ## minus sign? changed it to +
                             *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))) 
                 
-                A_p[ip] += 8.*np.pi/npix_out * delf*np.sum(window[:] 
-                            * Ef[:] * gammaI_rot_ud[ip]      ## minus sign? changed it to +
-                            *(np.cos(bdotp[ip]*freq[:]) )) 
+                # A_p[ip] += 8.*np.pi/npix_out * delf*np.sum(window[:]
+                #             * Ef[:] * gammaI_rot_ud[ip]      ## minus sign? changed it to +
+                #             *(np.cos(bdotp[ip]*freq[:]) ))
                 
                 #A_p[ip] +=  2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * Ef[:]**2
                 #    * gammaI_rot_ud[ip] * gammaI_rot_ud[ip]*(np.cos((bdotp[ip]-bdotp[ip])*freq[:]) ))
@@ -1582,13 +1494,13 @@ class Telescope(object):
                     * gammaI_rot_ud[ip] * gammaI_rot_ud[jp]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
                     M_pp[ip,jp] += val
                     
-                    val2 = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * Ef[:]**2
-                    * gammaI_rot_ud[ip] * gammaI_rot_ud[jp]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
-                    A_pp[ip,jp] += val2
+                    #val2 = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.sum(window[:]**2 * Ef[:]**2
+                    #* gammaI_rot_ud[ip] * gammaI_rot_ud[jp]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) ))
+                    #A_pp[ip,jp] += val2
                     
                     if ip!= jp : 
                         M_pp[jp,ip] += val
-                        A_pp[jp,ip] += val2
+                        #A_pp[jp,ip] += val2
         
         
         #pprint A_p
