@@ -119,14 +119,16 @@ sim = False
 
 # frequency cuts (integrate over this range)
                                                                                                           
-low_f = 80.
-high_f = 300.
+low_f = 30.
+high_f = 500.
 
 
 # spectral shape of the GWB
 
 alpha = 3. 
 f0 = 100.
+
+print 'Delta f: ', [low_f, high_f], 'spectral idx and ref freq: ', [alpha,f0] 
     
 # DETECTORS (should make this external input)
 
