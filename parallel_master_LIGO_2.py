@@ -126,7 +126,7 @@ high_f = 500.
 # spectral shape of the GWB
 
 alpha = 3. 
-f0 = 1.
+f0 = 100.
     
 # DETECTORS (should make this external input)
 
