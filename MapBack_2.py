@@ -922,7 +922,7 @@ class Telescope(object):
     def simbase(self,freqs,q_n,pix_b,nbase,poi = False):
         
         npix_in = hp.nside2npix(self._nside_in)
-        delta_freq = 1.*self.fs/len(freqs)
+        delta_freq = f[1] - f[0] #1.*self.fs/len(freqs)
         window = np.ones_like(freqs)    #might make sense with a window =/ box
         rot_m_array = self.rotation_pix(np.arange(npix_in), q_n)
         gammaI_rot = self.gammaI[nbase][rot_m_array]
