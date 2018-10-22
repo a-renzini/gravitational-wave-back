@@ -1193,7 +1193,7 @@ class Telescope(object):
             notch_fs = np.array([14.0,34.70, 35.30, 35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.49, 510.02, 1009.99])
         
         if self.data_run == 'O1':#34.70, 35.30,  #LIVNGSTON: 33.7 34.7 35.3 
-            notch_fs = np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 510.02,  1009.99])
+            notch_fs = np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 499.0, 500.0, 510.02,  1009.99])
         
         return notch_fs
         
@@ -1203,7 +1203,7 @@ class Telescope(object):
             sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,5.,1.,1.])
         
         if self.data_run == 'O1':
-            sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,2.,1.,1.])    
+            sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,2.,2.,2.,1.])    
             
         return sigma_fs
         #np.array([0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.5,0.3,0.2])
@@ -1270,14 +1270,6 @@ class Telescope(object):
         gauss_hi = self.halfgaussian(pixels,high_f*samp_hz,samp_hz)
 
         hf_nbped = hf_nowin*(1.-gauss_lo)*(gauss_hi)            ####
-
-        # plt.figure()
-        # plt.loglog(freqs[mask],np.abs(hf_nbped[mask])**2)
-        # plt.loglog(freqs[mask],len(freqs[mask])*[np.mean((np.abs(hf_nbped[mask])**2))],color = 'r')
-        # plt.savefig('hf_nbped.pdf' )
-        # plt.close('all')
-        #
-        # exit()
         
         return hf_nowin#, hf_psd
         
