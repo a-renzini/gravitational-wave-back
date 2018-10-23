@@ -16,7 +16,6 @@ from camb.bispectrum import threej
 import quat_rotation as qr
 from scipy.optimize import curve_fit
 import OverlapFunctsSrc as ofs
-import stokefields as sfs
 from numpy import cos,sin
 from matplotlib import cm
 
@@ -63,7 +62,7 @@ def map_in_gauss(nside_in, noise_lvl):
     #does synfast include the monopole?
     #realistic case: monopole should be larger then others, then dipole 1.e-2
     
-    return (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True)).flatten())*beta
+    return (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True, verbose = False)).flatten())*beta
 
 class Generator(object):
     
@@ -123,7 +122,7 @@ class Generator(object):
             idx = hp.Alm.getidx(self.lmax,l,abs(m))
             self.a_lm[idx] = 1. 
         
-        Istoke = hp.sphtfunc.alm2map(self.a_lm, nside)
+        Istoke = hp.sphtfunc.alm2map(self.a_lm, nside, verbose= False)
             
             
     def get_a_lm(self):
@@ -589,8 +588,8 @@ class Telescope(object):
             self.latMid[i], self.lonMid[i], self.azMid[i] = self.midpoint(self.detectors[a].lat(),self.detectors[a].lon(),self.detectors[b].lat(),self.detectors[b].lon())
         # gamma functs
                 
-        np.savez('baseline_lengths.npz', baseline_length = self.baseline_length, dects = dects, combos = self.combo_tuples )
-        print 'saved baseline_lengths.npz'
+        #np.savez('baseline_lengths.npz', baseline_length = self.baseline_length, dects = dects, combos = self.combo_tuples )
+        #print 'saved baseline_lengths.npz'
         
         self.npix_in = hp.nside2npix(self._nside_in)
         self.npix_out = hp.nside2npix(self._nside_out)
@@ -618,8 +617,8 @@ class Telescope(object):
         
         self.beta = beta
         
-        print 'beta is', self.beta
-
+        #print 'beta is', self.beta
+        
         input_map = self.get_map_in(maptyp)
         self.map_in = input_map.copy()
         
@@ -640,19 +639,19 @@ class Telescope(object):
         alm = np.zeros(hp.Alm.getidx(lmax,lmax,lmax)+1,dtype=np.complex)
         
         if maptyp == None: 
-            map_in = hp.alm2map(alm,nside=self._nside_in)
+            map_in = hp.alm2map(alm,nside=self._nside_in,verbose = False)
             
         elif maptyp == '1pole':
             idx = hp.Alm.getidx(lmax,0,0)
             alm[idx] = (1.+ 0.j)*beta
 
-            map_in = hp.alm2map(alm,nside=self._nside_in)
+            map_in = hp.alm2map(alm,nside=self._nside_in,verbose = False)
         
         elif maptyp == '2pole':
             idx = hp.Alm.getidx(lmax,1,1)
             alm[idx] = (1.+ 0.j)*beta
             
-            map_in = hp.alm2map(alm,nside=self._nside_in)
+            map_in = hp.alm2map(alm,nside=self._nside_in,verbose = False)
 
         elif maptyp == '2pole1':
             idx = hp.Alm.getidx(lmax,1,0)
@@ -663,19 +662,19 @@ class Telescope(object):
             #idx = hp.Alm.getidx(lmax,1,1)
             #alm[idx] = 1.+ 0.j
             
-            map_in = hp.alm2map(alm,nside=self._nside_in)
+            map_in = hp.alm2map(alm,nside=self._nside_in,verbose = False)
         
         elif maptyp == '4pole':
             idx = hp.Alm.getidx(lmax,2,2)
             alm[idx] = (1.+ 0.j)*beta
             
-            map_in = hp.alm2map(alm,nside=self._nside_in)
+            map_in = hp.alm2map(alm,nside=self._nside_in,verbose = False)
             
         elif maptyp == '8pole':
             idx = hp.Alm.getidx(lmax,3,3)
             alm[idx] = (1.+ 0.j)*beta
             
-            map_in = hp.alm2map(alm,nside=self._nside_in)
+            map_in = hp.alm2map(alm,nside=self._nside_in,verbose = False)
         
         elif maptyp == '8pole1':
             idx = hp.Alm.getidx(lmax,3,3)
@@ -683,7 +682,7 @@ class Telescope(object):
             idx = hp.Alm.getidx(lmax,3,2)
             alm[idx] = (.58+ .67j)*beta
             
-            map_in = hp.alm2map(alm,nside=self._nside_in)
+            map_in = hp.alm2map(alm,nside=self._nside_in,verbose = False)
         
         elif maptyp == 'gauss':
             map_file = np.load('%s/map_in%s.npz' % (self.this_path,self.noise_lvl))
@@ -709,7 +708,7 @@ class Telescope(object):
         elif maptyp == 'planck' or maptyp == 'planck_poi':
             fwhm = 5*np.pi/180.
             planckmap = hp.read_map('%s/COM_CompMap_dust-commander_0256_R2.00.fits' % self.this_path)
-            planckmap = hp.sphtfunc.smoothing(planckmap,fwhm = fwhm)
+            planckmap = hp.sphtfunc.smoothing(planckmap,fwhm = fwhm, verbose = False)
             map_in = (hp.ud_grade(planckmap,nside_out = self._nside_in))
             max_in = max(map_in)
             map_in = map_in/max_in*beta
@@ -858,7 +857,7 @@ class Telescope(object):
         
         #returns the baseline pixel p and the boresight quaternion q_n
         nside = self._nside_in*8
-        print 'nside for bpix is: ' , nside
+        #print 'nside for bpix is: ' , nside
         mid_idx = int(len(ct_split)/2)
         
         q_b = []
@@ -1287,8 +1286,8 @@ class Telescope(object):
         # 1970-1-1 in UTC defines epoch of unix time 
         epoch = dt.datetime.utcfromtimestamp(0).replace(tzinfo=pytz.utc)
 
-        print (utc_start - epoch).total_seconds()
-        print (utc_stop - epoch).total_seconds()
+        #print (utc_start - epoch).total_seconds()
+        #print (utc_stop - epoch).total_seconds()
 
         # get segments with required flag level
         segs_H1_cat1 = rl.getsegs(start, stop, 'H1',flag = 'CBC_CAT1', filelist=filelist)   #'STOCH_CAT1'
@@ -1380,7 +1379,7 @@ class Telescope(object):
             #print len(zipped_ct),len(zipped_ct[0]), len(zipped_ct[0][0])
             #ctime_out = zipped_ct.reshape((2*len(ctime_over),len(ctime_seg[0])))
             
-            print len(ctime_seg), len(ctime_seg[1])
+            #print len(ctime_seg), len(ctime_seg[1])
             
             #zipped_h = np.array(zip(strain_H1_seg[:-1],strain_H1_over))
             #strain_H1_out = zipped_h.reshape(-1, zipped_h.shape[-1])
@@ -1449,7 +1448,7 @@ class Telescope(object):
         
         for idx_b in range(self._nbase):
             
-            print idx_b
+            #print idx_b
 
             rot_m_array = self.rotation_pix(np.arange(npix_in), q_n[idx_b])  
             gammaI_rot = self.gammaI[idx_b][rot_m_array]
@@ -1527,7 +1526,7 @@ class Telescope(object):
         
         #just a summer wrapper really
         
-        print 'proj run'
+        #print 'proj run'
             
         nside=self._nside_out
         
