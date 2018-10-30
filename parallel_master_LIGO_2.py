@@ -336,38 +336,46 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     # ID = 0 segments the data
 
     if myid == 0:
+        
         ctime, strain_H1, strain_L1 = run.segmenter(begin,end,filelist)
-    
+        len_ctime = len(ctime)
+        
     else: 
         ctime = None
         strain_H1 = None
         strain_L1 = None
+        len_ctime = None
+        len_ctime_nproc = None
  
     # then each ID neq zero gets a copy
     
-    ctime = comm.bcast(ctime, root=0)
-    strain_H1 = comm.bcast(strain_H1, root=0)
-    strain_L1 = comm.bcast(strain_L1, root=0)
+    len_ctime = comm.bcast(len_ctime, root=0)
+    #strain_H1 = comm.bcast(strain_H1, root=0)
+    #strain_L1 = comm.bcast(strain_L1, root=0)
     
     
-    if len(ctime)<2 : continue      #discard short segments (may up this to ~10 mins)
+    if len_ctime<2 : continue      #discard short segments (may up this to ~10 mins)
     
     
     #idx_block: keep track of how many mins we're handing out
     
     idx_block = 0
 
-    while idx_block < len(ctime):
+    while idx_block < len_ctime:
         
         # accumulate ctime, strain arrays of length exactly nproc 
         
+        if myid == 0:
+            ctime_nproc.append(ctime[idx_block])
+            strain1_nproc.append(strain_H1[idx_block])
+            strain2_nproc.append(strain_L1[idx_block])
+            
+            len_ctime_nproc = len(ctime_nproc)
+        # iminutes % nprocs == rank
         
-        ctime_nproc.append(ctime[idx_block])
-        strain1_nproc.append(strain_H1[idx_block])
-        strain2_nproc.append(strain_L1[idx_block])
+        len_ctime_nproc = comm.bcast(len_ctime_nproc, root=0)
         
-        
-        if len(ctime_nproc) == nproc:   # when you hit nproc start itearation
+        if len_ctime_nproc == nproc:   # when you hit nproc start itearation
             
             # create personal proc empty objects:
             
@@ -399,11 +407,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             if ISMPI:
                 my_idx = comm.scatter(my_idx)
-                my_ctime = ctime_nproc[my_idx[0]]
-                my_h1 = strain1_nproc[my_idx[0]]
-                my_l1 = strain2_nproc[my_idx[0]]
+                my_ctime = comm.scatter(ctime_nproc)#ctime_nproc[my_idx[0]]
+                my_h1 = comm.scatter(strain1_nproc)
+                my_l1 = comm.scatter(strain2_nproc)
                 my_endtime = my_ctime[-1]
-            
             
             
             ########################### data  massage 3  #################################
