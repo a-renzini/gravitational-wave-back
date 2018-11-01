@@ -490,7 +490,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             PSD1_totset.append(PSD1_mean)            
             PSD2_totset.append(PSD2_mean)            
             
-            np.savez('PSDS_meaned.npz', PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset)
+            np.savez('PSDS_meaned.npz', PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = ctime_idx[-1])
             
             minute = 0
             
