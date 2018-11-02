@@ -574,7 +574,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     endtime = np.max(endtimes_buff)
                     
-                    if minute % (nproc) == 0: 
+                    if minute % (nproc*15) == 0: 
                     
                         print 'analysed:', minute, 'minutes'
                         np.savez('%s/PSDS_meaned.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime)
