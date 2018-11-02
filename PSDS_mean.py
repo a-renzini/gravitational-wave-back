@@ -577,7 +577,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     if minute % (nproc) == 0: 
                     
                         print 'analysed:', minute, 'minutes'
-                        np.savez('PSDS_meaned.npz', PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime)
+                        np.savez('%s/PSDS_meaned.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime)
                     
             ctime_nproc = []
             strain1_nproc = []
