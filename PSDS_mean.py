@@ -608,10 +608,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         norms.append(norms_buff)
                         params.append(params_buff)
                         
-                        print norms, params, endtimes
-                        
-                        exit()
-                        
                     
                     endtime = np.max(endtimes_buff)
                     
