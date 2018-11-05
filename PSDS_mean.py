@@ -89,6 +89,7 @@ noise_lvl = 1
 noise_lvl = int(noise_lvl)
 this_path = out_path
 
+FULL_DESC = True
 
 # poisson masked "flickering" map
 
@@ -139,13 +140,24 @@ if myid == 0:
 
     PSD1_totset = []
     PSD2_totset = []
-
+    
+    if FULL_DESC == True:
+        
+        params = []
+        norms = []
+        endtimes = []
+        
     minute = 0
 
 else:
     
     PSD1_totset = None
     PSD2_totset = None
+    
+    if FULL_DESC == True:
+        
+        PSD_params = None
+        norms = None
 
     minute = None
 
@@ -186,6 +198,7 @@ avoided = 0
 ctime_nproc = []
 strain1_nproc = []
 strain2_nproc = []
+
 
 # GAUSSIAN SIM. INPUT MAP CASE: make sure that the background map isn't re-simulated between scans, 
 # and between checkfiles 
@@ -417,7 +430,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             #print 'norm: ' , norm
 
-            psd_params[0] = psd_params[0]*np.sqrt(norm) 
+            #psd_params[0] = psd_params[0] 
     
             flag1 = False
     
@@ -437,7 +450,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         
                 fr_psd_1 = Pdx_nanner(frexx_cp,hf_psd(frexx_cp))
                 fr_psd_1 = fr_psd_1[1]*norm
-    
+                norm1 = norm
+                params1 = psd_params
 
             strain_in_2 = strains[1]
     
@@ -537,7 +551,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                 fr_psd_2 = Pdx_nanner(frexx_cp,hf_psd(frexx_cp))  
                 fr_psd_2 = fr_psd_2[1]*norm          
-        
+                norm2 = norm
+                params2 = psd_params
             #print 'analysed:', minute, 'minutes'
             
             if myid == 0:
@@ -547,6 +562,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 endtimes_buff = nproc *[0]
                 endtime = 0                
                 
+                if FULL_DESC == True:
+                    
+                    norms_buff = nproc *[0]
+                    params_buff = nproc * [np.zeros_like(psd_params)]
+                
                 minute += nproc
                 
             else: 
@@ -554,7 +574,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 PSD1_setbuf = None
                 PSD2_setbuf = None
                 endtimes_buff = None
-                endtime = None                
+                endtime = None   
+                
+                if FULL_DESC == True:
+                    
+                    norms_buff = None
+                    params_buff = None 
             
             if ISMPI: 
                                 
@@ -564,6 +589,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 PSD2_setbuf = comm.gather(fr_psd_2,root = 0)
                 endtimes_buff = comm.gather(ctime_idx[0],root = 0)
                 
+                if FULL_DESC == True:
+                    
+                    norms_buff = comm.gather(norm1, root = 0)
+                    params_buff = comm.gather(params1, root = 0)
+                
                 if myid == 0:
                     
                     PSD1_mean = np.mean(PSD1_setbuf, axis = 0)
@@ -572,7 +602,17 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     PSD1_totset.append(PSD1_mean)            
                     PSD2_totset.append(PSD2_mean)                                    
                     
+                    if FULL_DESC == True:
+                        
+                        endtimes.append(endtimes_buff)
+                        norms.append(norms_buff)
+                        params.append(params_buff)
+                        
+                        print norms, params
+
+                    
                     endtime = np.max(endtimes_buff)
+                    
                     
                     if minute % (nproc*15) == 0: 
                     
