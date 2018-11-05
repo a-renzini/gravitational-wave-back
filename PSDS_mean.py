@@ -180,8 +180,8 @@ sim = False
 
 # frequency cuts (integrate over this range)
                                                                                                           
-low_f = 30.
-high_f = 500.
+low_f = 80.
+high_f = 300.
 
 # spectral shape of the GWB
 
@@ -427,6 +427,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             max = 1.9
 
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
+            #print psd_params
+            #print 'norm: ' , norm
 
             #print 'norm: ' , norm
 
@@ -528,9 +530,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             max = 1.9
 
             norm = np.mean(hf_psd_data_2[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
-    
-            #print 'norm: ' , norm
-    
+            
             psd_params[0] = psd_params[0]*np.sqrt(norm) 
     
             flag2 = False
@@ -608,8 +608,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         norms.append(norms_buff)
                         params.append(params_buff)
                         
-                        print norms, params
-
+                        print norms, params, endtimes
+                        
+                        exit()
+                        
                     
                     endtime = np.max(endtimes_buff)
                     
