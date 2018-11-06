@@ -145,6 +145,8 @@ if myid == 0:
         
         params = []
         norms = []
+        normsl = []
+        paramsl = []
         endtimes = []
         
     minute = 0
@@ -158,6 +160,8 @@ else:
         
         PSD_params = None
         norms = None
+        normsl = None
+        paramsl = None
 
     minute = None
 
@@ -219,8 +223,8 @@ run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_pat
 # if checkpoint = True make sure to start from end of checkpoint
 
 counter = 0         #counter = number of mins analysed
-start = 1134035217 #1126224017  #start = start time of O1 ...    1450000000  
-stop  = 1136254417 #1127224017       #1137254417  #O1 end GPS     
+start = 1126224017  #start = start time of O1 ...    1450000000  #1134035217 probs
+stop  = 1137254417 #1127224017       #1137254417  #O1 end GPS     
 
 
 ##########################################################################
@@ -344,7 +348,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             strain_in_1 = strains[0] 
             
-            print strain_in_1
+            #print strain_in_1
             
             fs=4096       
             dt=1./fs
@@ -367,7 +371,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             hf_halin = np.fft.rfft(strain_in_cp, n=Nt, norm = 'ortho') 
             hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
             
-            print hf_nowin
+            #print hf_nowin
             
             # print 'lens', len(hf_halin), len(hf_nowin)
             # print 'means', np.mean(hf_halin), np.mean(hf_nowin)
@@ -384,6 +388,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             fstar = fs
             
             Pxx, frexx = mlab.psd(strain_in_nowin, Fs=fs, NFFT=2*fstar,noverlap=fstar/2,window=np.blackman(2*fstar),scale_by_freq=False)
+            
             hf_psd = interp1d(frexx,Pxx)
             hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())) 
 
@@ -436,9 +441,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
             
-            np.savez('problematic.npz', h1=strain1 )
+            #np.savez('problematic.npz', h1=strain1 )
             
-            norm2 = np.mean(hf_psd_data[mask2])/np.mean(hf_psd(freqs)[mask2])
+            norm_s = np.mean(hf_psd_data[mask2])/np.mean(hf_psd(freqs)[mask2])
             
             # plt.figure()
             # plt.loglog(hf_psd_data[mask])
@@ -447,7 +452,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             
             print psd_params
-            print 'norm: ' , norm, norm2
+            print 'norm: ' , norm, norm_s
             
             
             #print 'norm: ' , norm
@@ -461,6 +466,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             if c < 2*min or c > 12000*max: flag1 = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
 
             if norm > 3000. : flag1 = True
+            if norm_s > 3000. : flag1 = True
 
             #if a < min or a > (max): flags[idx_str] = True
             #if c < 2*min or c > 2*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
@@ -472,7 +478,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         
                 fr_psd_1 = Pdx_nanner(frexx_cp,hf_psd(frexx_cp))
                 fr_psd_1 = fr_psd_1[1]*norm
-                norm1 = norm
+                norm1 = norm_s
                 params1 = psd_params
 
             strain_in_2 = strains[1]
@@ -551,6 +557,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             norm = np.mean(hf_psd_data_2[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
             
+            norm_s = np.mean(hf_psd_data[mask2])/np.mean(hf_psd(freqs)[mask2])
+            
             psd_params[0] = psd_params[0]*np.sqrt(norm) 
     
             flag2 = False
@@ -560,6 +568,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             if c < 2*min or c > 12000*max: flag2 = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
     
             if norm > 3000. : flag2 = True
+            if norm_s > 3000. : flag2 = True
 
         
     
@@ -571,7 +580,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                 fr_psd_2 = Pdx_nanner(frexx_cp,hf_psd(frexx_cp))  
                 fr_psd_2 = fr_psd_2[1]*norm          
-                norm2 = norm
+                norm2 = norm_s
                 params2 = psd_params
             #print 'analysed:', minute, 'minutes'
             
@@ -600,6 +609,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     norms_buff = None
                     params_buff = None 
+                    normsl_buff = None
+                    paramsl_buff = None 
             
             if ISMPI: 
                                 
@@ -613,7 +624,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     norms_buff = comm.gather(norm1, root = 0)
                     params_buff = comm.gather(params1, root = 0)
-                
+                    normsl_buff = comm.gather(norm2, root = 0)
+                    paramsl_buff = comm.gather(params2, root = 0)
+                    
                 if myid == 0:
                     
                     PSD1_mean = np.mean(PSD1_setbuf, axis = 0)
@@ -627,7 +640,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         endtimes.append(endtimes_buff)
                         norms.append(norms_buff)
                         params.append(params_buff)
-                        
+                        normsl.append(normsl_buff)
+                        paramsl.append(paramsl_buff)                        
                     
                     endtime = np.max(endtimes_buff)
                     
@@ -641,7 +655,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         
                         if FULL_DESC == True:
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms)
+                            np.savez('%s/PSDS_meaned.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl)
                             
             ctime_nproc = []
             strain1_nproc = []
