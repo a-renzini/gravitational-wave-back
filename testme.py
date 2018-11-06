@@ -19,9 +19,9 @@ import OverlapFunctsSrc as ofs
 from numpy import cos,sin
 from matplotlib import cm
 
-file = np.load('strain_h1.npz')
+file = np.load('problematic.npz')
 
-h1 = file['strain']
+h1 = file['h1']
 Nt = len(h1)
 h1 *= signal.tukey(Nt,alpha=0.05)
 
