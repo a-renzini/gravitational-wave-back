@@ -366,7 +366,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             freqshal = np.fft.rfftfreq(Nt, dt)
             hf_halin = np.fft.rfft(strain_in_cp, n=Nt, norm = 'ortho') 
             hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
-
+            
+            print hf_nowin
+            
             # print 'lens', len(hf_halin), len(hf_nowin)
             # print 'means', np.mean(hf_halin), np.mean(hf_nowin)
             # print 'lens', len(hf_halin), len(hf_nowin)
@@ -441,6 +443,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             print psd_params
             print 'norm: ' , norm
+            
+            exit()
             
             #print 'norm: ' , norm
 
