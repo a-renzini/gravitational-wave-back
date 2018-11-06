@@ -219,8 +219,8 @@ run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_pat
 # if checkpoint = True make sure to start from end of checkpoint
 
 counter = 0         #counter = number of mins analysed
-start = 1126224017  #start = start time of O1 ...      
-stop  = 1127224017       #1137254417  #O1 end GPS     
+start = 1134035217 #1126224017  #start = start time of O1 ...    1450000000  
+stop  = 1136254417 #1127224017       #1137254417  #O1 end GPS     
 
 
 ##########################################################################
@@ -444,7 +444,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             print psd_params
             print 'norm: ' , norm
             
-            exit()
             
             #print 'norm: ' , norm
 
