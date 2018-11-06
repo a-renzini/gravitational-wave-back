@@ -98,12 +98,12 @@ poi = False
 # if declared from shell, load checkpoint file 
 
 try:
-    sys.argv[5]
+    sys.argv[3]
 except (NameError, IndexError):
     checkpoint = False
 else:
     checkpoint = True
-    checkfile_path = sys.argv[5]
+    checkfile_path = sys.argv[3]
 
     
 ###############                                                                                                               
