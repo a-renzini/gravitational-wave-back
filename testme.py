@@ -46,10 +46,10 @@ hf_psd_data = abs(hf.copy()*np.conj(hf.copy()))
 mask = (freqs>low_f) & (freqs < high_f)
 mask2 = (freqs>80.) & (freqs < 300.)
 
-plt.figure()
-plt.loglog(hf_psd_data[mask])
-plt.loglog(hf_psd(freqs)[mask])
-plt.savefig('compare.pdf')
+#plt.figure()
+#plt.loglog(hf_psd_data[mask])
+#plt.loglog(hf_psd(freqs)[mask])
+#plt.savefig('compare.pdf')
 
 
 norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])
