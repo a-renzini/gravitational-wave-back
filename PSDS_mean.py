@@ -232,7 +232,6 @@ if myid == 0:
     segs_begin, segs_end = run.flagger(start,stop,filelist)
     segs_begin = list(segs_begin)
     segs_end = list(segs_end)
-    print segs_begin
 
 
     i = 0
@@ -356,6 +355,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             strain_in = strain_in_1[:Nt]
             strain_in_cp = np.copy(strain_in)
+            
+            
             strain_in_nowin = np.copy(strain_in)
             strain_in_nowin *= signal.tukey(Nt,alpha=0.05)
             strain_in_cp *= signal.tukey(Nt,alpha=0.05)
