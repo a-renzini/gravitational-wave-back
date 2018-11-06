@@ -98,12 +98,12 @@ poi = False
 # if declared from shell, load checkpoint file 
 
 try:
-    sys.argv[3]
+    sys.argv[5]
 except (NameError, IndexError):
     checkpoint = False
 else:
     checkpoint = True
-    checkfile_path = sys.argv[3]
+    checkfile_path = sys.argv[5]
 
     
 ###############                                                                                                               
@@ -220,7 +220,7 @@ run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_pat
 
 counter = 0         #counter = number of mins analysed
 start = 1126224017  #start = start time of O1 ...      
-stop  = 1137254417  #O1 end GPS     
+stop  = 1127224017       #1137254417  #O1 end GPS     
 
 
 ##########################################################################
@@ -343,7 +343,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
 
             strain_in_1 = strains[0] 
-
+            
+            print strain_in_1
+            
             fs=4096       
             dt=1./fs
 
@@ -355,7 +357,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             strain_in = strain_in_1[:Nt]
             strain_in_cp = np.copy(strain_in)
-            
             
             strain_in_nowin = np.copy(strain_in)
             strain_in_nowin *= signal.tukey(Nt,alpha=0.05)
@@ -379,7 +380,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
 
             fstar = fs
-
+            
             Pxx, frexx = mlab.psd(strain_in_nowin, Fs=fs, NFFT=2*fstar,noverlap=fstar/2,window=np.blackman(2*fstar),scale_by_freq=False)
             hf_psd = interp1d(frexx,Pxx)
             hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())) 
@@ -430,9 +431,17 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             max = 1.9
 
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
+            
+            
+            # plt.figure()
+            # plt.loglog(hf_psd_data[mask])
+            # plt.loglog(hf_psd(freqs)[mask])
+            # plt.savefig('compare_mean.pdf')
+
+            
             print psd_params
             print 'norm: ' , norm
-
+            
             #print 'norm: ' , norm
 
             #psd_params[0] = psd_params[0] 
