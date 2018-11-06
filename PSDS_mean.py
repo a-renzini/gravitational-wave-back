@@ -228,9 +228,11 @@ stop  = 1137254417  #O1 end GPS
 ########################### data  massage  #################################
 
 if myid == 0:
+    print 'flagging'
     segs_begin, segs_end = run.flagger(start,stop,filelist)
     segs_begin = list(segs_begin)
     segs_end = list(segs_end)
+    print segs_begin
 
 
     i = 0
@@ -257,7 +259,7 @@ segs_end = comm.bcast(segs_end, root=0)
 for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
     n=sdx+1
-
+    
     # ID = 0 segments the data
     
     if myid == 0:
@@ -427,8 +429,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             max = 1.9
 
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
-            #print psd_params
-            #print 'norm: ' , norm
+            print psd_params
+            print 'norm: ' , norm
 
             #print 'norm: ' , norm
 
