@@ -1007,10 +1007,10 @@ class Telescope(object):
         
         Nt = len(strains_in[0])
         Nt = lf.bestFFTlength(Nt)
-        freqs = np.fft.rfftfreq(2*Nt, dt)
-        freqs = freqs[:Nt/2+1]
+        freqs = np.fft.rfftfreq(Nt, dt)
         
         mask = (freqs>low_f) & (freqs < high_f)
+        mask2 = (freqs>80.) & (freqs < 300.)
 
         #print '+sim+'
     
@@ -1051,12 +1051,9 @@ class Telescope(object):
             strain_in_nowin *= signal.tukey(Nt,alpha=0.05)
             strain_in *= np.blackman(Nt)
 
-            hf = np.fft.rfft(strain_in, n=2*Nt, norm = 'ortho') 
-            hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt, norm = 'ortho') 
-    
-            hf = hf[:Nt/2+1]
-            hf_nowin = hf_nowin[:Nt/2+1]
-            
+            hf = np.fft.rfft(strain_in, n=Nt, norm = 'ortho') 
+            hf_nowin = np.fft.rfft(strain_in_nowin, n=Nt, norm = 'ortho') 
+                
             '''the PSD. '''
             
             fstar = fs
@@ -1097,14 +1094,16 @@ class Telescope(object):
             if a < min or a > (max/2*1.5): flags[idx_str] = True
             if b < 2*min or b > 2*max: flags[idx_str] = True
             if c < 2*min or c > 12000*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
-
+            
+            if norm > 4500. : flags[idx_str] = True
+            
             #if a < min or a > (max): flags[idx_str] = True
             #if c < 2*min or c > 2*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
 
             
             if flags[idx_str] == True: print 'bad segment!  params', psd_params, 'ctime', ct_split[0]
             #Norm
-            norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
+            norm = np.mean(hf_psd_data[mask2])/np.mean(hf_psd(freqs)[mask2])#/np.mean(self.PDX(freqs,a,b,c))
             #
             # print np.mean(np.sqrt(hf_psd_data[mask]))/(abs(np.mean(np.real(hf_nowin)))+abs(np.mean(np.imag(hf_nowin))))
             #
@@ -1220,12 +1219,10 @@ class Telescope(object):
         strain_in_nowin = np.copy(strain_in)
         strain_in_nowin *= signal.tukey(Nt,alpha=0.05)
         #strain_in *= np.blackman(Nt)
-        freqs = np.fft.rfftfreq(2*Nt, dt)
+        freqs = np.fft.rfftfreq(Nt, dt)
         #print '=rfft='
-        hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
+        hf_nowin = np.fft.rfft(strain_in_nowin, n=Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
         
-        hf_nowin = hf_nowin[:Nt/2+1]
-        freqs = freqs[:Nt/2+1]
         
         # plt.figure()
         # plt.loglog(freqs,np.abs(hf_nowin)**2)
