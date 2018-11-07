@@ -1095,6 +1095,8 @@ class Telescope(object):
             if b < 2*min or b > 2*max: flags[idx_str] = True
             if c < 2*min or c > 12000*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
             
+            norm = np.mean(hf_psd_data[mask2])/np.mean(hf_psd(freqs)[mask2])#/np.mean(self.PDX(freqs,a,b,c))
+            
             if norm > 4500. : flags[idx_str] = True
             
             #if a < min or a > (max): flags[idx_str] = True
@@ -1103,7 +1105,6 @@ class Telescope(object):
             
             if flags[idx_str] == True: print 'bad segment!  params', psd_params, 'ctime', ct_split[0]
             #Norm
-            norm = np.mean(hf_psd_data[mask2])/np.mean(hf_psd(freqs)[mask2])#/np.mean(self.PDX(freqs,a,b,c))
             #
             # print np.mean(np.sqrt(hf_psd_data[mask]))/(abs(np.mean(np.real(hf_nowin)))+abs(np.mean(np.imag(hf_nowin))))
             #
