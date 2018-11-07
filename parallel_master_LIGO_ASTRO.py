@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import time
 import math
-import MapBack_pix as mb  #################
+import MapBack_2 as mb  #################
 from matplotlib import cm
 from mpi4py import MPI
 ISMPI = True
@@ -19,6 +19,7 @@ ISMPI = True
 
 import os
 import sys
+
 
 #FROM THE SHELL: data path, output path, type of input map, SNR level (noise =0, high, med, low)
 
@@ -45,13 +46,6 @@ except (NameError, IndexError):
 else:
     checkpoint = True
     checkfile_path = sys.argv[5]
-        
-
-if os.path.exists(data_path):
-    print 'the data its in the ' , data_path
-    # file exists                                                                                                             
-if os.path.exists(out_path):
-    print 'output goes to ' , out_path
 
     
 ###############                                                                                                               
@@ -84,19 +78,31 @@ else:
     nproc = 1
     myid = 0
 
-print 'myid: {} of {}'.format(myid,nproc)
+
+if os.path.exists(data_path):
+    if myid==0:
+        print 'the data its in the ' , data_path
+    # file exists                                                                                                             
+if os.path.exists(out_path):
+    if myid==0:
+        print 'output goes to ' , out_path
+
+if nproc < 120:
+    print 'myid: {} of {}'.format(myid,nproc)
 
 
 ####################################################################                                                          
-print '++++++++++++++++++++++++++'
-print '=========================='
-print '++++++++++++++++++++++++++'
-print '=========================='
-print (time.strftime("%H:%M:%S")), (time.strftime("%d/%m/%Y"))
-print '++++++++++++++++++++++++++'
-print '=========================='
-print '++++++++++++++++++++++++++'
-print '=========================='
+if myid==0:
+    print '++++++++++++++++++++++++++'
+    print '=========================='
+    print '++++++++++++++++++++++++++'
+    print '=========================='
+    print (time.strftime("%H:%M:%S")), (time.strftime("%d/%m/%Y"))
+    print '++++++++++++++++++++++++++'
+    print '=========================='
+    print '++++++++++++++++++++++++++'
+    print '=========================='
+    print 'NOISE LEVEL: ', noise_lvl
 ####################################################################                                                          
 
 
@@ -119,21 +125,24 @@ sim = False
 
 # frequency cuts (integrate over this range)
                                                                                                           
-low_f = 80.
-high_f = 300.
+low_f = 30.
+high_f = 500.
 
 
 # spectral shape of the GWB
 
 alpha = 3. 
-f0 = 1.
-    
+f0 = 100.
+
+if myid==0:
+    print 'Delta f: ', [low_f, high_f], 'spectral idx and ref freq: ', [alpha,f0] 
+
 # DETECTORS (should make this external input)
 
 dects = ['H1','L1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
- 
+avoided = 0 
 
 # GAUSSIAN SIM. INPUT MAP CASE: make sure that the background map isn't re-simulated between scans, 
 # and between checkfiles 
@@ -145,9 +154,11 @@ if myid == 0:
         map_in = mb.map_in_gauss(nside_in,noise_lvl)
         np.savez('%s/map_in%s.npz' % (this_path,noise_lvl), map_in = map_in )
         
-        print '~~~~~~~~~~~~'
-        print 'saved map_in_gauss in the out dir'
-        print '~~~~~~~~~~~~'
+        if myid==0:
+        
+            print '~~~~~~~~~~~~'
+            print 'saved map_in_gauss in the out dir'
+            print '~~~~~~~~~~~~'
     
     if checkpoint == True and maptyp == 'gauss':
         
@@ -158,6 +169,7 @@ if myid == 0:
 
 # INITIALISE THE CLASS  ######################
 # args of class: nsides in/out; sampling frequency; freq cuts; declared detectors; the path of the checkfile; SNR level
+
 
 run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl,alpha,f0)
 
@@ -178,7 +190,8 @@ if myid == 0:
     cbar = True
     if maptyp == '1pole': 
         cbar = False
-        print 'the monopole is ',map_in[0]
+        if myid==0:
+            print 'the monopole is ',map_in[0]
             
     plt.figure()
     hp.mollview(map_in,cbar = cbar)
@@ -211,14 +224,16 @@ stop  = 1137254417  #O1 end GPS
 ########################### data  massage  #################################
 
 # FLAGGING; SEGMENTING
-
-print 'flagging the good data...'
+if myid==0:
+    print 'flagging the good data...'
 
 if myid == 0:
     segs_begin, segs_end = run.flagger(start,stop,filelist)
     segs_begin = list(segs_begin)
     segs_end = list(segs_end)
     
+    #tot_time = sum(np.array(segs_end)-np.array(segs_begin))
+    #tot_time /= 60.*60.*24.
     
     i = 0
     while i in np.arange(len(segs_begin)):
@@ -274,6 +289,7 @@ if myid == 0:
     endtime = 0
     H1_PSD_fits = []
     L1_PSD_fits = []
+
     if checkpoint  == True:
         Z_p += checkdata['Z_p']
         M_p_pp += checkdata['M_p_pp']
@@ -281,6 +297,7 @@ if myid == 0:
         A_p += checkdata['A_p'] 
         A_pp += checkdata['A_pp'] 
         conds = checkdata['conds']          # keep appending to conds array
+        avoided = checkdata['avoided']
         print 'we are at minute', counter , 'with startime' , start   
    
 # (objs are empty for ID neq 0 ) 
@@ -307,7 +324,9 @@ map_in_save = map_in.copy()
 # SEGMENTING THE DATA & HANDING IT OUT
 # this is done efficiently : number of segments handed out per iteration of algorithm = nproc
 
-print 'segmenting the data...'
+if myid==0:
+
+    print 'segmenting the data...'
 
 
 for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
@@ -317,37 +336,46 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     # ID = 0 segments the data
 
     if myid == 0:
+        
         ctime, strain_H1, strain_L1 = run.segmenter(begin,end,filelist)
-    
+        len_ctime = len(ctime)
+        
     else: 
         ctime = None
         strain_H1 = None
         strain_L1 = None
+        len_ctime = None
+        len_ctime_nproc = None
  
     # then each ID neq zero gets a copy
     
-    ctime = comm.bcast(ctime, root=0)
-    strain_H1 = comm.bcast(strain_H1, root=0)
-    strain_L1 = comm.bcast(strain_L1, root=0)
+    len_ctime = comm.bcast(len_ctime, root=0)
+    #strain_H1 = comm.bcast(strain_H1, root=0)
+    #strain_L1 = comm.bcast(strain_L1, root=0)
     
     
-    if len(ctime)<2 : continue      #discard short segments (may up this to ~10 mins)
+    if len_ctime<2 : continue      #discard short segments (may up this to ~10 mins)
     
     
     #idx_block: keep track of how many mins we're handing out
     
     idx_block = 0
 
-    while idx_block < len(ctime):
+    while idx_block < len_ctime:
         
         # accumulate ctime, strain arrays of length exactly nproc 
         
-        ctime_nproc.append(ctime[idx_block])
-        strain1_nproc.append(strain_H1[idx_block])
-        strain2_nproc.append(strain_L1[idx_block])
+        if myid == 0:
+            ctime_nproc.append(ctime[idx_block])
+            strain1_nproc.append(strain_H1[idx_block])
+            strain2_nproc.append(strain_L1[idx_block])
+            
+            len_ctime_nproc = len(ctime_nproc)
+        # iminutes % nprocs == rank
         
+        len_ctime_nproc = comm.bcast(len_ctime_nproc, root=0)
         
-        if len(ctime_nproc) == nproc:   # when you hit nproc start itearation
+        if len_ctime_nproc == nproc:   # when you hit nproc start itearation
             
             # create personal proc empty objects:
             
@@ -379,17 +407,17 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             if ISMPI:
                 my_idx = comm.scatter(my_idx)
-                my_ctime = ctime_nproc[my_idx[0]]
-                my_h1 = strain1_nproc[my_idx[0]]
-                my_l1 = strain2_nproc[my_idx[0]]
+                my_ctime = comm.scatter(ctime_nproc)#ctime_nproc[my_idx[0]]
+                my_h1 = comm.scatter(strain1_nproc)
+                my_l1 = comm.scatter(strain2_nproc)
                 my_endtime = my_ctime[-1]
-            
             
             
             ########################### data  massage 3  #################################
             # FILTERING/SIMULATING & FFTing THE DATA; PREPPING IT FOR  MAPPING
             
-            print 'filtering, ffting & saving the strains...'
+            if myid==0:
+                print 'filtering, ffting & saving the strains...'
             
             # Fourier space objects: Nt optimal timestream length; freqs frequency array at chosen fs
             
@@ -427,7 +455,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 avoid = True
                 psds[0] = np.array([ 0.,   0.,   0.])
                 psds[1] = np.copy(psds[0])
-            
+                
+                avoided += 1
                 
             if avoid is not True: 
                 
@@ -435,7 +464,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # params [a,b,c] estimated above sampled at freqs. LENGTH = NUMBER OF DECTS
                 
                 psds_f = []
-           
+                                
                 for i in range(ndet):
                     psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2]))
             
@@ -448,13 +477,49 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     for i in range(ndet):
                         
                         strains_f.append(run.filter(strains[i], low_f,high_f,psds[i])[mask])
-                
+                        
+                        s = int(my_ctime[0])
+                        
+                                                
+                    # plt.figure()
+                    # plt.loglog(freqs[mask],np.abs(strains_f[0])**2, label = 'data')
+                    # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
+                    # plt.loglog(freqs[mask],psds_f[0][mask], label = 'notched pdx fit')
+                    # #plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
+                    # plt.xlim(20.,1000.)
+                    # plt.legend()
+                    # plt.savefig('norm1%s.pdf' % s)
+                    #
+                    # plt.figure()
+                    # plt.loglog(freqs[mask],np.abs(strains_f[1])**2, label = 'data')
+                    # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
+                    # plt.loglog(freqs[mask],psds_f[1][mask], label = 'notched pdx fit')
+                    # #plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
+                    # plt.xlim(20.,1000.)
+                    # plt.legend()
+                    # plt.savefig('norm2%s.pdf' % s)
+                    #
+                    # exit()
+                    # ################
+                    # s = int(1000*np.random.rand(1))
+                    #
+                    # plt.figure()
+                    # plt.loglog(psds_f[0], label = 'H1 psd fit')
+                    # plt.loglog(psds_f[1], label = 'L1 psd fit')
+                    # plt.loglog(psds_f[0], label = 'H1 psd fit')
+                    # plt.loglog(psds_f[1], label = 'L1 psd fit')
+                    # plt.legend()
+                    # plt.savefig('abs%s.pdf' % s)
+                    #
+                    # ################
+
+                    
                     strains_f = [(strains_f[0]*np.conj(strains_f[1]))] # become correlated strains
             
     
                 if sim == True:
-
-                    print 'generating...'
+                    
+                    if myid==0: print 'generating...'
                     
                     h1_in = my_h1.copy()
                     l1_in = my_l1.copy()
@@ -465,14 +530,15 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                     strains_f = strains_corr
             
-                print 'filtering done'
+                if myid==0: print 'filtering done'
 
                 ################################################################################
                 ########################### data  massage over  ################################
                 # NOW THE GOOD STUFF
                 
-                print 'running the projector, obtaining a dirty map'
-
+                if myid==0: print 'running the projector, obtaining a dirty map'
+            
+                
                 # PREP: run geometry() to get, for each minute:
                 # pix_bs - the pixels the baselines are pointing at
                 # q_ns - the quaternions of the zenith of the detectors
@@ -490,7 +556,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # print the start time and save the end time of each segment; will select the max_endtime
                 # to hand down to the checkfile
                 
-                print 'time: ', my_ctime[0]
+                if nproc < 120: print 'time: ', my_ctime[0]
                 
                 #my_endtime = my_ctime[-1]
             
@@ -502,10 +568,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # my_A_pp
                 
                 # condition number for the beam-pattern
+                if myid == 0: print 'proj run'
                 
                 z_p, my_M_p_pp, my_A_p, my_A_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
                 cond = np.linalg.cond(my_M_p_pp)
-            
+
+                
             # out of the loop: each proc has a personal set of dirty maps and beam-patterns
             # create buffers now to accumulate these operators
             
@@ -531,7 +599,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 pdx_H1 =  np.zeros_like(a_buffer)
                 pdx_L1 =  np.zeros_like(a_buffer)
                 b_buffer =  nproc * [nbase*[0]]
-                
                 
             else:
                 
@@ -562,8 +629,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 pdx_L1 = comm.gather(psds[1], root = 0)
                 b_buffer = comm.gather(pix_bs_up,root = 0) # saving the high res b_pixes to use in plots 
                 
-                
-                if myid ==0: 
+                if myid == 0: 
                     
                     counter += nproc
                     endtime = max(endtimes_array)
@@ -604,7 +670,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 H1_PSD_fits.append(pdx_H1)
                 L1_PSD_fits.append(pdx_L1)
                 b_pixes.append(b_buffer)
-                
+
                 H1_PSD_fits_flat = 0.
                 L1_PSD_fits_flat = 0.
                 
@@ -661,13 +727,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # conds progressive conditions on M_p_pp 
                     # map_in input map for the simulated data 
                     
-                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save )
+                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
                     
                     #if counter % (nproc) == 0:
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save )
+                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
                         
-                    print 'saved dirty_map, clean_map and checkfile @ min', counter, 'with endtime', endtime
-                  
+                    print 'saved dirty_map, clean_map and checkfile @ min', counter, 'with endtime', endtime, '; avoided ', avoided, ' mins.'
+
                     
             #empty the lists to refill with other nproc segments
                 
@@ -680,8 +746,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
 
 # FINALE: WHEN WE REACH THE END OF THE RUN 
-print 'looks like its really over...! save the last dance.npz'
+
 if myid == 0:
+    
+    print 'looks like its really over...! save the last dance.npz'
     
     hp.fitsfunc.write_map('%s/S_p_last.fits' % out_path, S_p*1.e30) 
     np.savez('%s/checkfile_last.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save )
