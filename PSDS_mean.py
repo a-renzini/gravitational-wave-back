@@ -327,7 +327,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             Nt = len(strain1)
             Nt = lf.bestFFTlength(Nt)
 
-            freqs = np.fft.rfftfreq(Nt, 1./fs)]
+            freqs = np.fft.rfftfreq(Nt, 1./fs)
 
 
             # frequency mask
