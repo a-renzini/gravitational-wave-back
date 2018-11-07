@@ -25,6 +25,12 @@ h1 = file['h1']
 Nt = len(h1)
 h1 *= signal.tukey(Nt,alpha=0.05)
 
+h1_cp = np.copy(h1)
+
+print len(h1_cp)
+
+exit()
+
 dl = 1./4096
 low_f = 30.
 high_f = 500.
@@ -36,9 +42,15 @@ hf = np.fft.rfft(h1, n=Nt, norm = 'ortho')
 
 hf = hf[:Nt]
 
+
+print 'lens hf - h1:', len(hf), len(h1)
+
 print hf
 
-Pxx, frexx = mlab.psd(h1, Fs=4096, NFFT=2*4096,noverlap=4096/2,window=np.blackman(2*4096),scale_by_freq=False)
+
+Pxx, frexx = mlab.psd(h1_cp, Fs=4096, NFFT=2*4096,noverlap=4096/2,window=np.blackman(2*4096),scale_by_freq=False)
+
+print 'Pxx', Pxx
 
 hf_psd = interp1d(frexx,Pxx)
 hf_psd_data = abs(hf.copy()*np.conj(hf.copy())) 
@@ -58,5 +70,40 @@ norm2 = np.mean(hf_psd_data[mask2])/np.mean(hf_psd(freqs)[mask2])
 print norm, norm2
 
 np.savez('hf.npz', hf = hf,Pxx = Pxx, frexx = frexx, norm = norm, norm2 = norm2)
+
+file_cx1 = np.load('hf_cx1.npz')
+file_tom = np.load('hf_Tom.npz')
+
+hf_cx1 = file_cx1['hf']
+hf_tom = file_tom['hf']
+
+print 'lens hf - h1:', len(hf), len(h1)
+print 'lens hfcx1 - hftom:', len(hf_cx1), len(hf_tom)
+
+exit()
+
+# plt.figure()
+# plt.loglog(hf_cx1*np.conj(hf_cx1))
+# plt.loglog(hf_tom*np.conj(hf_tom))
+# plt.savefig('psds_cx1_tom.pdf')
+#
+# plt.figure()
+# plt.loglog(np.real(hf_cx1))
+# plt.loglog(np.imag(hf_cx1))
+# plt.loglog(np.real(hf_tom))
+# plt.loglog(np.imag(hf_tom))
+# plt.savefig('realimag_cx1_tom.png')
+
+hf_psd_cx1 =  abs(hf_cx1.copy()*np.conj(hf_cx1.copy())) 
+hf_psd_tom =  abs(hf_tom.copy()*np.conj(hf_tom.copy())) 
+
+print len(hf_psd_cx1), len(hf_psd_tom), len(hf_psd_data)
+exit()
+
+print np.mean(hf_psd_cx1[mask]), np.mean(hf_psd_tom[mask]) 
+print np.mean(hf_psd_cx1[mask2]), np.mean(hf_psd_tom[mask2]) 
+
+print  np.mean(hf_psd_cx1[mask])/np.mean(hf_psd(freqs)[mask]), np.mean(hf_psd_tom[mask])/np.mean(hf_psd(freqs)[mask])
+print  np.mean(hf_psd_cx1[mask2])/np.mean(hf_psd(freqs)[mask2]), np.mean(hf_psd_tom[mask2])/np.mean(hf_psd(freqs)[mask2])
 
 exit()
