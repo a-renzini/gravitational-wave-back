@@ -29,7 +29,11 @@ h1_cp = np.copy(h1)
 
 print len(h1_cp)
 
-exit()
+h1 = h1[:245823]
+h1_cp = h1_cp[:245823]
+
+print len(h1)
+
 
 dl = 1./4096
 low_f = 30.
@@ -71,6 +75,8 @@ print norm, norm2
 
 np.savez('hf.npz', hf = hf,Pxx = Pxx, frexx = frexx, norm = norm, norm2 = norm2)
 
+exit()
+
 file_cx1 = np.load('hf_cx1.npz')
 file_tom = np.load('hf_Tom.npz')
 
@@ -79,8 +85,6 @@ hf_tom = file_tom['hf']
 
 print 'lens hf - h1:', len(hf), len(h1)
 print 'lens hfcx1 - hftom:', len(hf_cx1), len(hf_tom)
-
-exit()
 
 # plt.figure()
 # plt.loglog(hf_cx1*np.conj(hf_cx1))
