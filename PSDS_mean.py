@@ -327,8 +327,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             Nt = len(strain1)
             Nt = lf.bestFFTlength(Nt)
 
-            freqs = np.fft.rfftfreq(2*Nt, 1./fs)
-            freqs = freqs[:Nt/2+1]
+            freqs = np.fft.rfftfreq(Nt, 1./fs)]
 
 
             # frequency mask
@@ -366,10 +365,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             strain_in_nowin *= signal.tukey(Nt,alpha=0.05)
             strain_in_cp *= signal.tukey(Nt,alpha=0.05)
 
-            freqs = np.fft.rfftfreq(2*Nt, dt)
-            freqshal = np.fft.rfftfreq(Nt, dt)
-            hf_halin = np.fft.rfft(strain_in_cp, n=Nt, norm = 'ortho') 
-            hf_nowin = np.fft.rfft(strain_in_nowin, n=2*Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
+            freqs = np.fft.rfftfreq(Nt, dt)
+            hf_nowin = np.fft.rfft(strain_in_nowin, n=Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
             
             #print hf_nowin
             
@@ -378,11 +375,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             # print 'lens', len(hf_halin), len(hf_nowin)
             # print 'freqs', freqshal[-1], freqs[-1]
             # print 'means', np.mean(hf_halin), np.mean(hf_nowin)
-
-            hf_nowin = hf_nowin[:Nt/2+1]
-            freqs = freqs[:Nt/2+1]
-
-
 
 
             fstar = fs
@@ -500,20 +492,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             strain_in_cp_2 *= signal.tukey(Nt,alpha=0.05)
 
 
-            freqs = np.fft.rfftfreq(2*Nt, dt)
-            freqshal = np.fft.rfftfreq(Nt, dt)
-            hf_halin_2 = np.fft.rfft(strain_in_cp_2, n=Nt, norm = 'ortho') 
-            hf_nowin_2 = np.fft.rfft(strain_in_nowin_2, n=2*Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
+            freqs = np.fft.rfftfreq(Nt, dt)
+            hf_nowin_2 = np.fft.rfft(strain_in_nowin_2, n=Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
 
             # print 'lens', len(hf_halin), len(hf_nowin)
             # print 'means', np.mean(hf_halin), np.mean(hf_nowin)
             # print 'lens', len(hf_halin), len(hf_nowin)
             # print 'freqs', freqshal[-1], freqs[-1]
             # print 'means', np.mean(hf_halin), np.mean(hf_nowin)
-
-            hf_nowin_2 = hf_nowin_2[:Nt/2+1]
-            freqs = freqs[:Nt/2+1]
-
 
 
 
@@ -651,11 +637,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         if FULL_DESC == False:
                             
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime)
+                            np.savez('%s/PSDS_meaned_cx1.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime)
                         
                         if FULL_DESC == True:
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl)
+                            np.savez('%s/PSDS_meaned_cx1.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl)
                             
             ctime_nproc = []
             strain1_nproc = []
