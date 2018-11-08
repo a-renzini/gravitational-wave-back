@@ -424,8 +424,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             Nt = len(my_h1)
             Nt = lf.bestFFTlength(Nt)
             
-            freqs = np.fft.rfftfreq(2*Nt, 1./fs)
-            freqs = freqs[:Nt/2+1]
+            freqs = np.fft.rfftfreq(Nt, 1./fs)
             
             
             # frequency mask
