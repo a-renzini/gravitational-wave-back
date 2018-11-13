@@ -126,7 +126,7 @@ sim = False
 # frequency cuts (integrate over this range)
                                                                                                           
 low_f = 30.
-high_f = 500.
+high_f = 86.
 
 
 # spectral shape of the GWB
