@@ -1058,6 +1058,12 @@ class Telescope(object):
             
             fstar = fs
             
+            # plt.figure()
+            # plt.loglog(freqs,np.abs(hf_nowin)**2)
+            # plt.savefig('hf_nowin_inj.png' )
+            #
+            # exit()
+            
             Pxx, frexx = mlab.psd(strain_in_nowin, Fs=fs, NFFT=2*fstar,noverlap=fstar/2,window=np.blackman(2*fstar),scale_by_freq=True)
             hf_psd = interp1d(frexx,Pxx)
             hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())) 
@@ -1166,6 +1172,8 @@ class Telescope(object):
             # plt.close('all')
             # hf_psd=interp1d(frexx,Pxx*norm)
             #
+            
+            
             psds.append(psd_params)
             #print frexx, Pxx, len(Pxx)
     
@@ -1215,6 +1223,7 @@ class Telescope(object):
         
         Nt = len(strain_in)
         Nt = lf.bestFFTlength(Nt)
+        
         strain_in = strain_in[:Nt]
         strain_in_cp = np.copy(strain_in)
         strain_in_nowin = np.copy(strain_in)
@@ -1223,13 +1232,6 @@ class Telescope(object):
         freqs = np.fft.rfftfreq(Nt, dt)
         #print '=rfft='
         hf_nowin = np.fft.rfft(strain_in_nowin, n=Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
-        
-        
-        # plt.figure()
-        # plt.loglog(freqs,np.abs(hf_nowin)**2)
-        # plt.savefig('hf_nowin.png' )
-
-
         
         
         hf_copy = np.copy(hf_nowin)
@@ -1417,7 +1419,10 @@ class Telescope(object):
     def summer(self, ct_split, strains, pows, freq, pix_b, q_n , norm):     
                    
         nside=self._nside_out
-                        
+        
+        # print len(freq), max(freq)
+        # print 4096./len(freq)
+                
         mask = (freq>self.low_f) & (freq < self.high_f)
         freq = freq[mask]
         window = np.ones_like(freq)
@@ -1428,6 +1433,9 @@ class Telescope(object):
         #delf = self.fs/float(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         #geometry 
         delf = freq[1]-freq[0]
+        
+        # print delf
+        
         # print delf, freq[1]-freq[0]
         
         npix_out = self.npix_out
