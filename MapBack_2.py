@@ -1070,7 +1070,13 @@ class Telescope(object):
             
             #*******************
             
-            masxx = (frexx>low_f) & (frexx < (high_f+100.))
+            #masxx = (frexx>low_f) & (frexx < (high_f+100.))
+
+            if high_f < 300.:
+                masxx = (frexx>30.) & (frexx < 300.)
+                                
+            else:        
+                masxx = (frexx>low_f) & (frexx < high_f)
             
             frexx_cp = np.copy(frexx)
             Pxx_cp = np.copy(Pxx)
