@@ -185,12 +185,12 @@ sim = False
 # frequency cuts (integrate over this range)
                                                                                                           
 low_f = 30.
-high_f = 500.
+high_f = 86.
 
 # spectral shape of the GWB
 
-alpha = 3. 
-f0 = 100.
+alpha = 0. 
+f0 = 50.
 
 # DETECTORS (should make this external input)
 
@@ -260,7 +260,7 @@ segs_end = comm.bcast(segs_end, root=0)
 
 
 for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
-
+    
     n=sdx+1
     
     # ID = 0 segments the data
@@ -400,9 +400,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             # plt.savefig('hfs.png' )
 
 
-
+            
             mask = (freqs>low_f) & (freqs < high_f)
-            masxx = (frexx>low_f) & (frexx < high_f)
+            
+            if high_f < 300.:
+                masxx = (frexx>30.) & (frexx < 300.)
+                                
+            else:        
+                masxx = (frexx>low_f) & (frexx < high_f)
 
             frexx_cp = np.copy(frexx)
             Pxx_cp = np.copy(Pxx)
@@ -443,8 +448,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             # plt.savefig('compare_mean.pdf')
 
             
-            print psd_params
-            print 'norm: ' , norm, norm_s
+            #print psd_params
+            #print 'norm: ' , norm, norm_s
             
             
             #print 'norm: ' , norm
@@ -464,7 +469,20 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             #if c < 2*min or c > 2*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
 
     
-            if flag1 == True: print 'bad segment!  params', a,b,c, 'ctime', ctime_idx[0]
+            if flag1 == True: 
+                
+                print 'bad segment!  params', a,b,c, 'ctime', ctime_idx[0]
+                my_avoided=1.
+                
+                #
+                # a*=np.sqrt(norm)
+                #
+                # plt.figure()
+                # plt.loglog(hf_psd_data[mask])
+                # plt.loglog(PDX(freqs,a,b,c)[mask])
+                # plt.savefig('badfit_1.pdf')
+                #
+                # exit()
     
             if flag1 == False:
         
@@ -472,6 +490,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 fr_psd_1 = fr_psd_1[1]*norm
                 norm1 = norm_s
                 params1 = psd_params
+                
+                my_avoided = 0.
 
             strain_in_2 = strains[1]
     
@@ -512,7 +532,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
 
             mask = (freqs>low_f) & (freqs < high_f)
-            masxx = (frexx>low_f) & (frexx < high_f)
+            
+            if high_f < 300.:
+                masxx = (frexx>30.) & (frexx < 300.)
+                                
+            else:        
+                masxx = (frexx>low_f) & (frexx < high_f)
 
             frexx_cp = np.copy(frexx)
             Pxx_cp = np.copy(Pxx)
@@ -560,8 +585,19 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     
             if flag2 == True or flag1 == True:
                 if flag1 == True: print 'there was a badseg in H' 
-                else: print 'bad segment!  params', psd_params, 'ctime', ctime_idx[0]
-    
+                else: 
+                    print 'bad segment!  params', psd_params, 'ctime', ctime_idx[0]
+                    my_avoided=1.
+                # a*=np.sqrt(norm)
+                #
+                # plt.figure()
+                # plt.loglog(hf_psd_data)#[mask])
+                # plt.loglog(PDX(freqs,a,b,c))#[mask])
+                # plt.savefig('badfit_2.pdf')
+                #
+                # exit()
+                
+                
             else:
                     
                 fr_psd_2 = Pdx_nanner(frexx_cp,hf_psd(frexx_cp))  
@@ -572,10 +608,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             if myid == 0:
                 
-                PSD1_setbuf = nproc * [np.zeros_like(fr_psd_2)]
-                PSD2_setbuf = nproc * [np.zeros_like(fr_psd_2)]
+                PSD1_setbuf = nproc * [np.zeros_like(fr_psd_1)]
+                PSD2_setbuf = nproc * [np.zeros_like(fr_psd_1)]
                 endtimes_buff = nproc *[0]
                 endtime = 0                
+                
+                avoided_buff = nproc *[0]
                 
                 if FULL_DESC == True:
                     
@@ -590,6 +628,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 PSD2_setbuf = None
                 endtimes_buff = None
                 endtime = None   
+                
+                avoided_buff = None
                 
                 if FULL_DESC == True:
                     
@@ -606,6 +646,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 PSD2_setbuf = comm.gather(fr_psd_2,root = 0)
                 endtimes_buff = comm.gather(ctime_idx[0],root = 0)
                 
+                avoided_buff = comm.gather(my_avoided, root = 0)
+                avoided_buff = np.sum(avoided_buff)
+                
                 if FULL_DESC == True:
                     
                     norms_buff = comm.gather(norm1, root = 0)
@@ -620,6 +663,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         
                     PSD1_totset.append(PSD1_mean)            
                     PSD2_totset.append(PSD2_mean)                                    
+                        
+                    avoided += avoided_buff 
+                    
+                    print 'avoided', avoided
                     
                     if FULL_DESC == True:
                         
@@ -637,11 +684,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         if FULL_DESC == False:
                             
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned_cx1.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime)
+                            np.savez('%s/PSDS_meaned_cx1.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime, avoided = avoided, minute=minute)
                         
                         if FULL_DESC == True:
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned_cx1.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl)
+                            np.savez('%s/PSDS_meaned_cx1.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl, avoided = avoided, minute=minute)
                             
             ctime_nproc = []
             strain1_nproc = []
