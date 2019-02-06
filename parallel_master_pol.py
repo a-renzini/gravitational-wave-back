@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import time
 import math
-import MapBack_2 as mb  #################
+import MapBack_pol as mb  #################
 from matplotlib import cm
 from mpi4py import MPI
 ISMPI = True
@@ -120,8 +120,11 @@ filelist = rl.FileList(directory=ligo_data_dir)
 
 
 # declare whether to simulate (correlated) data (in frequency space)
-sim = False
+sim = True
+pol = True
 
+if pol == True: npol=4
+else: npol=1
 
 # frequency cuts (integrate over this range)
                                                                                                           
@@ -131,8 +134,8 @@ high_f = 500.
 
 # spectral shape of the GWB
 
-alpha = 2./3. 
-f0 = 50.
+alpha = 3. 
+f0 = 100.
 
 if myid==0:
     print 'Delta f: ', [low_f, high_f], 'spectral idx and ref freq: ', [alpha,f0] 
@@ -171,7 +174,7 @@ if myid == 0:
 # args of class: nsides in/out; sampling frequency; freq cuts; declared detectors; the path of the checkfile; SNR level
 
 
-run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl,alpha,f0)
+run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl = noise_lvl,alpha = alpha,f0 = f0, pol = pol)
 
 ##############################################
 
@@ -191,12 +194,12 @@ if myid == 0:
     if maptyp == '1pole': 
         cbar = False
         if myid==0:
-            print 'the monopole is ',map_in[0]
+            print 'the monopole is ',map_in[0][0]
             
-    plt.figure()
-    hp.mollview(map_in,cbar = cbar)
-    plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
-    plt.close('all')
+    # plt.figure()
+    # hp.mollview(map_in[0],cbar = cbar)
+    # plt.savefig('%s/map_in_%s.pdf' % (out_path,maptyp)  )
+    # plt.close('all')
         
                 
 else: map_in = None
@@ -216,7 +219,7 @@ if checkpoint  == True:
     counter = checkdata['counter'] 
     start = np.int(checkdata['checkstart'])  # ... start = checkpointed endtime
         
-stop  = 1137254417  #O1 end GPS     
+stop  = 1137254417  #O1 end GPS    interstep 1130254417# 
 
 
 ##########################################################################
@@ -280,8 +283,8 @@ b_pixes = []
 # objects above are read from checkfile if checkpoint = True; ESSENTIAL AS OBJECTS ARE ACCUMULATED OVER TIME 
 
 if myid == 0:
-    Z_p = np.zeros(npix_out)
-    S_p = np.zeros(npix_out)
+    Z_p = np.zeros((npix_out,npol))
+    S_p = np.zeros((npix_out,npol))
     M_p_pp = 0.
     A_pp = 0.
     A_p = 0.
@@ -424,8 +427,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             Nt = len(my_h1)
             Nt = lf.bestFFTlength(Nt)
             
-            freqs = np.fft.rfftfreq(2*Nt, 1./fs)
-            freqs = freqs[:Nt/2+1]
+            freqs = np.fft.rfftfreq(Nt, 1./fs)
+            freqs = freqs[:Nt]
             
             
             # frequency mask
@@ -479,44 +482,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         strains_f.append(run.filter(strains[i], low_f,high_f,psds[i])[mask])
                         
                         s = int(my_ctime[0])
-                        
-                                                
-                    # plt.figure()
-                    # plt.loglog(freqs[mask],np.abs(strains_f[0])**2, label = 'data')
-                    # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
-                    # plt.loglog(freqs[mask],psds_f[0][mask], label = 'notched pdx fit')
-                    # #plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
-                    # plt.xlim(20.,1000.)
-                    # plt.legend()
-                    # plt.savefig('norm1%s.pdf' % s)
-                    #
-                    # plt.figure()
-                    # plt.loglog(freqs[mask],np.abs(strains_f[1])**2, label = 'data')
-                    # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
-                    # plt.loglog(freqs[mask],psds_f[1][mask], label = 'notched pdx fit')
-                    # #plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
-                    # plt.xlim(20.,1000.)
-                    # plt.legend()
-                    # plt.savefig('norm2%s.pdf' % s)
-                    #
-                    # exit()
-                    # ################
-                    # s = int(1000*np.random.rand(1))
-                    #
-                    # plt.figure()
-                    # plt.loglog(psds_f[0], label = 'H1 psd fit')
-                    # plt.loglog(psds_f[1], label = 'L1 psd fit')
-                    # plt.loglog(psds_f[0], label = 'H1 psd fit')
-                    # plt.loglog(psds_f[1], label = 'L1 psd fit')
-                    # plt.legend()
-                    # plt.savefig('abs%s.pdf' % s)
-                    #
-                    # ################
+
 
                     
                     strains_f = [(strains_f[0]*np.conj(strains_f[1]))] # become correlated strains
-            
-    
+                
+                for i in range(len(psds_f)):
+                    psds_f[i] = psds_f[i][mask]
+
                 if sim == True:
                     
                     if myid==0: print 'generating...'
@@ -525,7 +498,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     l1_in = my_l1.copy()
                     strains_in = (h1_in,l1_in)
                     
-                    strains_corr = run.injector(strains_in,my_ctime,low_f,high_f,poi, sim)[0]
+                    strains_corr = run.injector(strains_in,my_ctime,low_f,high_f,poi, sim)[0]                    
                     strains_corr = run.noisy(strains_corr,psds_f,mask)
                 
                     strains_f = strains_corr
@@ -688,12 +661,22 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 print 'Inverting M...'
                 
                 #### SVD invert the beam-pattern
-
-                M_p_pp_inv = np.linalg.pinv(M_p_pp,rcond=1.e-8)
+                
+                ##checkpoint
+                
+                #np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)
+                
+                Mpp_inv = np.linalg.pinv(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out),rcond=1.e-8)
                 print 'the matrix has been inverted!'
                 
-                S_p = np.einsum('...ik,...k->...i', M_p_pp_inv, Z_p)
+                M_p_pp_inv = np.swapaxes(Mpp_inv.reshape(npix_out,npol,npix_out,npol),1,2)
                 
+                
+                # this may have to be re-visited, but may be ok already
+                
+                S_p = np.einsum('ikwv,kv->iw', M_p_pp_inv, Z_p)
+                
+                #print S_p, len(S_p), len(S_p[0])
                 
                 ################################################################
                 #
@@ -714,9 +697,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # can save the list of fits params if so wish
                     
                     # save a fits file for the clean map
-                    # !!! NOTE !!! need to *1.e30 otherwise the numbers are to small (unsure why)
+                    # !!! NOTE !!! need to *1.e30 otherwise the numbers are too small (unsure why)
                     
-                    hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p*1.e30) 
+                    #hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), np.swapaxes(S_p,0,1)*1.e30) 
                     
                     # save checkfile with
                     # Z_p accumulated dirty map
@@ -727,10 +710,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # conds progressive conditions on M_p_pp 
                     # map_in input map for the simulated data 
                     
-                    np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
+                    np.savez('%s/checkfile.npz' % out_path,S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
                     
                     #if counter % (nproc) == 0:
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
+                    np.savez('%s/checkfile%s.npz' % (out_path,counter),S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
                         
                     print 'saved dirty_map, clean_map and checkfile @ min', counter, 'with endtime', endtime, '; avoided ', avoided, ' mins.'
 
