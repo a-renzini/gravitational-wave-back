@@ -1054,8 +1054,6 @@ class Telescope(object):
         psd_corr = []
         strains_noised = []
         
-        print len(strains_corr),len(strains_corr[0])
-        
         for i in range(self._nbase):
             a, b = self.combo_tuples[i]
             psd_corr.append(psds_f[a]*psds_f[b])

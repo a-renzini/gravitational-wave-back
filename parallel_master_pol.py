@@ -699,7 +699,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # save a fits file for the clean map
                     # !!! NOTE !!! need to *1.e30 otherwise the numbers are too small (unsure why)
                     
-                    #hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), np.swapaxes(S_p,0,1)*1.e30) 
+                    hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), np.swapaxes(S_p,0,1)*1.e30) 
                     
                     # save checkfile with
                     # Z_p accumulated dirty map
