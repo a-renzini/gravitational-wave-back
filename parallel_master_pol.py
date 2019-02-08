@@ -389,10 +389,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             # cond condition number array (1 item pm -> will be accumulated in chuncks of nproc)
             
-            z_p = np.zeros(npix_out)
-            my_A_p = np.zeros(npix_out)
-            my_A_pp = np.zeros((npix_out,npix_out))
-            my_M_p_pp = np.zeros((npix_out,npix_out))
+            z_p = np.zeros((npix_out,npol))
+            my_A_p = np.zeros((npix_out,npol))
+            my_A_pp = np.zeros((npix_out,npix_out,npol,npol))
+            my_M_p_pp = np.zeros((npix_out,npix_out,npol,npol))
             cond = 0.
             pix_bs_up = np.zeros(nbase)
 
@@ -699,7 +699,23 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # save a fits file for the clean map
                     # !!! NOTE !!! need to *1.e30 otherwise the numbers are too small (unsure why)
                     
-                    hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), np.swapaxes(S_p,0,1)*1.e30) 
+                    print 'swapping axes...'
+                    
+                    S_p = np.swapaxes(S_p,0,1)
+                    
+                    if pol == True:
+                        
+                        S_IQU = np.array([S_p[0],S_p[2],S_p[3]]) 
+                        S_V = S_p[1]
+                        
+                        #print S_IQU[0][0]
+                        
+                        hp.fitsfunc.write_map('%s/S_IQU%s.fits' % (out_path,counter), S_IQU ) #*1.e30)                         
+                        hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
+
+                        
+                    else:
+                        hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p ) #,column_units=1.e30)    #*1.e30) 
                     
                     # save checkfile with
                     # Z_p accumulated dirty map
