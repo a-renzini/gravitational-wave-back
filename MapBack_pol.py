@@ -645,14 +645,14 @@ class Telescope(object):
             
             # these should come from the master
             Iscale = 2.
-            Vscale = 1.
-            Qscale = 1.
+            Vscale = 0.#1.
+            Qscale = 0.#1.
             
             Imap = Iscale * self.get_map_in(maptyp)
             Vmap = Vscale * self.get_map_in(maptyp)
             Qmap = Qscale * self.get_map_in(maptyp)
             
-            Umap = np.sqrt(Imap**2-Vmap**2-Qmap**2) 
+            Umap = Qmap #np.sqrt(Imap**2-Vmap**2-Qmap**2) 
             
             ## negative maps..??
             input_map = np.array([Imap,Vmap,Qmap,Umap])#.flatten()
