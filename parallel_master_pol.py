@@ -29,7 +29,7 @@ maptyp = sys.argv[3]
 noise_lvl = sys.argv[4]
 noise_lvl = int(noise_lvl)
 this_path = out_path
-
+npol = sys.argv[5]
 
 # poisson masked "flickering" map
 
@@ -40,12 +40,12 @@ if maptyp == 'planck_poi': poi = True
 # if declared from shell, load checkpoint file 
 
 try:
-    sys.argv[5]
+    sys.argv[6]
 except (NameError, IndexError):
     checkpoint = False
 else:
     checkpoint = True
-    checkfile_path = sys.argv[5]
+    checkfile_path = sys.argv[6]
 
     
 ###############                                                                                                               
@@ -123,8 +123,8 @@ filelist = rl.FileList(directory=ligo_data_dir)
 sim = True
 pol = True
 
-if pol == True: npol=4
-else: npol=1
+#if pol == True: npol=1  
+#else: npol=1
 
 # frequency cuts (integrate over this range)
                                                                                                           
@@ -174,7 +174,7 @@ if myid == 0:
 # args of class: nsides in/out; sampling frequency; freq cuts; declared detectors; the path of the checkfile; SNR level
 
 
-run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl = noise_lvl,alpha = alpha,f0 = f0, pol = pol)
+run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl = noise_lvl,alpha = alpha,f0 = f0, npol = npol)
 
 ##############################################
 
@@ -703,7 +703,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     S_p = np.swapaxes(S_p,0,1)
                     
-                    if pol == True:
+                    print S_p[0]
+                    
+                    if npol == 4:
                         
                         S_IQU = np.array([S_p[0],S_p[2],S_p[3]]) 
                         S_V = S_p[1]
@@ -713,9 +715,18 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         hp.fitsfunc.write_map('%s/S_IQU%s.fits' % (out_path,counter), S_IQU ) #*1.e30)                         
                         hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
 
+                    elif npol == 2:
+                        
+                        S_I = S_p[0]
+                        S_V = S_p[1]
+                        
+                        #print S_IQU[0][0]
+                        
+                        hp.fitsfunc.write_map('%s/S_I%s.fits' % (out_path,counter), S_I ) #*1.e30)                         
+                        hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
                         
                     else:
-                        hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p ) #,column_units=1.e30)    #*1.e30) 
+                        hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p[0] ) #,column_units=1.e30)    #*1.e30) 
                     
                     # save checkfile with
                     # Z_p accumulated dirty map
