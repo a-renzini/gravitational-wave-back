@@ -390,10 +390,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             # cond condition number array (1 item pm -> will be accumulated in chuncks of nproc)
             
-            z_p = np.zeros((npix_out,npol))
-            my_A_p = np.zeros((npix_out,npol))
-            my_A_pp = np.zeros((npix_out,npix_out,npol,npol))
-            my_M_p_pp = np.zeros((npix_out,npix_out,npol,npol))
+            z_p = np.zeros((npix_out,npol),dtype=complex)
+            my_A_p = np.zeros((npix_out,npol),dtype=complex)
+            my_A_pp = np.zeros((npix_out,npix_out,npol,npol),dtype=complex)
+            my_M_p_pp = np.zeros((npix_out,npix_out,npol,npol),dtype=complex)
             cond = 0.
             pix_bs_up = np.zeros(nbase)
 
@@ -563,10 +563,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             if myid == 0:
                 
-                z_buffer = np.zeros_like(z_p)
-                A_p_buffer = np.zeros_like(z_p)
-                M_p_pp_buffer = np.zeros_like(my_M_p_pp)   
-                A_pp_buffer = np.zeros_like(my_M_p_pp)
+                z_buffer = np.zeros_like(z_p,dtype=complex)
+                A_p_buffer = np.zeros_like(z_p,dtype=complex)
+                M_p_pp_buffer = np.zeros_like(my_M_p_pp,dtype=complex)   
+                A_pp_buffer = np.zeros_like(my_M_p_pp,dtype=complex)
                 conds_array = np.zeros(nproc)
                 endtimes_array = np.zeros(nproc)
                 a_buffer = nproc * [0.,0.,0.]
@@ -590,8 +590,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             # let's collect the winnings: Reduce sums over the od 0 dimension, gather returns a list
             # NOW THE BUFFERS ARE THE SUM OVER TIME OF THE DIRTY MAP/BEAM-PATTERN OVER nproc MINUTES
             
-            if ISMPI: 
-                                
+            if ISMPI:    
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
@@ -711,7 +710,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     if npol == 4:
                         
                         S_IQU = np.array([S_p[0],S_p[2],S_p[3]]) 
-                        S_V = S_p[1]
+                        S_V = np.imag(S_p[1])
                         
                         #print S_IQU[0][0]
                         
@@ -721,7 +720,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     elif npol == 2:
                         
                         S_I = S_p[0]
-                        S_V = S_p[1]
+                        S_V = np.imag(S_p[1])
                         
                         #print S_IQU[0][0]
                         

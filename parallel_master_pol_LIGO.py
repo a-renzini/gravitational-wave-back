@@ -547,6 +547,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 z_p, my_M_p_pp, my_A_p, my_A_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
                 cond = np.linalg.cond(my_M_p_pp)
                 
+                print z_p
+                
+                exit()
                 
                 
             # out of the loop: each proc has a personal set of dirty maps and beam-patterns
@@ -591,8 +594,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             # let's collect the winnings: Reduce sums over the od 0 dimension, gather returns a list
             # NOW THE BUFFERS ARE THE SUM OVER TIME OF THE DIRTY MAP/BEAM-PATTERN OVER nproc MINUTES
             
-            if ISMPI: 
-                print 'collecting ... 2'            
+            if ISMPI:           
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
@@ -710,7 +712,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     if npol == 4:
                         
                         S_IQU = np.array([S_p[0],S_p[2],S_p[3]]) 
-                        S_V = S_p[1]
+                        S_V = np.imag(S_p[1])
                         
                         #print S_IQU[0][0]
                         
@@ -720,7 +722,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     elif npol == 2:
                         
                         S_I = S_p[0]
-                        S_V = S_p[1]
+                        S_V = np.imag(S_p[1])
                         
                         #print S_IQU[0][0]
                         
