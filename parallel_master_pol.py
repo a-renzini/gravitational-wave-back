@@ -29,7 +29,8 @@ maptyp = sys.argv[3]
 noise_lvl = sys.argv[4]
 noise_lvl = int(noise_lvl)
 this_path = out_path
-npol = sys.argv[5]
+npol = int(sys.argv[5])
+
 
 # poisson masked "flickering" map
 
@@ -283,8 +284,8 @@ b_pixes = []
 # objects above are read from checkfile if checkpoint = True; ESSENTIAL AS OBJECTS ARE ACCUMULATED OVER TIME 
 
 if myid == 0:
-    Z_p = np.zeros((npix_out,npol))
-    S_p = np.zeros((npix_out,npol))
+    Z_p = np.zeros((npix_out,npol),dtype = complex)
+    S_p = np.zeros((npix_out,npol),dtype = complex)
     M_p_pp = 0.
     A_pp = 0.
     A_p = 0.
@@ -671,12 +672,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 M_p_pp_inv = np.swapaxes(Mpp_inv.reshape(npix_out,npol,npix_out,npol),1,2)
                 
-                
+                print M_p_pp_inv[0][0]
                 # this may have to be re-visited, but may be ok already
                 
                 S_p = np.einsum('ikwv,kv->iw', M_p_pp_inv, Z_p)
                 
-                #print S_p, len(S_p), len(S_p[0])
+                print S_p
                 
                 ################################################################
                 #
@@ -703,7 +704,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     S_p = np.swapaxes(S_p,0,1)
                     
-                    print S_p[0]
+                    print S_p[0], S_p[1]
+                    
+                    exit()
                     
                     if npol == 4:
                         

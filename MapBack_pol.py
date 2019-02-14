@@ -1536,13 +1536,7 @@ class Telescope(object):
 
                     if ip!= jp :
                         M_pp[jp,ip] += val
-        
-        
-        #####
-        #print z_p, z_p[0],z_p[1]
-        #####
-        #exit()
-        
+                
         # plt.figure()
         #
         # plt.loglog(freq, np.abs(df)**2, label = 'df df*')
