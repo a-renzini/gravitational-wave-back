@@ -275,8 +275,6 @@ b_pixes = []
 # Z_p total dirty map (summed over the minutes and the baselines)
 # S_p total clean map (re-obtained perdiocally from M_p_pp^-1 * Z_p => updated)
 # M_p_pp total beam-pattern matrix (summed over the minutes and the baselines)
-# A_pp total norm matrix: beam-pattern w/out NOISE (summed over the minutes and the baselines) ## -> NORMALI
-# A_p total projector: dirty map w/out DATA & NOISE (summed over the minutes and the baselines) ## -> SATION
 
 # conds condition number array (1 item pm - continuously updated)
 # H1_PSD_fits / L1_PSD_fits sets of 3 fit parameters to LIGO PSDs: accumulated 1 pm with format array([a,b,c]) 
@@ -287,8 +285,6 @@ if myid == 0:
     Z_p = np.zeros((npix_out,npol),dtype = complex)
     S_p = np.zeros((npix_out,npol),dtype = complex)
     M_p_pp = 0.
-    A_pp = 0.
-    A_p = 0.
     conds = []
     endtime = 0
     H1_PSD_fits = []
@@ -298,8 +294,6 @@ if myid == 0:
         Z_p += checkdata['Z_p']
         M_p_pp += checkdata['M_p_pp']
         S_p = None                          # final clean map gets re-estimated every time
-        A_p += checkdata['A_p'] 
-        A_pp += checkdata['A_pp'] 
         conds = checkdata['conds']          # keep appending to conds array
         avoided = checkdata['avoided']
         print 'we are at minute', counter , 'with startime' , start   
@@ -310,8 +304,6 @@ else:
     Z_p = None
     S_p = None
     M_p_pp = None
-    A_p = None
-    A_pp = None
     counter = 0
 
 # broadcast checkpointed input map to every proc 
@@ -385,14 +377,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             # z_p personal dirty map (summed over the baselines)
             # my_M_p_pp personal beam-pattern matrix (summed over the baselines)
-            # my_A_pp personal norm matrix: beam-pattern w/out NOISE (summed over the baselines) 
-            # my_A_p personal projector: dirty map w/out DATA & NOISE (summed over the baselines)
 
             # cond condition number array (1 item pm -> will be accumulated in chuncks of nproc)
             
             z_p = np.zeros((npix_out,npol),dtype=complex)
-            my_A_p = np.zeros((npix_out,npol),dtype=complex)
-            my_A_pp = np.zeros((npix_out,npix_out,npol,npol),dtype=complex)
             my_M_p_pp = np.zeros((npix_out,npix_out,npol,npol),dtype=complex)
             cond = 0.
             pix_bs_up = np.zeros(nbase)
@@ -538,13 +526,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # saving:
                 # z_p which was personal dirty map, summed over the baseline
                 # my_M_p_pp personal beam-pattern matrix
-                # my_A_p
-                # my_A_pp
                 
                 # condition number for the beam-pattern
                 if myid == 0: print 'proj run'
                 
-                z_p, my_M_p_pp, my_A_p, my_A_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
+                z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
                 cond = np.linalg.cond(my_M_p_pp)
 
                 
@@ -553,7 +539,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             # BUFFERS:
             # z_buffer dirty map
-            # A_p_buffer, A_pp_buffer for the norms
             # M_p_pp_buffer beam-pattern
             # conds_array to save the condition numbers as we go  (maybe should calculate the condition at the very end - 
             # this may explain fuzziness of conds )
@@ -564,9 +549,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             if myid == 0:
                 
                 z_buffer = np.zeros_like(z_p,dtype=complex)
-                A_p_buffer = np.zeros_like(z_p,dtype=complex)
                 M_p_pp_buffer = np.zeros_like(my_M_p_pp,dtype=complex)   
-                A_pp_buffer = np.zeros_like(my_M_p_pp,dtype=complex)
                 conds_array = np.zeros(nproc)
                 endtimes_array = np.zeros(nproc)
                 a_buffer = nproc * [0.,0.,0.]
@@ -578,8 +561,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 z_buffer = None
                 M_p_pp_buffer = None
-                A_pp_buffer = None
-                A_p_buffer = None
                 conds_array = None
                 endtimes_array = None
                 pdx_H1 = None
@@ -594,8 +575,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
-                comm.Reduce(my_A_pp, A_pp_buffer, root = 0, op = MPI.SUM)
-                comm.Reduce(my_A_p, A_p_buffer, root = 0, op = MPI.SUM)
                 conds_array = comm.gather(cond, root = 0)
                 endtimes_array = comm.gather(my_endtime, root = 0)
                 pdx_H1 = comm.gather(psds[0],root = 0)
@@ -618,8 +597,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 z_buffer += z_p
                 counter += 1
                 M_p_pp_buffer += my_M_p_pp
-                A_pp_buffer += my_A_pp
-                A_p_buffer += my_A_p
                 conds.append(cond)
                 endtime = my_endtime
 
@@ -635,8 +612,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 Z_p += z_buffer
                 M_p_pp += M_p_pp_buffer 
-                A_p += A_p_buffer 
-                A_pp += A_pp_buffer   
                 
                 conds_array = np.array(conds_array)
                 np.append(conds,conds_array)
@@ -703,10 +678,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     S_p = np.swapaxes(S_p,0,1)
                     
-                    print S_p[0], S_p[1]
-                    
-                    exit()
-                    
                     if npol == 4:
                         
                         S_IQU = np.array([S_p[0],S_p[2],S_p[3]]) 
@@ -733,16 +704,15 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # save checkfile with
                     # Z_p accumulated dirty map
                     # M_p_pp    "     beam-pattern
-                    # A_p , A_pp "    norms 
                     # counter number of minutes analysed
                     # checkstart is the max endtime of the run - will be the new start of the next one
                     # conds progressive conditions on M_p_pp 
                     # map_in input map for the simulated data 
                     
-                    np.savez('%s/checkfile.npz' % out_path,S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
+                    np.savez('%s/checkfile.npz' % out_path,S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
                     
                     #if counter % (nproc) == 0:
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter),S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
+                    np.savez('%s/checkfile%s.npz' % (out_path,counter),S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
                         
                     print 'saved dirty_map, clean_map and checkfile @ min', counter, 'with endtime', endtime, '; avoided ', avoided, ' mins.'
 
@@ -764,7 +734,7 @@ if myid == 0:
     print 'looks like its really over...! save the last dance.npz'
     
     hp.fitsfunc.write_map('%s/S_p_last.fits' % out_path, S_p*1.e30) 
-    np.savez('%s/checkfile_last.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, A_p = A_p, A_pp = A_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save )
+    np.savez('%s/checkfile_last.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save )
 
     
 
