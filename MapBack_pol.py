@@ -518,12 +518,13 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, alpha=3., f0=1., data_run = 'O1',pol=False): #Dect list
+    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, alpha=3., f0=1., data_run = 'O1',npol=1): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
-        self.pol = pol
-        
+        self.pol = True #make this obsolete
+        self.npol = int(npol)
+            
         self.this_path = this_path
         self.data_run = data_run
         
@@ -611,24 +612,32 @@ class Telescope(object):
         for i in range(self._nbase):
             a, b = self.combo_tuples[i]
 
-            self.gammaI.append((5./(8.*np.pi))*self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross())
+            self.gammaI.append((5./(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
                         
-            if pol == True:
+            if self.pol == True:
             
-                self.gammaV.append(-(5./(8.*np.pi))*self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus())
+                self.gammaV.append(-(5.*1.j/(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus()))
 
-                self.gammaQ.append((5./(8.*np.pi))*self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross())
+                self.gammaQ.append((5./(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
 
-                self.gammaU.append((5./(8.*np.pi))*self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus())
+                self.gammaU.append((5./(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus()))
                 
-                self.gammaMatrix.append(block_diag(self.gammaI[i], 1j*self.gammaV[i],self.gammaQ[i],self.gammaU[i]))
+                self.gammaMatrix.append(block_diag(self.gammaI[i], self.gammaV[i],self.gammaQ[i],self.gammaU[i]))
                 
                 
                 #Simulation tools        
         
         self.noise_lvl = noise_lvl
         self.beta = 1.
-
+        
+        # plt.figure()
+        # hp.mollview(self.gammaI[0])
+        # plt.savefig('gammai.pdf' )
+            
+        # plt.figure()
+        # hp.mollview(-1.j*self.gammaV[0])
+        # plt.savefig('gammav.pdf' )
+        
         if noise_lvl == 1: beta = 1.
         elif noise_lvl == 2: beta = 1.e-42
         elif noise_lvl == 3: beta = 1.e-43
@@ -636,12 +645,21 @@ class Telescope(object):
         
         
         self.beta = beta
-        
+
         #print 'beta is', self.beta
-        if pol == False:
-            input_map = self.get_map_in(maptyp)
+        if self.npol ==1:
+            input_map = np.array([self.get_map_in(maptyp)])
         
-        else:
+        elif self.npol ==2:
+            Iscale = 2.
+            Vscale = 1.
+            
+            Imap = Iscale * self.get_map_in(maptyp)
+            Vmap = Vscale * self.get_map_in(maptyp)
+            
+            input_map = np.array([Imap,Vmap])#.flatten()
+            
+        elif self.npol == 4:
             
             # these should come from the master
             Iscale = 2.
@@ -656,9 +674,10 @@ class Telescope(object):
             
             ## negative maps..??
             input_map = np.array([Imap,Vmap,Qmap,Umap])#.flatten()
-                        
+        
+        #else: print 'npol doesnt match known pol modes'
+         
         self.map_in = input_map.copy()
-        self.npol = len(self.map_in)
         
         # plt.figure()
         # hp.mollview(self.map_in)
@@ -808,33 +827,6 @@ class Telescope(object):
     def coupK(self,l,lp,lpp,m,mp):
         return np.sqrt((2*l+1.)*(2*lp+1.)*(2*lpp+1.)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]
 
-    # def dfreq_factor(self,f,ell,idx_base,H0=68.0):
-    #     # f : frequency (Hz)
-    #     # ell : multipole
-    #     # alpha: spectral index
-    #     # b: baseline length (m)
-    #     # f0: pivot frequency (Hz)
-    #     # H0: Hubble rate today (km/s/Mpc)
-    #
-    #     b=self.baseline_length[idx_base]
-    #
-    #
-    #     km_mpc = 3.086e+19 # km/Mpc conversion
-    #     c = 3.e8 # speed of light
-    #     #fac = 8.*np.pi**3/3./H0**2 * km_mpc**2 * f**3*(f/f0)**(alpha-3.) * spherical_jn(ell, 2.*np.pi*f*b/c)
-    #     alpha = self.alpha
-    #     f0 = self.f0
-    #
-    #     fac =  spherical_jn(ell, 2.*np.pi*(f)*b/c)*self.E_f(f,alpha,f0)
-    #     # add band pass and notches here
-    #
-    #     return fac
-    #
-    # def freq_factor(self,ell,alpha=3.,H0=68.0,f0=100.):
-    #     fmin=self.low_f
-    #     fmax=self.high_f
-    #     return integrate.quad(self.dfreq_factor,fmin,fmax,args=(ell))[0]
-    #
     def vec2azel(self,v1,v2):
         # calculate the viewing angle from location at v1 to v2
         # Cos(elevation+90) = (x*dx + y*dy + z*dz) / Sqrt((x^2+y^2+z^2)*(dx^2+dy^2+dz^2))
@@ -942,8 +934,7 @@ class Telescope(object):
         #theta_b, phi_b = hp.pix2ang(nside,p)
         
         return q_xes
-
-        
+   
                 
 # **************** Whitening Modules *************** 
 
@@ -969,11 +960,11 @@ class Telescope(object):
             gamma_rot = 4*[np.zeros(npix_in)]
             
             gamma_rot[0] = self.gammaI[nbase][rot_m_array]
-            gamma_rot[1] = self.gammaV[nbase][rot_m_array]
+            gamma_rot[1] = self.gammaV[nbase][rot_m_array] #1.j*((-1.j*self.gammaV[nbase])[rot_m_array])
             gamma_rot[2] = cos4psi*self.gammaQ[nbase][rot_m_array] - sin4psi*self.gammaU[nbase][rot_m_array]
             gamma_rot[3] = cos4psi*self.gammaU[nbase][rot_m_array] + sin4psi*self.gammaQ[nbase][rot_m_array]
-        
-        return gamma_rot
+            
+        return gamma_rot[0:self.npol]
  #   def cutout(self,x, freqs,low = 20, high = 300):
     def simbase(self,freqs,q_n,pix_b,nbase,poi = False):
         
@@ -983,7 +974,6 @@ class Telescope(object):
         rot_m_array, sin4psi, cos4psi = self.rotation_pix(np.arange(npix_in), q_n)
         
         gamma_rot = self.rotation_gamma(nbase,rot_m_array,sin4psi,cos4psi)
-            
         
         # hp.mollview(gammaI_rot)
         # plt.savefig('gammaI_rot.pdf')        
@@ -1018,12 +1008,9 @@ class Telescope(object):
             
             exp_bdotp = (np.cos(bdotp_in*f) + np.sin(bdotp_in*f)*1.j)
             
-            if self.pol == False: 
-                Apix = [map_in[0]*exp_bdotp]
-            else:
-                Apix = 4*[np.zeros_like(map_in[0])] 
-                for i in range(len(Apix)):
-                    Apix[i] = map_in[i]*exp_bdotp
+            Apix = self.npol*[np.zeros_like(map_in[0])] 
+            for i in range(len(Apix)):
+                Apix[i] = map_in[i]*exp_bdotp
         
             df[idx_f] = 4.*np.pi/npix_in * delta_freq*window[idx_f] * self.E_f(f,alpha,f0) * np.einsum('ij,ij->', gamma_rot, Apix )
 
@@ -1503,9 +1490,9 @@ class Telescope(object):
         
         #test?
         
-        z_p = np.zeros((npix_out,npol))
-        A_p = np.zeros((npix_out,npol))
-        M_pp = np.zeros((npix_out,npix_out,npol,npol))
+        z_p = np.zeros((npix_out,npol),dtype = complex)
+        A_p = np.zeros((npix_out,npol),dtype = complex)
+        M_pp = np.zeros((npix_out,npix_out,npol,npol),dtype = complex)
         A_pp = np.zeros_like(M_pp)
         ' eliminate A_pp imo ' 
         
@@ -1522,8 +1509,6 @@ class Telescope(object):
             gamma_rot_ud = np.transpose(hp.ud_grade(gamma_rot,nside_out = self._nside_out)) 
             
             #print gamma_rot_ud, len(gamma_rot_ud), len(gamma_rot_ud[0])
-            
-            #checkpoint
             
             vec_b = hp.pix2vec(self._nside_in,pix_b[idx_b])
             bdotp = 2.*np.pi*np.dot(vec_b,vec_p_out)*self.R_earth/3.e8
@@ -1552,13 +1537,11 @@ class Telescope(object):
                     if ip!= jp :
                         M_pp[jp,ip] += val
         
-        #M_pp_inv = np.linalg.pinv(M_pp,rcond=1.e-5)
         
-        #S_p = np.einsum('...ik,...k->...i', M_pp_inv, z_p)
-        
-        #fig = plt.figure()
-        #hp.mollview(S_p)
-        #plt.savefig('clean.pdf')
+        #####
+        #print z_p, z_p[0],z_p[1]
+        #####
+        #exit()
         
         # plt.figure()
         #
