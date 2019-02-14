@@ -390,10 +390,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             # cond condition number array (1 item pm -> will be accumulated in chuncks of nproc)
             
-            z_p = np.zeros((npix_out,npol))
-            my_A_p = np.zeros((npix_out,npol))
-            my_A_pp = np.zeros((npix_out,npix_out,npol,npol))
-            my_M_p_pp = np.zeros((npix_out,npix_out,npol,npol))
+            z_p = np.zeros((npix_out,npol),dtype=complex)
+            my_A_p = np.zeros((npix_out,npol),dtype=complex)
+            my_A_pp = np.zeros((npix_out,npix_out,npol,npol),dtype=complex)
+            my_M_p_pp = np.zeros((npix_out,npix_out,npol,npol),dtype=complex)
             cond = 0.
             pix_bs_up = np.zeros(nbase)
 
@@ -546,7 +546,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 z_p, my_M_p_pp, my_A_p, my_A_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
                 cond = np.linalg.cond(my_M_p_pp)
-
+                
+                
                 
             # out of the loop: each proc has a personal set of dirty maps and beam-patterns
             # create buffers now to accumulate these operators
@@ -591,7 +592,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             # NOW THE BUFFERS ARE THE SUM OVER TIME OF THE DIRTY MAP/BEAM-PATTERN OVER nproc MINUTES
             
             if ISMPI: 
-                                
+                print 'collecting ... 2'            
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
