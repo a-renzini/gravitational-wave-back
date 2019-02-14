@@ -645,13 +645,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 print 'the matrix has been inverted!'
                 
                 M_p_pp_inv = np.swapaxes(Mpp_inv.reshape(npix_out,npol,npix_out,npol),1,2)
-                
-                print M_p_pp_inv[0][0]
-                # this may have to be re-visited, but may be ok already
-                
+                                
                 S_p = np.einsum('ikwv,kv->iw', M_p_pp_inv, Z_p)
-                
-                print S_p
                 
                 ################################################################
                 #
