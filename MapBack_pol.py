@@ -622,7 +622,7 @@ class Telescope(object):
 
                 self.gammaU.append((5./(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus()))
                 
-                self.gammaMatrix.append(block_diag(self.gammaI[i], self.gammaV[i],self.gammaQ[i],self.gammaU[i]))
+                #self.gammaMatrix.append(block_diag(self.gammaI[i], self.gammaV[i],self.gammaQ[i],self.gammaU[i]))
                 
                 
                 #Simulation tools        
@@ -1491,10 +1491,7 @@ class Telescope(object):
         #test?
         
         z_p = np.zeros((npix_out,npol),dtype = complex)
-        A_p = np.zeros((npix_out,npol),dtype = complex)
         M_pp = np.zeros((npix_out,npix_out,npol,npol),dtype = complex)
-        A_pp = np.zeros_like(M_pp)
-        ' eliminate A_pp imo ' 
         
         for idx_b in range(self._nbase):
             
@@ -1548,8 +1545,7 @@ class Telescope(object):
         # print np.mean(np.abs(df)**2), np.mean(pf)
         # print np.average(np.abs(df)**2), np.average(pf)
         
-        if norm == False: return z_p, M_pp 
-        else: return z_p, M_pp, A_p, A_pp #/norm
+        return z_p, M_pp 
 
 
     def projector(self,ctime, s, psds, freqs,pix_bs, q_ns, norm = False):
@@ -1566,12 +1562,11 @@ class Telescope(object):
             a, b = self.combo_tuples[i]
             pows.append(psds[a]*(psds[b]))      #(or sqrt)
                 
-        z_p, M_pp, A_p, A_pp = self.summer(ctime, s, pows, freqs, pix_bs, q_ns, norm)
+        z_p, M_pp = self.summer(ctime, s, pows, freqs, pix_bs, q_ns, norm)
         
         #print np.mean(data_lm)          
         
-        if norm == False: return z_p, M_pp
-        else: return z_p, M_pp, A_p, A_pp
+        return z_p, M_pp
         
 
     # ********* S(f) *********
