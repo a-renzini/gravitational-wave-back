@@ -602,7 +602,7 @@ class Telescope(object):
         
         for i in range(self._nbase):
             a, b = self.combo_tuples[i]
-            self.gammaI.append((5./(8.*np.pi))*self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross())
+            self.gammaI.append((5./(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
                 
                 #Simulation tools
     
