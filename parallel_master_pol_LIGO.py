@@ -531,7 +531,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 if myid == 0: print 'proj run'
                 
                 z_p, my_M_p_pp= run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
-                cond = np.linalg.cond(my_M_p_pp)
+                cond = 10.#np.linalg.cond(my_M_p_pp)
                 
                 
                 

@@ -1516,8 +1516,7 @@ class Telescope(object):
             
             Ef = self.E_f(freq,alpha,f0)
             
-            #for pol_idx in range(4):
-                                
+            #for pol_idx in range(4):             
             for ip in range(npix_out):
                             
                 z_p[ip] += 8.*np.pi/npix_out * delf* gamma_rot_ud[ip]*np.sum(window[:] 
@@ -1532,7 +1531,7 @@ class Telescope(object):
                     M_pp[ip,jp] += val
 
                     if ip!= jp :
-                        M_pp[jp,ip] += val
+                        M_pp[jp,ip] += val     
                 
         # plt.figure()
         #
