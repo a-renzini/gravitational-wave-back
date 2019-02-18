@@ -135,8 +135,8 @@ high_f = 500.
 
 # spectral shape of the GWB
 
-alpha = 3. 
-f0 = 100.
+alpha = 0.6666666  
+f0 = 50.
 
 if myid==0:
     print 'Delta f: ', [low_f, high_f], 'spectral idx and ref freq: ', [alpha,f0] 
