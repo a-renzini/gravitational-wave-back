@@ -531,8 +531,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 if myid == 0: print 'proj run'
                 
                 z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
-                cond = np.linalg.cond(my_M_p_pp)
-
                 
             # out of the loop: each proc has a personal set of dirty maps and beam-patterns
             # create buffers now to accumulate these operators
@@ -575,6 +573,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
+                
                 conds_array = comm.gather(cond, root = 0)
                 endtimes_array = comm.gather(my_endtime, root = 0)
                 pdx_H1 = comm.gather(psds[0],root = 0)
@@ -613,7 +612,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 Z_p += z_buffer
                 M_p_pp += M_p_pp_buffer 
                 
-                conds_array = np.array(conds_array)
+                conds_array = np.array([0.])#np.array(conds_array)
                 np.append(conds,conds_array)
                 H1_PSD_fits.append(pdx_H1)
                 L1_PSD_fits.append(pdx_L1)
