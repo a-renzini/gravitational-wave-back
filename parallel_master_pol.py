@@ -143,7 +143,7 @@ if myid==0:
 
 # DETECTORS (should make this external input)
 
-dects = ['H1','L1']
+dects = ['H1','L1','V1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
 avoided = 0 
