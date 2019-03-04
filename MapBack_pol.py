@@ -611,16 +611,18 @@ class Telescope(object):
         
         for i in range(self._nbase):
             a, b = self.combo_tuples[i]
-
-            self.gammaI.append((5./(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
+            
+            self.gammaI.append((self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
+            
+            #self.gammaI.append((5./(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
                         
             if self.pol == True:
             
-                self.gammaV.append(-(5.*1.j/(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus()))
+                self.gammaV.append(-1.j*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus()))
 
-                self.gammaQ.append((5./(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
+                self.gammaQ.append((self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
 
-                self.gammaU.append((5./(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus()))
+                self.gammaU.append((self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus()))
                 
                 #self.gammaMatrix.append(block_diag(self.gammaI[i], self.gammaV[i],self.gammaQ[i],self.gammaU[i]))
                 
@@ -678,6 +680,8 @@ class Telescope(object):
         #else: print 'npol doesnt match known pol modes'
          
         self.map_in = input_map.copy()
+        
+        #print self.map_in
         
         # plt.figure()
         # hp.mollview(self.map_in)
@@ -1008,12 +1012,17 @@ class Telescope(object):
             
             exp_bdotp = (np.cos(bdotp_in*f) + np.sin(bdotp_in*f)*1.j)
             
-            Apix = self.npol*[np.zeros_like(map_in[0])] 
+            Apix = self.npol*[np.zeros_like(map_in[0], dtype = complex)]
+             
             for i in range(len(Apix)):
-                Apix[i] = map_in[i]*exp_bdotp
-        
+                Apix[i] = map_in[i]*exp_bdotp            
+                        
             df[idx_f] = 4.*np.pi/npix_in * delta_freq*window[idx_f] * self.E_f(f,alpha,f0) * np.einsum('ij,ij->', gamma_rot, Apix )
+            
 
+            #print map_in[0][0]*sum(gamma_rot[0]*np.cos(bdotp_in*f)), map_in[0][0]*sum(gamma_rot[0]*np.sin(bdotp_in*f))
+            #print -map_in[1][0]*sum(gamma_rot[1]*np.sin(bdotp_in*f)), map_in[1][0]*sum(gamma_rot[1]*np.cos(bdotp_in*f))
+        
         return df
     
     def PDX(self,frexx,a,b,c):
@@ -1518,10 +1527,22 @@ class Telescope(object):
             
             #for pol_idx in range(4):             
             for ip in range(npix_out):
-                            
-                z_p[ip] += 8.*np.pi/npix_out * delf* gamma_rot_ud[ip]*np.sum(window[:] 
-                            * Ef[:]/ pf[:]      ## minus sign? changed it to +
-                            *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))) 
+                
+                if npol == 1:
+                                
+                    z_p[ip] += 8.*np.pi/npix_out * delf* gamma_rot_ud[ip]*np.sum(window[:] 
+                                * Ef[:]/ pf[:]      ## minus sign? changed it to +
+                                *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))) 
+                
+                elif npol == 2:
+                                        
+                    z_p[ip][0] += 8.*np.pi/npix_out * delf* gamma_rot_ud[ip][0]*np.sum(window[:] 
+                                * Ef[:]/ pf[:]      ## minus sign? changed it to +
+                                *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:])))
+                
+                    z_p[ip][1] += 8.*np.pi/npix_out * delf* 1.j* gamma_rot_ud[ip][1]*np.sum(window[:] 
+                                * Ef[:]/ pf[:]      ## minus sign? changed it to +
+                                *(np.cos(bdotp[ip]*freq[:])*np.imag(df[:]) - np.sin(bdotp[ip]*freq[:])*np.real(df[:]) ))
                 
                 for jp in range(ip,npix_out):
                     
