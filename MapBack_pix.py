@@ -519,7 +519,7 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, alpha=3., f0=1., data_run = 'O1'): #Dect list
+    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, alpha=3., f0=100., data_run = 'O1'): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
@@ -597,28 +597,30 @@ class Telescope(object):
 
         # calculate overlap functions
         # TODO: integrate this with general detector table
-        #theta, phi = hp.pix2ang(self._nside,np.arange(self.npix)) 
+        # theta, phi = hp.pix2ang(self._nside,np.arange(self.npix)) 
         
         self.gammaI = []
         
         for i in range(self._nbase):
             a, b = self.combo_tuples[i]
-            self.gammaI.append((5./(8.*np.pi))*self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross())
-                
-                #Simulation tools
+            self.gammaI.append(self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross())
+            
+            #removed mistake from here!! 4/3/19
+            
+        #Simulation tools
     
         self.noise_lvl = noise_lvl
-        self.alpha = 1.
+        self.beta = 1.
 
-        if noise_lvl == 1: alpha = 1.
-        elif noise_lvl == 2: alpha = 1.e-42
-        elif noise_lvl == 3: alpha = 1.e-43
-        elif noise_lvl == 4: alpha = 2.e-44
+        if noise_lvl == 1: beta = 1.
+        elif noise_lvl == 2: beta = 1.e-42
+        elif noise_lvl == 3: beta = 1.e-43
+        elif noise_lvl == 4: beta = 2.e-44
         
         
-        self.alpha = alpha
+        self.beta = beta
         
-        print 'alpha is', self.alpha
+        print 'beta is', self.beta
 
         input_map = self.get_map_in(maptyp)
         self.map_in = input_map.copy()
@@ -633,7 +635,7 @@ class Telescope(object):
     def get_map_in(self, maptyp):
         
         nside = self._nside_in
-        alpha = self.alpha
+        alpha = self.beta
         
         lmax = nside/2        #or not?
 
@@ -1481,6 +1483,7 @@ class Telescope(object):
 
         delf = self.fs/float(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         #geometry 
+        
         
         npix_out = self.npix_out
         npix_in = self.npix_in

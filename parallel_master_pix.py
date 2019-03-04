@@ -119,13 +119,13 @@ sim = True
 
 # frequency cuts (integrate over this range)
                                                                                                           
-low_f = 80.
-high_f = 300.
+low_f = 30.
+high_f = 500.
 
     
 # DETECTORS (should make this external input)
 
-dects = ['H1','L1','V1']
+dects = ['H1','L1']#,'V1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -456,7 +456,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     strains_corr = run.noisy(strains_corr,psds_f,mask)
                 
                     strains_f = strains_corr
-            
+                    
+                    #print strains_f, len(strains_f[0])
+                    
                 print 'filtering done'
 
                 ################################################################################
