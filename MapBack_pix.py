@@ -1548,6 +1548,9 @@ class Telescope(object):
         #fig = plt.figure()
         #hp.mollview(S_p)
         #plt.savefig('clean.pdf')
+        
+        print z_p
+        
         if norm == False: return z_p, M_pp 
         else: return z_p, M_pp, A_p, A_pp #/norm
 

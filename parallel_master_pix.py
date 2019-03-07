@@ -603,6 +603,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 S_p = np.einsum('...ik,...k->...i', M_p_pp_inv, Z_p)
                 
+                print S_p
+                
+                exit()
+                
                 
                 ################################################################
                 #
