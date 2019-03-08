@@ -125,7 +125,7 @@ high_f = 500.
     
 # DETECTORS (should make this external input)
 
-dects = ['H1','L1']#,'V1']
+dects = ['H1','L1','V1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
  
@@ -603,9 +603,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 S_p = np.einsum('...ik,...k->...i', M_p_pp_inv, Z_p)
                 
-                print S_p
-                
-                exit()
+                #print S_p
                 
                 
                 ################################################################
