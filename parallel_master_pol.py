@@ -491,7 +491,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     strains_corr = run.noisy(strains_corr,psds_f,mask)
                 
                     strains_f = strains_corr
-            
+                    
                 if myid==0: print 'filtering done'
 
                 ################################################################################
@@ -646,10 +646,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 M_p_pp_inv = np.swapaxes(Mpp_inv.reshape(npix_out,npol,npix_out,npol),1,2)
                                 
                 S_p = np.einsum('ikwv,kv->iw', M_p_pp_inv, Z_p)
-                
-                print S_p
-                
-                exit()
                 
                 ################################################################
                 #
