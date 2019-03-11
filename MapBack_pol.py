@@ -607,7 +607,7 @@ class Telescope(object):
         self.gammaU = []
         
         self.gammaMatrix = []
-        #gammas are all real - gammaV should have an i in front!
+        #gammas are all real ? - gammaV should have an i in front?
         
         for i in range(self._nbase):
             a, b = self.combo_tuples[i]
@@ -1486,8 +1486,6 @@ class Telescope(object):
         #geometry 
         delf = freq[1]-freq[0]
         
-        # print delf
-        
         # print delf, freq[1]-freq[0]
         
         npix_out = self.npix_out
@@ -1547,7 +1545,16 @@ class Telescope(object):
                 for jp in range(ip,npix_out):
                     
                     #val = einsum(W,W' -> WW')      sym?
-                    val = np.einsum('i,j -> ij', 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * gamma_rot_ud[ip] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )), gamma_rot_ud[jp])
+                    if npol == 1:
+                        val = np.einsum('i,j -> ij', 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * gamma_rot_ud[ip] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )), gamma_rot_ud[jp])
+                    
+                    elif npol == 2:
+                        val = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * 
+                                np.array([ [ gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * gamma_rot_ud[jp][0],
+                                1.j*gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1]) ] ,
+                                 [1.j*gamma_rot_ud[jp][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) *gamma_rot_ud[ip][1],
+                                gamma_rot_ud[ip][1] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1]) ] ])
+                        
                     
                     M_pp[ip,jp] += val
 
