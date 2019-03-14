@@ -101,10 +101,10 @@ lmax = 2
 sim = True
 
 #INTEGRATING FREQS:                                                                                                           
-low_f = 80.
-high_f = 300.
-low_cut = 80.
-high_cut = 300.
+low_f = 30.#80.
+high_f = 500.#300.
+low_cut = 30.#80.
+high_cut = 500.#300.
 
     
 #DETECTORS
