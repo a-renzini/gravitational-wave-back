@@ -1549,13 +1549,8 @@ class Telescope(object):
                         val = np.einsum('i,j -> ij', 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * gamma_rot_ud[ip] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )), gamma_rot_ud[jp])
                     
                     elif npol == 2:
-                        val = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * 
-                                np.array([ [ gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * gamma_rot_ud[jp][0],
-                                1.j*gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1]) ] ,
-                                 [1.j*gamma_rot_ud[jp][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) *gamma_rot_ud[ip][1],
-                                gamma_rot_ud[ip][1] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1]) ] ])
+                        val = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.array([ [ gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * gamma_rot_ud[jp][0], 1.j*gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1]) ] , [1.j*gamma_rot_ud[jp][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) *gamma_rot_ud[ip][1], gamma_rot_ud[ip][1] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1]) ] ])
                         
-                    
                     M_pp[ip,jp] += val
 
                     if ip!= jp :

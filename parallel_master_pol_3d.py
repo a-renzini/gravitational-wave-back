@@ -647,6 +647,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                                 
                 S_p = np.einsum('ikwv,kv->iw', M_p_pp_inv, Z_p)
                 
+                print M_p_pp_inv #edit                
+                
+                print S_p #edit
+                
+                exit()
                 ################################################################
                 #
                 # only checkpoint once in a while - set step to custom
