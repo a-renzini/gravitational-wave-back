@@ -129,8 +129,8 @@ pol = True
 
 # frequency cuts (integrate over this range)
                                                                                                           
-low_f = 30.
-high_f = 500.
+low_f = 80.
+high_f = 300.
 
 
 # spectral shape of the GWB
@@ -626,7 +626,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 b_pixes_flat = 0.
                 b_pixes_flat = np.concatenate(b_pixes).ravel().tolist()
-                np.savez('%s/b_pixes.npz' % out_path, b_pixes = b_pixes_flat ) #save the b_pixes file 
+                #np.savez('%s/b_pixes.npz' % out_path, b_pixes = b_pixes_flat ) #save the b_pixes file 
                 
                 print '+++'
                 print counter, 'mins analysed.'
@@ -644,8 +644,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 print 'the matrix has been inverted!'
                 
                 M_p_pp_inv = np.swapaxes(Mpp_inv.reshape(npix_out,npol,npix_out,npol),1,2)
-                                
+               
                 S_p = np.einsum('ikwv,kv->iw', M_p_pp_inv, Z_p)
+
                 
                 ################################################################
                 #
