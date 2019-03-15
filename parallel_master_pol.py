@@ -686,7 +686,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     elif npol == 2:
                         
                         S_I = S_p[0]
-                        S_V = np.imag(S_p[1])
+                        S_V = S_p[1]
                         
                         #print S_IQU[0][0]
                         
