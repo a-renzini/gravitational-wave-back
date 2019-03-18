@@ -1143,7 +1143,7 @@ class Telescope(object):
             
             #masxx = (frexx>low_f) & (frexx < (high_f+100.))
 
-            if high_f < 300.:
+            if high_f < 300. or low_f<30.:
                 masxx = (frexx>30.) & (frexx < 300.)
                                 
             else:        
@@ -1179,7 +1179,7 @@ class Telescope(object):
             if c < 2*min or c > 12000*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
             
             norm = np.mean(hf_psd_data[mask2])/np.mean(hf_psd(freqs)[mask2])#/np.mean(self.PDX(freqs,a,b,c))
-            
+                        
             if norm > 4500. : flags[idx_str] = True
             
             #if a < min or a > (max): flags[idx_str] = True

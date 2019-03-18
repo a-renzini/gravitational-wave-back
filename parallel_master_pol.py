@@ -143,7 +143,7 @@ if myid==0:
 
 # DETECTORS (should make this external input)
 
-dects = ['H1','L1']#,'V1']
+dects = ['H1','L1','V1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
 avoided = 0 
@@ -458,9 +458,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 psds_f = []
                                 
                 for i in range(ndet):
+
                     psds_f.append(run.PDX(freqs,psds[i][0],psds[i][1],psds[i][2]))
-            
-                
                 # FORK: if using real data, run filter() on it. If simulating, create sim corr data stream.
                 # Fill strains_f created above.  
                 
@@ -478,6 +477,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 for i in range(len(psds_f)):
                     psds_f[i] = psds_f[i][mask]
+                    psds_f[i] = 1.e-20*np.ones_like(psds_f[i])  #edit
 
                 if sim == True:
                     
@@ -489,7 +489,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     strains_corr = run.injector(strains_in,my_ctime,low_f,high_f,poi, sim)[0]                    
                     strains_corr = run.noisy(strains_corr,psds_f,mask)
-                
                     strains_f = strains_corr
                     
                 if myid==0: print 'filtering done'
@@ -529,7 +528,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 # condition number for the beam-pattern
                 if myid == 0: print 'proj run'
-                
+
                 z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
                 
             # out of the loop: each proc has a personal set of dirty maps and beam-patterns
@@ -643,10 +642,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 Mpp_inv = np.linalg.pinv(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out),rcond=1.e-8)
                 print 'the matrix has been inverted!'
                 
+                #print np.linalg.cond(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)) #edit
+
                 M_p_pp_inv = np.swapaxes(Mpp_inv.reshape(npix_out,npol,npix_out,npol),1,2)
                
                 S_p = np.einsum('ikwv,kv->iw', M_p_pp_inv, Z_p)
-
+                
                 
                 ################################################################
                 #
@@ -694,6 +695,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
                         
                     else:
+                        print S_p[0]
+                        print np.mean(S_p[0])
+                        exit()
                         hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p[0] ) #,column_units=1.e30)    #*1.e30) 
                     
                     # save checkfile with
