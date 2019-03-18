@@ -974,6 +974,7 @@ class Telescope(object):
         
         npix_in = hp.nside2npix(self._nside_in)
         delta_freq = freqs[1] - freqs[0] #1.*self.fs/len(freqs)
+        
         window = np.ones_like(freqs)    #might make sense with a window =/ box
         rot_m_array, sin4psi, cos4psi = self.rotation_pix(np.arange(npix_in), q_n)
         
@@ -1008,21 +1009,19 @@ class Telescope(object):
         alpha = self.alpha
         f0 = self.f0
         
-        for idx_f,f in enumerate(freqs):     #maybe E_f is squared?
+        for idx_f,f in enumerate(freqs):   
             
             exp_bdotp = (np.cos(bdotp_in*f) + np.sin(bdotp_in*f)*1.j)
             
             Apix = self.npol*[np.zeros_like(map_in[0], dtype = complex)]
-             
+            
             for i in range(len(Apix)):
                 Apix[i] = map_in[i]*exp_bdotp            
-                        
+
             df[idx_f] = 4.*np.pi/npix_in * delta_freq*window[idx_f] * self.E_f(f,alpha,f0) * np.einsum('ij,ij->', gamma_rot, Apix )
-            
 
             #print map_in[0][0]*sum(gamma_rot[0]*np.cos(bdotp_in*f)), map_in[0][0]*sum(gamma_rot[0]*np.sin(bdotp_in*f))
             #print -map_in[1][0]*sum(gamma_rot[1]*np.sin(bdotp_in*f)), map_in[1][0]*sum(gamma_rot[1]*np.cos(bdotp_in*f))
-        
         return df
     
     def PDX(self,frexx,a,b,c):
@@ -1522,7 +1521,7 @@ class Telescope(object):
         
             
             Ef = self.E_f(freq,alpha,f0)
-            
+
             #for pol_idx in range(4):             
             for ip in range(npix_out):
                 
@@ -1548,14 +1547,34 @@ class Telescope(object):
                     if npol == 1:
                         val = np.einsum('i,j -> ij', 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * gamma_rot_ud[ip] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )), gamma_rot_ud[jp])
                     
-                    elif npol == 2:
-                        val = 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * np.array([ [ gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * gamma_rot_ud[jp][0], 1.j*gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1]) ] , [1.j*gamma_rot_ud[jp][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) *gamma_rot_ud[ip][1], gamma_rot_ud[ip][1] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1]) ] ])
-                        
-                    M_pp[ip,jp] += val
+                        M_pp[ip,jp] += val
 
-                    if ip!= jp :
-                        M_pp[jp,ip] += val     
-                
+                        if ip!= jp : M_pp[jp,ip] += val
+                    
+                    if npol == 2:
+                        
+                        const = 2.*(4.*np.pi)**2/npix_out**2 * delf**2
+                        val1 = const * gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * gamma_rot_ud[jp][0]
+                        val2 = const * 1.j*gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1]) 
+                        val3 = const * 1.j*gamma_rot_ud[jp][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) *gamma_rot_ud[ip][1]
+                        val4 = const * gamma_rot_ud[ip][1] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1])  
+                        
+                        val =[[val1,val2],[val2,val4]]
+                        
+                        M_pp[ip,jp] += val
+
+                        if ip!= jp :
+                        
+                            const = 2.*(4.*np.pi)**2/npix_out**2 * delf**2
+                            val1 = const * gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[jp]-bdotp[ip])*freq[:]) )) * gamma_rot_ud[jp][0]
+                            val2 = const * 1.j*gamma_rot_ud[jp][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[jp]-bdotp[ip])*freq[:]) )) * np.conj(gamma_rot_ud[ip][1]) 
+                            val3 = const * 1.j*gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[jp]-bdotp[ip])*freq[:]) )) *gamma_rot_ud[jp][1]
+                            val4 = const * gamma_rot_ud[jp][1] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[jp]-bdotp[ip])*freq[:]) )) * np.conj(gamma_rot_ud[ip][1])  
+                        
+                            val =[[val1,val2],[val2,val4]]
+                        
+                            M_pp[jp,ip] += [[val1,val2],[val2,val4]]     
+             
         # plt.figure()
         #
         # plt.loglog(freq, np.abs(df)**2, label = 'df df*')
