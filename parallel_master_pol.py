@@ -695,9 +695,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
                         
                     else:
-                        print S_p[0]
-                        print np.mean(S_p[0])
-                        exit()
+                        #print S_p[0]
+                        #print np.mean(S_p[0])
                         hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p[0] ) #,column_units=1.e30)    #*1.e30) 
                     
                     # save checkfile with
