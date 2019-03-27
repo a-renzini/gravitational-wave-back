@@ -618,7 +618,7 @@ class Telescope(object):
                         
             if self.pol == True:
             
-                self.gammaV.append(-1.j*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus()))
+                self.gammaV.append(1.j*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus())) #edit : according to seto-taruya, it's 1.j; used to be a -1.! possibly due to CMB-convention?
 
                 self.gammaQ.append((self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
 
@@ -973,7 +973,7 @@ class Telescope(object):
     def simbase(self,freqs,q_n,pix_b,nbase,poi = False):
         
         npix_in = hp.nside2npix(self._nside_in)
-        delta_freq = (freqs[1] - freqs[0])/(self.high_f-self.low_f) #edit! #1.*self.fs/len(freqs)
+        delta_freq = (freqs[1] - freqs[0])      #/(self.high_f-self.low_f) #edit! #1.*self.fs/len(freqs)
         
         window = np.ones_like(freqs)    #might make sense with a window =/ box
         rot_m_array, sin4psi, cos4psi = self.rotation_pix(np.arange(npix_in), q_n)
@@ -1483,7 +1483,7 @@ class Telescope(object):
 
         #delf = self.fs/float(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         #geometry 
-        delf = (freq[1]-freq[0])/(self.high_f-self.low_f) #edit!
+        delf = (freq[1]-freq[0])    ##/(self.high_f-self.low_f) #edit!
         
         # print delf, freq[1]-freq[0]
         

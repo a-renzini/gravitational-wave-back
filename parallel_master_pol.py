@@ -477,7 +477,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 for i in range(len(psds_f)):
                     psds_f[i] = psds_f[i][mask]
-                    psds_f[i] = 1.e-20*np.ones_like(psds_f[i])  #edit
+                    #psds_f[i] = 1.e-20*np.ones_like(psds_f[i])  
 
                 if sim == True:
                     
@@ -642,7 +642,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 Mpp_inv = np.linalg.pinv(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out),rcond=1.e-8)
                 print 'the matrix has been inverted!'
                 
-                #print np.linalg.cond(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)) #edit
+                #print np.linalg.cond(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)) 
 
                 M_p_pp_inv = np.swapaxes(Mpp_inv.reshape(npix_out,npol,npix_out,npol),1,2)
                
