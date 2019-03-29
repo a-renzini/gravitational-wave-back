@@ -618,7 +618,7 @@ class Telescope(object):
                         
             if self.pol == True:
             
-                self.gammaV.append(-1.j*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus())) #edit : according to seto-taruya, it's 1.j; used to be a -1.! possibly due to CMB-convention?
+                self.gammaV.append(1.j*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus())) #edit : according to seto-taruya, it's 1.j; used to be a -1.! possibly due to CMB-convention?
 
                 self.gammaQ.append((self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
 
@@ -831,13 +831,13 @@ class Telescope(object):
     def coupK(self,l,lp,lpp,m,mp):
         return np.sqrt((2*l+1.)*(2*lp+1.)*(2*lpp+1.)/4./np.pi)*self.threej_0[lpp,l,lp]*self.threej_m[lpp,l,lp,m,mp]
 
-    def vec2azel(self,v2,v1):   ##  EDIT!! changed INPUT ANGLES to suit our convention (CMB) - make sure this is what we want
+    def vec2azel(self,v2,v1):   ##  edit!! changed INPUT ANGLES to suit our convention (CMB) - make sure this is what we want. WAS V1,V2
         # calculate the viewing angle from location at v1 to v2
         # Cos(elevation+90) = (x*dx + y*dy + z*dz) / Sqrt((x^2+y^2+z^2)*(dx^2+dy^2+dz^2))
         # Cos(azimuth) = (-z*x*dx - z*y*dy + (x^2+y^2)*dz) / Sqrt((x^2+y^2)(x^2+y^2+z^2)(dx^2+dy^2+dz^2))
         # Sin(azimuth) = (-y*dx + x*dy) / Sqrt((x^2+y^2)(dx^2+dy^2+dz^2))
         
-        v = v2-v1       ##  EDIT!! changed INPUT ANGLES to suit our convention (CMB) - make sure this is what we want
+        v = v2-v1      
         d = np.sqrt(np.dot(v,v))
         cos_el = np.dot(v2,v)/np.sqrt(np.dot(v2,v2)*np.dot(v,v))
         el = np.arccos(cos_el)-np.pi/2.
@@ -1516,10 +1516,6 @@ class Telescope(object):
             vec_b = hp.pix2vec(self._nside_in,pix_b[idx_b])
             
             bdotp = 2.*np.pi*np.dot(vec_b,vec_p_out)*self.R_earth/3.e8
-            
-            print bdotp
-            
-            exit()
             
             df = strains[idx_b]
             pf = pows[idx_b]#[mask]
