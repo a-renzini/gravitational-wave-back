@@ -1149,6 +1149,9 @@ class Telescope(object):
             else:        
                 masxx = (frexx>low_f) & (frexx < high_f)
             
+            if int(high_f-low_f)<5: 
+                masxx = (frexx>30.) & (frexx < 500.)
+                
             frexx_cp = np.copy(frexx)
             Pxx_cp = np.copy(Pxx)
             frexx_cp = frexx_cp[masxx]
@@ -1512,11 +1515,12 @@ class Telescope(object):
             gamma_rot_ud = np.transpose(hp.ud_grade(gamma_rot,nside_out = self._nside_out)) 
             
             #print gamma_rot_ud, len(gamma_rot_ud), len(gamma_rot_ud[0])
+            print 'bpix:' , pix_b[idx_b]
             
             vec_b = hp.pix2vec(self._nside_in,pix_b[idx_b])
             
             bdotp = 2.*np.pi*np.dot(vec_b,vec_p_out)*self.R_earth/3.e8
-            
+                        
             df = strains[idx_b]
             pf = pows[idx_b]#[mask]
         

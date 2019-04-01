@@ -488,7 +488,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     l1_in = my_l1.copy()
                     strains_in = (h1_in,l1_in)
                     
-                    strains_corr = run.injector(strains_in,my_ctime,low_f,high_f,poi, sim)[0]                    
+                    strains_corr = run.injector(strains_in,my_ctime,low_f,high_f,poi, sim = sim)[0]                    
                     strains_corr = run.noisy(strains_corr,psds_f,mask)
                     strains_f = strains_corr
                     
