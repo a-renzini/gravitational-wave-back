@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import time
 import math
-import MapBack_pol as mb  #################
+import MapBack_pol_edit as mb  #################
 from matplotlib import cm
 from mpi4py import MPI
 ISMPI = True
