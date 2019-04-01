@@ -129,8 +129,8 @@ pol = True
 
 # frequency cuts (integrate over this range)
                                                                                                           
-low_f = 500.
-high_f = 501.
+low_f = 30.
+high_f = 31.
 low_f_fit = 80.
 high_f_fit = 300.
 
@@ -478,7 +478,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 for i in range(len(psds_f)):
                     psds_f[i] = psds_f[i][mask]
-                    #psds_f[i] = 1.e-20*np.ones_like(psds_f[i])  
+                    psds_f[i] = 1.e-20*np.ones_like(psds_f[i])  
 
                 if sim == True:
                     
@@ -531,6 +531,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 if myid == 0: print 'proj run'
 
                 z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
+                
+                #print my_M_p_pp #edit
                 
             # out of the loop: each proc has a personal set of dirty maps and beam-patterns
             # create buffers now to accumulate these operators
@@ -641,7 +643,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)
                 
                 Mpp_inv = np.linalg.pinv(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out),rcond=1.e-8)
+                
                 print 'the matrix has been inverted!'
+                
+                #print Mpp_inv       #edit
+                #exit()
                 
                 #print np.linalg.cond(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)) 
 
@@ -655,7 +661,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # only checkpoint once in a while - set step to custom
                 #
                 
-                step = 25
+                step = 1
                 
                 if counter % (nproc*step) == 0 or checkpoint == True:    
                     
@@ -699,7 +705,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         #print S_p[0]
                         #print np.mean(S_p[0])
                         hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p[0] ) #,column_units=1.e30)    #*1.e30) 
-                    
+                        
+                        #check "!" to overwrite
+                        
                     # save checkfile with
                     # Z_p accumulated dirty map
                     # M_p_pp    "     beam-pattern
@@ -712,9 +720,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     #if counter % (nproc) == 0:
                     np.savez('%s/checkfile%s.npz' % (out_path,counter),S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
-                        
+                    
                     print 'saved dirty_map, clean_map and checkfile @ min', counter, 'with endtime', endtime, '; avoided ', avoided, ' mins.'
-
+                    
+                    exit()
                     
             #empty the lists to refill with other nproc segments
                 
