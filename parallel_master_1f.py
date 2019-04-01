@@ -532,8 +532,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
                 z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
                 
-                #print my_M_p_pp #edit
                 
+                M_pp = np.swapaxes(my_M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)
+                                
             # out of the loop: each proc has a personal set of dirty maps and beam-patterns
             # create buffers now to accumulate these operators
             
@@ -646,9 +647,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 print 'the matrix has been inverted!'
                 
-                #print Mpp_inv       #edit
-                #exit()
-                
                 #print np.linalg.cond(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)) 
 
                 M_p_pp_inv = np.swapaxes(Mpp_inv.reshape(npix_out,npol,npix_out,npol),1,2)
@@ -722,8 +720,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     np.savez('%s/checkfile%s.npz' % (out_path,counter),S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter, 'with endtime', endtime, '; avoided ', avoided, ' mins.'
-                    
-                    exit()
                     
             #empty the lists to refill with other nproc segments
                 
