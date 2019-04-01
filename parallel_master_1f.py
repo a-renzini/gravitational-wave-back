@@ -129,9 +129,10 @@ pol = True
 
 # frequency cuts (integrate over this range)
                                                                                                           
-low_f = 100.
-high_f = 101.
-
+low_f = 500.
+high_f = 501.
+low_f_fit = 80.
+high_f_fit = 300.
 
 # spectral shape of the GWB
 
@@ -143,7 +144,7 @@ if myid==0:
 
 # DETECTORS (should make this external input)
 
-dects = ['H1','L1','V1']
+dects = ['H1','L1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
 avoided = 0 
@@ -435,7 +436,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             # HERE WE GO: at this stage, we use injector() to recover the psd params & flags (needed to discard poor-fit segs)
             
-            psds, flags = run.injector(strains_copy,my_ctime,low_f,high_f,poi)
+            psds, flags = run.injector(strains_copy,my_ctime,low_f_fit,high_f_fit,poi)
             #
             # psds shape: [array([a1,b1,c1]), array([a2,b2,c2])]
             #
@@ -654,7 +655,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 # only checkpoint once in a while - set step to custom
                 #
                 
-                step = 1
+                step = 25
                 
                 if counter % (nproc*step) == 0 or checkpoint == True:    
                     
