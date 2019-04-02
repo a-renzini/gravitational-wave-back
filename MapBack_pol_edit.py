@@ -1536,7 +1536,7 @@ class Telescope(object):
                                 * Ef[:]/ pf[:]      
                                 *((np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))
                                 +1.j(np.cos(bdotp[ip]*freq[:])*np.imag(df[:]) - np.sin(bdotp[ip]*freq[:])*np.real(df[:]))
-                                ) 
+                                )) 
                     
                     
                     
