@@ -1535,7 +1535,7 @@ class Telescope(object):
                     z_p[ip] += 8.*np.pi/npix_out * delf* gamma_rot_ud[ip]*np.sum(window[:] 
                                 * Ef[:]/ pf[:]      
                                 *((np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))
-                                +1.j(np.cos(bdotp[ip]*freq[:])*np.imag(df[:]) - np.sin(bdotp[ip]*freq[:])*np.real(df[:]))
+                                +1.j*(np.cos(bdotp[ip]*freq[:])*np.imag(df[:]) - np.sin(bdotp[ip]*freq[:])*np.real(df[:]))
                                 )) 
                     
                     
