@@ -130,7 +130,7 @@ pol = True
 # frequency cuts (integrate over this range)
                                                                                                           
 low_f = 30.
-high_f = 300.
+high_f = 500.
 
 
 # spectral shape of the GWB
