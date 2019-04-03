@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import time
 import math
-import MapBack_pol_edit as mb  #################
+import MapBack_pol as mb  #################
 from matplotlib import cm
 from mpi4py import MPI
 ISMPI = True
@@ -129,8 +129,8 @@ pol = True
 
 # frequency cuts (integrate over this range)
                                                                                                           
-low_f = 30.
-high_f = 31.
+low_f = 500.
+high_f = 501.
 low_f_fit = 80.
 high_f_fit = 300.
 
@@ -478,7 +478,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 for i in range(len(psds_f)):
                     psds_f[i] = psds_f[i][mask]
-                    psds_f[i] = 1.e-20*np.ones_like(psds_f[i])  
+                    #psds_f[i] = 1.e-20*np.ones_like(psds_f[i])  
 
                 if sim == True:
                     
@@ -720,7 +720,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     np.savez('%s/checkfile%s.npz' % (out_path,counter),S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
                     
                     print 'saved dirty_map, clean_map and checkfile @ min', counter, 'with endtime', endtime, '; avoided ', avoided, ' mins.'
-                    
+                    #exit()
             #empty the lists to refill with other nproc segments
                 
             ctime_nproc = []

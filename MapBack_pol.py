@@ -590,7 +590,8 @@ class Telescope(object):
             self.az_b[i], self.el_b[i], self.baseline_length[i] = self.vec2azel(self.detectors[a].vec(),self.detectors[b].vec())
             self.latMid[i], self.lonMid[i], self.azMid[i] = self.midpoint(self.detectors[a].lat(),self.detectors[a].lon(),self.detectors[b].lat(),self.detectors[b].lon())
         # gamma functs
-                
+        
+        
         #np.savez('baseline_lengths.npz', baseline_length = self.baseline_length, dects = dects, combos = self.combo_tuples )
         #print 'saved baseline_lengths.npz'
         
@@ -973,7 +974,7 @@ class Telescope(object):
     def simbase(self,freqs,q_n,pix_b,nbase,poi = False):
         
         npix_in = hp.nside2npix(self._nside_in)
-        delta_freq = (freqs[1] - freqs[0])      #/(self.high_f-self.low_f) #edit! #1.*self.fs/len(freqs)
+        delta_freq = (freqs[1] - freqs[0])      #1.*self.fs/len(freqs)
         
         window = np.ones_like(freqs)    #might make sense with a window =/ box
         rot_m_array, sin4psi, cos4psi = self.rotation_pix(np.arange(npix_in), q_n)
@@ -987,7 +988,8 @@ class Telescope(object):
         
         vec_p_in = hp.pix2vec(self._nside_in,np.arange(npix_in))
         vec_b = hp.pix2vec(self._nside_in,pix_b)
-        bdotp_in = 2.*np.pi*np.dot(vec_b,vec_p_in)*self.R_earth/3.e8
+        
+        bdotp_in = 2.*np.pi*np.dot(vec_b,vec_p_in)*self.baseline_length[0]/3.e8        # edit ! self.R_earth
         
         df = np.zeros_like(freqs, dtype = complex)
         df1 = np.zeros_like(freqs, dtype = complex)
@@ -1483,10 +1485,10 @@ class Telescope(object):
         
         alpha = self.alpha
         f0 = self.f0
-
+        
         #delf = self.fs/float(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         #geometry 
-        delf = (freq[1]-freq[0])    ##/(self.high_f-self.low_f) #edit!
+        delf = (freq[1]-freq[0])    ##/(self.high_f-self.low_f) 
         
         # print delf, freq[1]-freq[0]
         
@@ -1519,7 +1521,7 @@ class Telescope(object):
             
             vec_b = hp.pix2vec(self._nside_in,pix_b[idx_b])
             
-            bdotp = 2.*np.pi*np.dot(vec_b,vec_p_out)*self.R_earth/3.e8
+            bdotp = 2.*np.pi*np.dot(vec_b,vec_p_out)*self.baseline_length[0]/3.e8  #self.R_earth   edit !
                         
             df = strains[idx_b]
             pf = pows[idx_b]#[mask]
@@ -1551,12 +1553,12 @@ class Telescope(object):
                 for jp in range(ip,npix_out):
                     
                     #val = einsum(W,W' -> WW')      sym?
-                    if npol == 1:
-                        val = np.einsum('i,j -> ij', 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * gamma_rot_ud[ip] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )), gamma_rot_ud[jp])
+                    if npol == 1:     
+                        val = np.einsum('i,j -> ij', 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * gamma_rot_ud[ip] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]))), gamma_rot_ud[jp])
                     
                         M_pp[ip,jp] += val
-
-                        if ip!= jp : M_pp[jp,ip] += val
+                        
+                        if ip!= jp : M_pp[jp,ip] += val       
                     
                     if npol == 2:
                         
