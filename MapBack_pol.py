@@ -1517,7 +1517,7 @@ class Telescope(object):
             gamma_rot_ud = np.transpose(hp.ud_grade(gamma_rot,nside_out = self._nside_out)) 
             
             #print gamma_rot_ud, len(gamma_rot_ud), len(gamma_rot_ud[0])
-            print 'bpix:' , pix_b[idx_b]
+            #print 'bpix:' , pix_b[idx_b]
             
             vec_b = hp.pix2vec(self._nside_in,pix_b[idx_b])
             
