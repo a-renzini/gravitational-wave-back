@@ -44,12 +44,13 @@ def PDX(frexx,a,b,c):
 
 def notches():
     
-    notch_fs = np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 500.02,  1009.99])
+    notch_fs = np.array([30.25, 31.25,32.25,33.0,34.5,35.25,36.25,37.0,40.5,41.75,45.5,46.0,59.6,305.0,315.4,331.5,500.25])
+                #np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 500.02,  1009.99])
     return notch_fs
 
 def sigmas():
 
-    sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,5.,5.,1.])            
+    sigma_fs = np.array([.02,.02,.02,.02,.02,.02,.02,0.1,.01,.2,.2,.2,.2,.5,.2,.1,.2])            
     return sigma_fs
 
 def Pdx_notcher(freqx,Pdx):
@@ -185,7 +186,7 @@ sim = False
 # frequency cuts (integrate over this range)
                                                                                                           
 low_f = 30.
-high_f = 86.
+high_f = 500.
 
 # spectral shape of the GWB
 
@@ -223,8 +224,9 @@ run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_pat
 # if checkpoint = True make sure to start from end of checkpoint
 
 counter = 0         #counter = number of mins analysed
-start = 1126224017  #start = start time of O1 ...    1450000000  #1134035217 probs
-stop  = 1137254417 #1127224017       #1137254417  #O1 end GPS     
+bads = 0
+start = 1164556817  #start = start time of O1 : 1126224017    1450000000  #1134035217 probs
+stop  = 1167000000  #1127224017       #1137254417  #O1 end GPS     
 
 
 ##########################################################################
@@ -384,22 +386,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             hf_psd = interp1d(frexx,Pxx)
             hf_psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())) 
 
-
-            # plt.figure()
-            #
-            # plt.loglog(freqs, np.abs(hf_nowin)**2, label = 'nowin PSD')
-            # plt.loglog(freqshal, np.abs(hf_halin)**2, label = 'halin PSD')
-            # plt.loglog(freqs, hf_psd(freqs)*2000., label = 'mlab PSD')
-            # plt.loglog(freqs, hf_psd(freqs)*4000., label = 'mlab PSD')
-            # plt.loglog(freqs, hf_psd(freqs)*1., label = 'mlab PSD')
-            #
-            # #plt.loglog(freqs, hf_psd(freqs)*4000., label = 'mlab PSD')
-            #
-            # #plt.loglog(self.PDX(frexx,a,b,c)[mask], label = 'notched pdx fit')
-            # plt.legend()
-            # plt.savefig('hfs.png' )
-
-
             
             mask = (freqs>low_f) & (freqs < high_f)
             
@@ -425,10 +411,25 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             except RuntimeError:
                 print("Error - curve_fit failed")
                 psd_params = [10.,10.,10.]
+                
 
 
             a,b,c = psd_params
-
+            
+            
+            # plt.figure()
+            #
+            # plt.loglog(freqs[mask], np.abs(hf_nowin[mask])**2, label = 'nowin PSD')
+            # plt.loglog(freqs[mask], hf_psd(freqs[mask])*1., label = 'mlab PSD')
+            #
+            # plt.loglog(frexcp, Pxcp, label = 'notchy PSD')
+            #
+            # plt.loglog(frexx[masxx],PDX(frexx,a,b,c)[masxx], label = 'notched pdx fit')
+            # plt.legend()
+            # plt.show()
+            # #
+            # exit()
+            
             #print 'min:', minute, 'params:', psd_params
 
             min = 0.1
@@ -461,7 +462,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             if a < min or a > (max/2*1.5): flag1= True
             if b < 2*min or b > 2*max: flag1 = True
             if c < 2*min or c > 12000*max: flag1 = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
-
+            
+            print norm, norm_s
+            
             if norm > 3000. : flag1 = True
             if norm_s > 3000. : flag1 = True
 
@@ -473,21 +476,23 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 print 'bad segment!  params', a,b,c, 'ctime', ctime_idx[0]
                 my_avoided=1.
-                
-                #
-                # a*=np.sqrt(norm)
                 #
                 # plt.figure()
-                # plt.loglog(hf_psd_data[mask])
-                # plt.loglog(PDX(freqs,a,b,c)[mask])
-                # plt.savefig('badfit_1.pdf')
                 #
-                # exit()
+                # plt.loglog(freqs[mask], np.abs(hf_nowin[mask])**2, label = 'nowin PSD')
+                # plt.loglog(freqs[mask], hf_psd(freqs[mask])*1., label = 'mlab PSD')
+                #
+                # plt.loglog(frexcp, Pxcp, label = 'notchy PSD')
+                #
+                # plt.loglog(frexx[masxx],PDX(frexx,a,b,c)[masxx], label = 'notched pdx fit')
+                # plt.legend()
+                # plt.savefig('badseg%s.png' % bads)
+                # bads+=1
     
             if flag1 == False:
         
-                fr_psd_1 = Pdx_nanner(frexx_cp,hf_psd(frexx_cp))
-                fr_psd_1 = fr_psd_1[1]*norm
+                fr_psd_1 = hf_psd(frexx_cp)*norm #Pdx_nanner(frexx_cp,hf_psd(frexx_cp))
+                #fr_psd_1 = fr_psd_1[1]*norm
                 norm1 = norm_s
                 params1 = psd_params
                 
@@ -557,10 +562,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             except RuntimeError:
                 print("Error - curve_fit failed")
                 psd_params = [10.,10.,10.]
-
-
+                
+                
             a,b,c = psd_params
-    
+            
             #print 'min:', minute, 'params:', psd_params
     
             min = 0.1
@@ -586,22 +591,26 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             if flag2 == True or flag1 == True:
                 if flag1 == True: print 'there was a badseg in H' 
                 else: 
-                    print 'bad segment!  params', psd_params, 'ctime', ctime_idx[0]
+                    print 'bad segment in L!  params', psd_params, 'ctime', ctime_idx[0]
                     my_avoided=1.
-                # a*=np.sqrt(norm)
-                #
-                # plt.figure()
-                # plt.loglog(hf_psd_data)#[mask])
-                # plt.loglog(PDX(freqs,a,b,c))#[mask])
-                # plt.savefig('badfit_2.pdf')
-                #
-                # exit()
+                    
+                    # plt.figure()
+                    #
+                    # plt.loglog(freqs[mask], np.abs(hf_nowin[mask])**2, label = 'nowin PSD')
+                    # plt.loglog(freqs[mask], hf_psd(freqs[mask])*1., label = 'mlab PSD')
+                    #
+                    # plt.loglog(frexcp, Pxcp, label = 'notchy PSD')
+                    #
+                    # plt.loglog(frexx[masxx],PDX(frexx,a,b,c)[masxx], label = 'notched pdx fit')
+                    # plt.legend()
+                    # plt.savefig('badseg%s.png' % bads)
+                    #bads+=1
                 
                 
             else:
                     
-                fr_psd_2 = Pdx_nanner(frexx_cp,hf_psd(frexx_cp))  
-                fr_psd_2 = fr_psd_2[1]*norm          
+                fr_psd_2 = norm*hf_psd(frexx_cp)#Pdx_nanner(frexx_cp,hf_psd(frexx_cp))  
+                #fr_psd_2 = fr_psd_2[1]*norm          
                 norm2 = norm_s
                 params2 = psd_params
             #print 'analysed:', minute, 'minutes'
