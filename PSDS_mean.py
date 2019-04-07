@@ -697,16 +697,16 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     endtime = np.max(endtimes_buff)
                     
                     
-                    if minute % (nproc*15) == 0: 
+                    if minute % (nproc*1) == 0: 
                         
                         if FULL_DESC == False:
                             
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned_cx1.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime, avoided = avoided, minute=minute)
+                            np.savez('%s/PSDS_meaned_O2.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime, avoided = avoided, minute=minute)
                         
                         if FULL_DESC == True:
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned_cx1.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl, avoided = avoided, minute=minute)
+                            np.savez('%s/PSDS_meaned_O2.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl, avoided = avoided, minute=minute)
                             
             ctime_nproc = []
             strain1_nproc = []
