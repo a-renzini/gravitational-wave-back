@@ -476,6 +476,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 print 'bad segment!  params', a,b,c, 'ctime', ctime_idx[0]
                 my_avoided=1.
+                fr_psd_1 = 0.
+                fr_psd_2 = 0.
+                norm1= 0.
+                norm2= 0.
+                params1 = 0.
+                params2 = 0.
                 #
                 # plt.figure()
                 #
@@ -592,6 +598,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 if flag1 == True: print 'there was a badseg in H' 
                 else: 
                     print 'bad segment in L!  params', psd_params, 'ctime', ctime_idx[0]
+                    fr_psd_2 = 0.
+                    norm2 = 0.
+                    params2 = 0.
                     my_avoided=1.
                     
                     # plt.figure()
