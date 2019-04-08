@@ -703,10 +703,17 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                             
                             print 'analysed:', minute, 'minutes'
                             np.savez('%s/PSDS_meaned_O2%s.npz' % (out_path, cnt), PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime, avoided = avoided, minute=minute)
-                        
+                            
+                            PSD1_totset = []
+                            PSD2_totset = []
+                            
+                            
                         if FULL_DESC == True:
                             print 'analysed:', minute, 'minutes'
                             np.savez('%s/PSDS_meaned_O2%s.npz' % (out_path, cnt), PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl, avoided = avoided, minute=minute)
+                            
+                            PSD1_totset = []
+                            PSD2_totset = []
                         
                         cnt+=1
                         
