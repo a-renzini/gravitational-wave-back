@@ -409,7 +409,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 psd_params = fit[0]
 
             except RuntimeError:
-                print("Error - curve_fit failed")
+                print myid, "Error - curve_fit failed"
                 psd_params = [10.,10.,10.]
                 
 
@@ -463,7 +463,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             if b < 2*min or b > 2*max: flag1 = True
             if c < 2*min or c > 12000*max: flag1 = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
             
-            print norm, norm_s
             
             if norm > 3000. : flag1 = True
             if norm_s > 3000. : flag1 = True
@@ -474,7 +473,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     
             if flag1 == True: 
                 
-                print 'bad segment!  params', a,b,c, 'ctime', ctime_idx[0]
+                print myid, 'bad segment!  params', a,b,c, 'ctime', ctime_idx[0]
                 my_avoided=1.
                 fr_psd_1 = 0.
                 fr_psd_2 = 0.
@@ -566,7 +565,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 psd_params = fit[0]
 
             except RuntimeError:
-                print("Error - curve_fit failed")
+                print myid, "Error - curve_fit failed"
                 psd_params = [10.,10.,10.]
                 
                 
@@ -595,9 +594,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
         
     
             if flag2 == True or flag1 == True:
-                if flag1 == True: print 'there was a badseg in H' 
+                if flag1 == True: print myid, 'there was a badseg in H' 
                 else: 
-                    print 'bad segment in L!  params', psd_params, 'ctime', ctime_idx[0]
+                    print myid,'bad segment in L!  params', psd_params, 'ctime', ctime_idx[0]
                     fr_psd_2 = 0.
                     norm2 = 0.
                     params2 = 0.
@@ -678,7 +677,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     PSD1_mean = np.mean(PSD1_setbuf, axis = 0)
                     PSD2_mean = np.mean(PSD2_setbuf, axis = 0)
-        
+         
                     PSD1_totset.append(PSD1_mean)            
                     PSD2_totset.append(PSD2_mean)                                    
                         
