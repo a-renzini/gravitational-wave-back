@@ -91,7 +91,7 @@ noise_lvl = int(noise_lvl)
 this_path = out_path
 
 FULL_DESC = True
-
+cnt = 0
 # poisson masked "flickering" map
 
 poi = False
@@ -702,12 +702,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         if FULL_DESC == False:
                             
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned_O2.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime, avoided = avoided, minute=minute)
+                            np.savez('%s/PSDS_meaned_O2%s.npz' % (out_path, cnt), PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime, avoided = avoided, minute=minute)
                         
                         if FULL_DESC == True:
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned_O2.npz' % out_path, PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl, avoided = avoided, minute=minute)
-                            
+                            np.savez('%s/PSDS_meaned_O2%s.npz' % (out_path, cnt), PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl, avoided = avoided, minute=minute)
+                        
+                        cnt+=1
+                        
             ctime_nproc = []
             strain1_nproc = []
             strain2_nproc = []
