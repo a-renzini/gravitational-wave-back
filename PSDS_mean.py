@@ -335,7 +335,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             # frequency mask
 
             mask = (freqs>low_f) & (freqs < high_f)
-
+            
 
             # repackage the strains & copy them (fool-proof); create empty array for the filtered, FFTed, correlated data
 
@@ -412,8 +412,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 print myid, "Error - curve_fit failed"
                 psd_params = [10.,10.,10.]
                 
-
-
+            
+                
             a,b,c = psd_params
             
             
@@ -676,6 +676,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 if myid == 0:
                     
                     PSD1_mean = np.mean(PSD1_setbuf, axis = 0)
+                    print 'PSD2 setbuf', len(PSD2_setbuf), len(PSD2_setbuf[0])
                     PSD2_mean = np.mean(PSD2_setbuf, axis = 0)
          
                     PSD1_totset.append(PSD1_mean)            
