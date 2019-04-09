@@ -225,7 +225,7 @@ run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_pat
 
 counter = 0         #counter = number of mins analysed
 bads = 0
-start = 1164556817  #start = start time of O1 : 1126224017    1450000000  #1134035217 probs
+start = 1176038130  #start = start time of O1 : 1126224017    1450000000  #1134035217 probs
 stop  = 1187733618  #1127224017       #1137254417  #O1 end GPS     
 
 
