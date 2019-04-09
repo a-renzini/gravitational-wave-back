@@ -225,7 +225,7 @@ run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_pat
 
 counter = 0         #counter = number of mins analysed
 bads = 0
-start = 1176038130  #start = start time of O1 : 1126224017    1450000000  #1134035217 probs
+start = 1176038130  #1164556817  #start = start time of O1 : 1126224017    1450000000  #1134035217 probs
 stop  = 1187733618  #1127224017       #1137254417  #O1 end GPS     
 
 
@@ -705,16 +705,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                             print 'analysed:', minute, 'minutes'
                             np.savez('%s/PSDS_meaned_O2%s.npz' % (out_path, cnt), PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime, avoided = avoided, minute=minute)
                             
-                            PSD1_totset = []
-                            PSD2_totset = []
-                            
                             
                         if FULL_DESC == True:
                             print 'analysed:', minute, 'minutes'
                             np.savez('%s/PSDS_meaned_O2%s.npz' % (out_path, cnt), PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl, avoided = avoided, minute=minute)
                             
-                            PSD1_totset = []
-                            PSD2_totset = []
                             
                         cnt+=1
                         
