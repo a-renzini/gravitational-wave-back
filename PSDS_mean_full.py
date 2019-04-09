@@ -676,9 +676,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 if myid == 0:
                     
                     try: PSD1_mean = np.mean(PSD1_setbuf, axis = 0)                    
-                    except ValueError: continue
+                    except ValueError: PSD1_mean = np.zeros_like(PSD1_totset[0])
                     try: PSD2_mean = np.mean(PSD2_setbuf, axis = 0)
-                    except ValueError: continue
+                    except ValueError: PSD2_mean = np.zeros_like(PSD1_totset[0])
                     
                     PSD1_totset.append(PSD1_mean)            
                     PSD2_totset.append(PSD2_mean)                                    
