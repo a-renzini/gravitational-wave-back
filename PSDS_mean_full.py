@@ -675,10 +675,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                 if myid == 0:
                     
-                    PSD1_mean = PSD1_setbuf
-                    #print 'PSD2 setbuf', len(PSD2_setbuf), len(PSD2_setbuf[0])
-                    PSD2_mean = PSD2_setbuf
-         
+                    try: PSD1_mean = np.mean(PSD1_setbuf, axis = 0)                    
+                    except ValueError: continue
+                    try: PSD2_mean = np.mean(PSD2_setbuf, axis = 0)
+                    except ValueError: continue
+                    
                     PSD1_totset.append(PSD1_mean)            
                     PSD2_totset.append(PSD2_mean)                                    
                         
@@ -714,7 +715,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                             
                             PSD1_totset = []
                             PSD2_totset = []
-                        
+                            
                         cnt+=1
                         
             ctime_nproc = []
