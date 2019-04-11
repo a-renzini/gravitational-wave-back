@@ -470,12 +470,16 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         
                         strains_f.append(run.filter(strains[i], low_f,high_f,psds[i])[mask])
                         
+                        
+                        
                         s = int(my_ctime[0])
 
 
                     
                     strains_f = [(strains_f[0]*np.conj(strains_f[1]))] # become correlated strains
-                
+                    
+
+                    
                 for i in range(len(psds_f)):
                     psds_f[i] = psds_f[i][mask]
                     #psds_f[i] = 1.e-20*np.ones_like(psds_f[i])  
@@ -492,8 +496,21 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     strains_corr = run.noisy(strains_corr,psds_f,mask)
                     strains_f = strains_corr
                     
-                if myid==0: print 'filtering done'
+                if myid==0: 
+                    
+                    print 'filtering done'
+                    
+                    plt.figure()
 
+                    plt.loglog( strains_f[0]*np.conj(strains_f[0]), label = 'strancor PSD')
+                    plt.loglog( psds_f[0]*psds_f[1], label = 'H1*L1 PSD')
+
+                
+                    plt.legend()
+                    plt.savefig('psd.png')
+                
+                    exit()
+                
                 ################################################################################
                 ########################### data  massage over  ################################
                 # NOW THE GOOD STUFF
