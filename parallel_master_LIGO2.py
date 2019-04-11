@@ -543,6 +543,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             # a_buffer is just a format;
             # pdx_H1/L1 params of the PDX fit
             # b_buffer collection of baseline pixels
+            my_avoided = np.array([my_avoided])
             
             if myid == 0:
                 
@@ -551,7 +552,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 conds_array = np.zeros(nproc)
                 endtimes_array = np.zeros(nproc)
                 a_buffer = nproc * [0.,0.,0.]
-                avoided_buffer = 0
+                avoided_buffer = np.zeros_like(my_avoided)
                 pdx_H1 =  np.zeros_like(a_buffer)
                 pdx_L1 =  np.zeros_like(a_buffer)
                 b_buffer =  nproc * [nbase*[0]]
@@ -567,7 +568,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 b_buffer = None
                 avoided_buffer = None
             
-            
+
             # let's collect the winnings: Reduce sums over the od 0 dimension, gather returns a list
             # NOW THE BUFFERS ARE THE SUM OVER TIME OF THE DIRTY MAP/BEAM-PATTERN OVER nproc MINUTES
             
@@ -714,9 +715,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # map_in input map for the simulated data 
                     
                     np.savez('%s/checkfile.npz' % out_path,S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
-                    
-                    print avoided
-                    
+
                     #if counter % (nproc) == 0:
                     np.savez('%s/checkfile%s.npz' % (out_path,counter),S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
                         
