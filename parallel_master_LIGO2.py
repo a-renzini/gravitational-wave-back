@@ -500,16 +500,16 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     
                     print 'filtering done'
                     
-                    plt.figure()
-
-                    plt.loglog( strains_f[0]*np.conj(strains_f[0]), label = 'strancor PSD')
-                    plt.loglog( psds_f[0]*psds_f[1], label = 'H1*L1 PSD')
-
-                
-                    plt.legend()
-                    plt.savefig('psd.png')
-                
-                    exit()
+                    # plt.figure()
+                    #
+                    # plt.loglog( strains_f[0]*np.conj(strains_f[0]), label = 'strancor PSD')
+                    # plt.loglog( psds_f[0]*psds_f[1], label = 'H1*L1 PSD')
+                    #
+                    #
+                    # plt.legend()
+                    # plt.savefig('psd.png')
+                    #
+                    # exit()
                 
                 ################################################################################
                 ########################### data  massage over  ################################
