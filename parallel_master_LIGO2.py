@@ -441,8 +441,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             #
             
             # if there is a flagged minute, we discard it 
-            
+            my_avoided = 0
             avoid = False
+            
             if sum(flags) > 0:
                 avoid = True
                 psds[0] = np.array([ 0.,   0.,   0.])
