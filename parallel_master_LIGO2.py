@@ -448,7 +448,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 psds[0] = np.array([ 0.,   0.,   0.])
                 psds[1] = np.copy(psds[0])
                 
-                avoided += 1
+                my_avoided = 1
                 
             if avoid is not True: 
                 
@@ -550,6 +550,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 conds_array = np.zeros(nproc)
                 endtimes_array = np.zeros(nproc)
                 a_buffer = nproc * [0.,0.,0.]
+                avoided_buffer = 0
                 pdx_H1 =  np.zeros_like(a_buffer)
                 pdx_L1 =  np.zeros_like(a_buffer)
                 b_buffer =  nproc * [nbase*[0]]
@@ -563,6 +564,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 pdx_H1 = None
                 pdx_L1 = None
                 b_buffer = None
+                avoided_buffer = None
             
             
             # let's collect the winnings: Reduce sums over the od 0 dimension, gather returns a list
@@ -572,7 +574,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 comm.barrier()
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
-                
+                comm.Reduce(my_avoided,avoided_buffer,root = 0, op = MPI.SUM)
                 conds_array = comm.gather(cond, root = 0)
                 endtimes_array = comm.gather(my_endtime, root = 0)
                 pdx_H1 = comm.gather(psds[0],root = 0)
@@ -611,12 +613,15 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 Z_p += z_buffer
                 M_p_pp += M_p_pp_buffer 
                 
+                
                 conds_array = np.array([0.])#np.array(conds_array)
                 np.append(conds,conds_array)
                 H1_PSD_fits.append(pdx_H1)
                 L1_PSD_fits.append(pdx_L1)
                 b_pixes.append(b_buffer)
-
+                
+                avoided += avoided_buffer
+                
                 H1_PSD_fits_flat = 0.
                 L1_PSD_fits_flat = 0.
                 
@@ -697,7 +702,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     else:
                         #print S_p[0]
                         #print np.mean(S_p[0])
-                        hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p[0] ) #,column_units=1.e30)    #*1.e30) 
+                        hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p[0]*1.e30) 
                     
                     # save checkfile with
                     # Z_p accumulated dirty map
@@ -708,6 +713,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # map_in input map for the simulated data 
                     
                     np.savez('%s/checkfile.npz' % out_path,S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
+                    
+                    print avoided
                     
                     #if counter % (nproc) == 0:
                     np.savez('%s/checkfile%s.npz' % (out_path,counter),S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
