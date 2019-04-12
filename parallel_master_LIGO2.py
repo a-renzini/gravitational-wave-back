@@ -296,6 +296,7 @@ if myid == 0:
         S_p = None                          # final clean map gets re-estimated every time
         conds = checkdata['conds']          # keep appending to conds array
         avoided = checkdata['avoided']
+        avoided = [avoided] #edit to match O1 and O2!
         print 'we are at minute', counter , 'with startime' , start   
    
 # (objs are empty for ID neq 0 ) 
