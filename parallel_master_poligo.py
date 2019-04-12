@@ -30,7 +30,7 @@ noise_lvl = sys.argv[4]
 noise_lvl = int(noise_lvl)
 this_path = out_path
 npol = int(sys.argv[5])
-
+ndet = int(sys.argv[6])
 
 # poisson masked "flickering" map
 
@@ -41,12 +41,12 @@ if maptyp == 'planck_poi': poi = True
 # if declared from shell, load checkpoint file 
 
 try:
-    sys.argv[6]
+    sys.argv[7]
 except (NameError, IndexError):
     checkpoint = False
 else:
     checkpoint = True
-    checkfile_path = sys.argv[6]
+    checkfile_path = sys.argv[7]
 
     
 ###############                                                                                                               
@@ -121,7 +121,7 @@ filelist = rl.FileList(directory=ligo_data_dir)
 
 
 # declare whether to simulate (correlated) data (in frequency space)
-sim = False
+sim = True
 pol = True
 
 #if pol == True: npol=1  
@@ -129,8 +129,8 @@ pol = True
 
 # frequency cuts (integrate over this range)
                                                                                                           
-low_f = 30.
-high_f = 500.
+low_f = 80.
+high_f = 300.
 
 
 # spectral shape of the GWB
@@ -143,7 +143,19 @@ if myid==0:
 
 # DETECTORS (should make this external input)
 
-dects = ['H1','L1']
+if ndet == 2:
+    dects = ['H1','L1']
+
+elif ndet == 3:
+    dects = ['H1','L1','V1']
+
+else: 
+    print 'input ndet manually'
+    exit() 
+
+
+if myid == 0 : print 'using', dects
+
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
 avoided = 0 
