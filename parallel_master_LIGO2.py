@@ -146,7 +146,7 @@ if myid==0:
 dects = ['H1','L1']#,'V1']
 ndet = len(dects)
 nbase = int(ndet*(ndet-1)/2)
-avoided = 0 
+avoided = [0] 
 
 # GAUSSIAN SIM. INPUT MAP CASE: make sure that the background map isn't re-simulated between scans, 
 # and between checkfiles 
