@@ -518,7 +518,7 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, alpha=3., f0=1., data_run = 'O2',npol=1): #Dect list
+    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, alpha=3., f0=1., data_run = 'O2',npol=1,segme=False, nsegs = 1): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
@@ -537,7 +537,10 @@ class Telescope(object):
         
         self.alpha = alpha
         self.f0 = f0
-
+        
+        self.segme = segme
+        self.nsegs = nsegs
+        
         # ********* Fixed Setup Constants *********
 
         # Configuration: radians and metres, Earth-centered frame
@@ -575,6 +578,7 @@ class Telescope(object):
         self.el_b = np.zeros(self._nbase)
         self.baseline_length = np.zeros(self._nbase)
         
+        
         #self.vec2azel(self.H1.vec(),self.L1.vec())
         # position of mid point and angle of great circle connecting to observatories
         self.latMid = np.zeros(self._nbase)
@@ -590,6 +594,7 @@ class Telescope(object):
             self.az_b[i], self.el_b[i], self.baseline_length[i] = self.vec2azel(self.detectors[a].vec(),self.detectors[b].vec())
             self.latMid[i], self.lonMid[i], self.azMid[i] = self.midpoint(self.detectors[a].lat(),self.detectors[a].lon(),self.detectors[b].lat(),self.detectors[b].lon())
         # gamma functs
+        
         
         
         #np.savez('baseline_lengths.npz', baseline_length = self.baseline_length, dects = dects, combos = self.combo_tuples )
@@ -1482,6 +1487,34 @@ class Telescope(object):
 
     def summer(self, ct_split, strains, pows, freq, pix_b, q_n , norm):     
         
+        ### masking routine
+        
+        mask_full = mask_idx = (freq>self.low_f) & (freq < self.high_f)
+        freq = freq[mask_full]
+        
+        delf = (freq[1]-freq[0])    ##/(self.high_f-self.low_f) 
+        
+        
+        masks =[]
+        
+        DELTA_f = self.high_f - self.low_f
+        widf = int(np.ceil(DELTA_f/self.nsegs))
+        
+        lo_idx = self.low_f# -delf 
+        
+        for idx_seg in range(self.nsegs):
+            
+            hi_idx = lo_idx + widf   #+ delf
+
+            if hi_idx > self.high_f: hi_idx = self.high_f + delf
+            
+            mask_idx = (freq>lo_idx) & (freq < hi_idx)
+            masks.append(mask_idx)
+            
+            lo_idx = lo_idx + widf
+            
+        ##############
+        
         npol = self.npol
         
         nside=self._nside_out
@@ -1489,16 +1522,15 @@ class Telescope(object):
         # print len(freq), max(freq)
         # print 4096./len(freq)
                 
-        mask = (freq>self.low_f) & (freq < self.high_f)
-        freq = freq[mask]
-        window = np.ones_like(freq)
+        #mask = (freq>self.low_f) & (freq < self.high_f)
+        #freq = freq[mask]
+        #window = np.ones_like(freq)
         
         alpha = self.alpha
         f0 = self.f0
         
         #delf = self.fs/float(len(freq))#/len(strain[0]) #self.fs/4./len(strain[0]) SHOULD TAKE INTO ACCOUNT THE *2, THE NORMALISATION (1/L) AND THE DELTA F
         #geometry 
-        delf = (freq[1]-freq[0])    ##/(self.high_f-self.low_f) 
         
         # print delf, freq[1]-freq[0]
         
@@ -1508,96 +1540,108 @@ class Telescope(object):
         mid_idx = int(len(ct_split)/2)
     
         vec_p_out = hp.pix2vec(self._nside_out,np.arange(npix_out))
-        
+                
         #test?
+        nsegs = self.nsegs
         
-        z_p = np.zeros((npix_out,npol),dtype = complex)
-        M_pp = np.zeros((npix_out,npix_out,npol,npol),dtype = complex)
+        z_p = np.zeros((nsegs,npix_out,npol),dtype = complex)
+        M_pp = np.zeros((nsegs,npix_out,npix_out,npol,npol),dtype = complex)
         
-        for idx_b in range(self._nbase):
-            
-            #print idx_b
-            
-            rot_m_array, sin4psi, cos4psi = self.rotation_pix(np.arange(npix_in), q_n[idx_b])  
-            gamma_rot = self.rotation_gamma(idx_b,rot_m_array,sin4psi, cos4psi)
-            
-            #hp.fitsfunc.write_map('gammaI_rot.fits', gammaI_rot) 
-            
-            
-            gamma_rot_ud = np.transpose(hp.ud_grade(gamma_rot,nside_out = self._nside_out)) 
-            
-            #print gamma_rot_ud, len(gamma_rot_ud), len(gamma_rot_ud[0])
-            #print 'bpix:' , pix_b[idx_b]
-            
-            vec_b = hp.pix2vec(self._nside_in,pix_b[idx_b])
-            
-            bdotp = 2.*np.pi*np.dot(vec_b,vec_p_out)*self.baseline_length[0]/3.e8  #self.R_earth   edit !
+        
+        for idx_seg in range(nsegs):
                         
-            df = strains[idx_b]
-            pf = pows[idx_b]#[mask]
-        
+            mask = masks[idx_seg]
+            freq_idx= freq[mask]
+            window = np.ones_like(freq_idx)
             
-            Ef = self.E_f(freq,alpha,f0)
-
-            #for pol_idx in range(4):             
-            for ip in range(npix_out):
+            #print freq_idx[0]
+            
+            for idx_b in range(self._nbase):
+            
+                #print idx_b
+            
+                rot_m_array, sin4psi, cos4psi = self.rotation_pix(np.arange(npix_in), q_n[idx_b])  
+                gamma_rot = self.rotation_gamma(idx_b,rot_m_array,sin4psi, cos4psi)
+            
+                #hp.fitsfunc.write_map('gammaI_rot.fits', gammaI_rot) 
+            
+            
+                gamma_rot_ud = np.transpose(hp.ud_grade(gamma_rot,nside_out = self._nside_out)) 
+            
+                #print gamma_rot_ud, len(gamma_rot_ud), len(gamma_rot_ud[0])
+                #print 'bpix:' , pix_b[idx_b]
+            
+                vec_b = hp.pix2vec(self._nside_in,pix_b[idx_b])
+            
+                bdotp = 2.*np.pi*np.dot(vec_b,vec_p_out)*self.baseline_length[0]/3.e8  #self.R_earth   edit !
+                        
+                df = strains[idx_b]
+                pf = pows[idx_b]#[mask]
                 
-                if npol == 1:
-                                
-                    z_p[ip] += 8.*np.pi/npix_out * delf* gamma_rot_ud[ip]*np.sum(window[:] 
-                                * Ef[:]/ pf[:]      ## minus sign? changed it to +
-                                *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:]))) 
+                pf = pf[mask]
+                df = df[mask]
+            
+                Ef = self.E_f(freq_idx,alpha,f0)
+
+                #for pol_idx in range(4):             
+                for ip in range(npix_out):
+                
+                    if npol == 1:
+                        
+                        z_p[idx_seg][ip] += 8.*np.pi/npix_out * delf* gamma_rot_ud[ip]*np.sum(window[:] 
+                                    * Ef[:]/ pf[:]      ## minus sign? changed it to +
+                                    *(np.cos(bdotp[ip]*freq_idx[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq_idx[:])*np.imag(df[:]))) 
                     
                     
                     
-                elif npol == 2:
+                    elif npol == 2:
                                         
-                    z_p[ip][0] += 8.*np.pi/npix_out * delf* gamma_rot_ud[ip][0]*np.sum(window[:] 
-                                * Ef[:]/ pf[:]      ## minus sign? changed it to +
-                                *(np.cos(bdotp[ip]*freq[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq[:])*np.imag(df[:])))
+                        z_p[idx_seg][ip][0] += 8.*np.pi/npix_out * delf* gamma_rot_ud[ip][0]*np.sum(window[:] 
+                                    * Ef[:]/ pf[:]      ## minus sign? changed it to +
+                                    *(np.cos(bdotp[ip]*freq_idx[:])*np.real(df[:]) + np.sin(bdotp[ip]*freq_idx[:])*np.imag(df[:])))
                 
-                    z_p[ip][1] += 8.*np.pi/npix_out * delf* 1.j* gamma_rot_ud[ip][1]*np.sum(window[:] 
-                                * Ef[:]/ pf[:]      ## minus sign? changed it to +
-                                *(np.cos(bdotp[ip]*freq[:])*np.imag(df[:]) - np.sin(bdotp[ip]*freq[:])*np.real(df[:]) ))
+                        z_p[idx_seg][ip][1] += 8.*np.pi/npix_out * delf* 1.j* gamma_rot_ud[ip][1]*np.sum(window[:] 
+                                    * Ef[:]/ pf[:]      ## minus sign? changed it to +
+                                    *(np.cos(bdotp[ip]*freq_idx[:])*np.imag(df[:]) - np.sin(bdotp[ip]*freq_idx[:])*np.real(df[:]) ))
                 
-                for jp in range(ip,npix_out):
+                    for jp in range(ip,npix_out):
                     
-                    #val = einsum(W,W' -> WW')      sym?
-                    if npol == 1:     
-                        val = np.einsum('i,j -> ij', 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * gamma_rot_ud[ip] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]))), gamma_rot_ud[jp])
+                        #val = einsum(W,W' -> WW')      sym?
+                        if npol == 1:     
+                            val = np.einsum('i,j -> ij', 2.*(4.*np.pi)**2/npix_out**2 * delf**2 * gamma_rot_ud[ip] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq_idx[:]))), gamma_rot_ud[jp])
                     
-                        M_pp[ip,jp] += val
+                            M_pp[idx_seg][ip,jp] += val
                         
-                        if ip!= jp : M_pp[jp,ip] += val       
+                            if ip!= jp : M_pp[idx_seg][jp,ip] += val       
                     
-                    if npol == 2:
-                        
-                        const = 2.*(4.*np.pi)**2/npix_out**2 * delf**2
-                        val1 = const * gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * gamma_rot_ud[jp][0]
-                        val2 = const * 1.j*gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1]) 
-                        val3 = const * 1.j*gamma_rot_ud[jp][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq[:]) )) *gamma_rot_ud[ip][1]
-                        val4 = const * gamma_rot_ud[ip][1] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq[:]) )) * np.conj(gamma_rot_ud[jp][1])  
-                        
-                        val =[[val1,val2],[val2,val4]]
-                        
-                        M_pp[ip,jp] += val
-
-                        if ip!= jp :
+                        if npol == 2:
                         
                             const = 2.*(4.*np.pi)**2/npix_out**2 * delf**2
-                            val1 = const * gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[jp]-bdotp[ip])*freq[:]) )) * gamma_rot_ud[jp][0]
-                            val2 = const * 1.j*gamma_rot_ud[jp][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[jp]-bdotp[ip])*freq[:]) )) * np.conj(gamma_rot_ud[ip][1]) 
-                            val3 = const * 1.j*gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[jp]-bdotp[ip])*freq[:]) )) *gamma_rot_ud[jp][1]
-                            val4 = const * gamma_rot_ud[jp][1] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[jp]-bdotp[ip])*freq[:]) )) * np.conj(gamma_rot_ud[ip][1])  
+                            val1 = const * gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq_idx[:]) )) * gamma_rot_ud[jp][0]
+                            val2 = const * 1.j*gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq_idx[:]) )) * np.conj(gamma_rot_ud[jp][1]) 
+                            val3 = const * 1.j*gamma_rot_ud[jp][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[ip]-bdotp[jp])*freq_idx[:]) )) *gamma_rot_ud[ip][1]
+                            val4 = const * gamma_rot_ud[ip][1] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[ip]-bdotp[jp])*freq_idx[:]) )) * np.conj(gamma_rot_ud[jp][1])  
                         
                             val =[[val1,val2],[val2,val4]]
                         
-                            M_pp[jp,ip] += [[val1,val2],[val2,val4]]     
+                            M_pp[idx_seg][ip,jp] += val
+
+                            if ip!= jp :
+                        
+                                const = 2.*(4.*np.pi)**2/npix_out**2 * delf**2
+                                val1 = const * gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[jp]-bdotp[ip])*freq_idx[:]) )) * gamma_rot_ud[jp][0]
+                                val2 = const * 1.j*gamma_rot_ud[jp][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[jp]-bdotp[ip])*freq_idx[:]) )) * np.conj(gamma_rot_ud[ip][1]) 
+                                val3 = const * 1.j*gamma_rot_ud[ip][0] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.sin((bdotp[jp]-bdotp[ip])*freq_idx[:]) )) *gamma_rot_ud[jp][1]
+                                val4 = const * gamma_rot_ud[jp][1] * np.sum(window[:]**2 * Ef[:]**2/ pf[:]*(np.cos((bdotp[jp]-bdotp[ip])*freq_idx[:]) )) * np.conj(gamma_rot_ud[ip][1])  
+                        
+                                val =[[val1,val2],[val2,val4]]
+                        
+                                M_pp[idx_seg][jp,ip] += [[val1,val2],[val2,val4]]     
              
         # plt.figure()
         #
-        # plt.loglog(freq, np.abs(df)**2, label = 'df df*')
-        # plt.loglog(freq, pf, label = 'P1P2')
+        # plt.loglog(freq_idx, np.abs(df)**2, label = 'df df*')
+        # plt.loglog(freq_idx, pf, label = 'P1P2')
         #
         # plt.legend()
         # plt.savefig('compare.png' )
@@ -1605,6 +1649,7 @@ class Telescope(object):
         # print np.mean(np.abs(df)**2), np.mean(pf)
         # print np.average(np.abs(df)**2), np.average(pf)
         
+
         return z_p, M_pp 
 
 

@@ -20,35 +20,76 @@ ISMPI = True
 import os
 import sys
 
+import ConfigParser
+
+def ConfigSectionMap(section):
+    dict1 = {}
+    options = Config.options(section)
+    for option in options:
+        try:
+            dict1[option] = Config.get(section, option)
+            if dict1[option] == -1:
+                DebugPrint("skip: %s" % option)
+        except:
+            print("exception on %s!" % option)
+            dict1[option] = None
+    return dict1
+
+Config = ConfigParser.ConfigParser()
+
+ini_path = sys.argv[1]
+
+Config.read(ini_path)
+Config.sections()
+
 
 #FROM THE SHELL: data path, output path, type of input map, SNR level (noise =0, high, med, low)
 
-data_path = sys.argv[1]
-out_path =  sys.argv[2]
-maptyp = sys.argv[3]
-noise_lvl = sys.argv[4]
+data_path = ConfigSectionMap("Paths")['data_path']     #sys.argv[1]
+out_path =  ConfigSectionMap("Paths")['out_path']
+maptyp = ConfigSectionMap("Params")['maptyp']
+noise_lvl = ConfigSectionMap("Params")['noise_lvl']
 noise_lvl = int(noise_lvl)
 this_path = out_path
-npol = int(sys.argv[5])
-
+npol = int(ConfigSectionMap("Params")['npol'])
+ndet = int(ConfigSectionMap("Params")['ndet'])
 
 # poisson masked "flickering" map
 
 poi = False
 if maptyp == 'planck_poi': poi = True
 
-
 # if declared from shell, load checkpoint file 
 
 try:
-    sys.argv[6]
+    sys.argv[2]
 except (NameError, IndexError):
     checkpoint = False
 else:
     checkpoint = True
-    checkfile_path = sys.argv[6]
+    checkfile_path = sys.argv[2]
 
-    
+# declare whether to simulate (correlated) data (in frequency space)
+sim = bool(ConfigSectionMap("Params")['sim'])
+pol = bool(ConfigSectionMap("Params")['pol'])
+
+
+#if pol == True: npol=1  
+#else: npol=1
+
+# frequency cuts (integrate over this range)
+segme = bool(ConfigSectionMap("Freqs")['segme'])                                                                                               
+nsegs = int(ConfigSectionMap("Freqs")['nsegs'])                                                                                               
+low_f = float(ConfigSectionMap("Freqs")['low_f'])
+high_f = float(ConfigSectionMap("Freqs")['high_f'])
+
+
+# spectral shape of the GWB
+
+alpha = np.float(ConfigSectionMap("Freqs")['alpha'])
+f0 = np.float(ConfigSectionMap("Freqs")['f0'])
+
+
 ###############                                                                                                               
 
 def split(container, count):
@@ -120,31 +161,24 @@ ligo_data_dir = data_path
 filelist = rl.FileList(directory=ligo_data_dir)
 
 
-# declare whether to simulate (correlated) data (in frequency space)
-sim = False
-pol = True
-
-#if pol == True: npol=1  
-#else: npol=1
-
-# frequency cuts (integrate over this range)
-                                                                                                          
-low_f = 30.
-high_f = 500.
-
-
-# spectral shape of the GWB
-
-alpha = 3. 
-f0 = 100.
-
 if myid==0:
     print 'Delta f: ', [low_f, high_f], 'spectral idx and ref freq: ', [alpha,f0] 
 
 # DETECTORS (should make this external input)
 
-dects = ['H1','L1']#,'V1']
-ndet = len(dects)
+if ndet == 2:
+    dects = ['H1','L1']
+
+elif ndet == 3:
+    dects = ['H1','L1','V1']
+
+else: 
+    print 'input ndet manually'
+    exit() 
+
+if myid == 0 : print 'using', dects
+
+ndet = len(dects) 
 nbase = int(ndet*(ndet-1)/2)
 avoided = [0] 
 
@@ -175,7 +209,7 @@ if myid == 0:
 # args of class: nsides in/out; sampling frequency; freq cuts; declared detectors; the path of the checkfile; SNR level
 
 
-run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl = noise_lvl,alpha = alpha,f0 = f0, npol = npol, data_run = 'O2')
+run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl = noise_lvl,alpha = alpha,f0 = f0, npol = npol, data_run = 'O2', segme = segme, nsegs = nsegs)
 
 ##############################################
 
@@ -282,8 +316,9 @@ b_pixes = []
 # objects above are read from checkfile if checkpoint = True; ESSENTIAL AS OBJECTS ARE ACCUMULATED OVER TIME 
 
 if myid == 0:
-    Z_p = np.zeros((npix_out,npol),dtype = complex)
-    S_p = np.zeros((npix_out,npol),dtype = complex)
+    Z_p = np.zeros((nsegs,npix_out,npol),dtype = complex)
+    if nsegs == 1:  Z_p = np.zeros((npix_out,npol),dtype = complex) #edit
+    S_p = np.zeros((nsegs,npix_out,npol),dtype = complex)
     M_p_pp = 0.
     conds = []
     endtime = 0
@@ -381,8 +416,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
             # cond condition number array (1 item pm -> will be accumulated in chuncks of nproc)
             
-            z_p = np.zeros((npix_out,npol),dtype=complex)
-            my_M_p_pp = np.zeros((npix_out,npix_out,npol,npol),dtype=complex)
+            z_p = np.zeros((nsegs,npix_out,npol),dtype=complex)     # edit!
+            my_M_p_pp = np.zeros((nsegs,npix_out,npix_out,npol,npol),dtype=complex)
+            
             cond = 0.
             pix_bs_up = np.zeros(nbase)
 
@@ -550,6 +586,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
                 z_p, my_M_p_pp = run.projector(my_ctime,strains_f,psds_f,freqs,pix_bs, q_ns, norm = True)
                 
+                #if nsegs == 1:
+                #    z_p = z_p[0] 
+                #    my_M_p_pp = my_M_p_pp[0]       
+                    
             # out of the loop: each proc has a personal set of dirty maps and beam-patterns
             # create buffers now to accumulate these operators
             
@@ -566,6 +606,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             if myid == 0:
                 
                 z_buffer = np.zeros_like(z_p,dtype=complex)
+                
                 M_p_pp_buffer = np.zeros_like(my_M_p_pp,dtype=complex)   
                 conds_array = np.zeros(nproc)
                 endtimes_array = np.zeros(nproc)
@@ -592,8 +633,15 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             if ISMPI:    
                 comm.barrier()
+                #print 'z_p', z_p[0][0]
+                #print 'z_buffer', z_buffer[0][0]
+                #print z_p[1], z_buffer[1]
+
+                #if nsegs != 1:
+                 #   for idx in range(nsegs):
                 comm.Reduce(z_p, z_buffer, root = 0, op = MPI.SUM)
                 comm.Reduce(my_M_p_pp, M_p_pp_buffer, root = 0, op = MPI.SUM)
+                
                 comm.Reduce(my_avoided,avoided_buffer,root = 0, op = MPI.SUM)
                 conds_array = comm.gather(cond, root = 0)
                 endtimes_array = comm.gather(my_endtime, root = 0)
@@ -630,6 +678,10 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 print 'this is id 0'
                 
+                if nsegs == 1:
+                    z_buffer = z_buffer[0] 
+                    M_p_pp_buffer = M_p_pp_buffer[0]
+                
                 Z_p += z_buffer
                 M_p_pp += M_p_pp_buffer 
                 
@@ -663,15 +715,16 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 ##checkpoint
                 
                 #np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)
+                if nsegs == 1:
+                    
+                    Mpp_inv = np.linalg.pinv(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out),rcond=1.e-8)
+                    print 'the matrix has been inverted!'
                 
-                Mpp_inv = np.linalg.pinv(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out),rcond=1.e-8)
-                print 'the matrix has been inverted!'
-                
-                #print np.linalg.cond(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)) 
+                    #print np.linalg.cond(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)) 
 
-                M_p_pp_inv = np.swapaxes(Mpp_inv.reshape(npix_out,npol,npix_out,npol),1,2)
+                    M_p_pp_inv = np.swapaxes(Mpp_inv.reshape(npix_out,npol,npix_out,npol),1,2)
                
-                S_p = np.einsum('ikwv,kv->iw', M_p_pp_inv, Z_p)
+                    S_p = np.einsum('ikwv,kv->iw', M_p_pp_inv, Z_p)
                 
                 
                 ################################################################
@@ -696,47 +749,51 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # !!! NOTE !!! need to *1.e30 otherwise the numbers are too small (unsure why)
                     
                     print 'swapping axes...'
-                    
-                    S_p = np.swapaxes(S_p,0,1)
-                    
-                    if npol == 4:
+                    if nsegs == 1: 
                         
-                        S_IQU = np.array([S_p[0],S_p[2],S_p[3]]) 
-                        S_V = np.imag(S_p[1])
+                        S_p = np.swapaxes(S_p,0,1)
+                
+                        if npol == 4:
                         
-                        #print S_IQU[0][0]
+                            S_IQU = np.array([S_p[0],S_p[2],S_p[3]]) 
+                            S_V = np.imag(S_p[1])
                         
-                        hp.fitsfunc.write_map('%s/S_IQU%s.fits' % (out_path,counter), S_IQU ) #*1.e30)                         
-                        hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
+                            #print S_IQU[0][0]
+                        
+                            hp.fitsfunc.write_map('%s/S_IQU%s.fits' % (out_path,counter), S_IQU ) #*1.e30)                         
+                            hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
 
-                    elif npol == 2:
+                        elif npol == 2:
                         
-                        S_I = S_p[0]
-                        S_V = S_p[1]
+                            S_I = S_p[0]
+                            S_V = S_p[1]
                         
-                        #print S_IQU[0][0]
+                            #print S_IQU[0][0]
                         
-                        hp.fitsfunc.write_map('%s/S_I%s.fits' % (out_path,counter), S_I ) #*1.e30)                         
-                        hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
+                            hp.fitsfunc.write_map('%s/S_I%s.fits' % (out_path,counter), S_I ) #*1.e30)                         
+                            hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
                         
+                        else:
+                            #print S_p[0]
+                            #print np.mean(S_p[0])
+                            hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p[0]*1.e30) 
+                    
+                        # save checkfile with
+                        # Z_p accumulated dirty map
+                        # M_p_pp    "     beam-pattern
+                        # counter number of minutes analysed
+                        # checkstart is the max endtime of the run - will be the new start of the next one
+                        # conds progressive conditions on M_p_pp 
+                        # map_in input map for the simulated data 
+                    
+                        np.savez('%s/checkfile.npz' % out_path,S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
+                        np.savez('%s/checkfile%s.npz' % (out_path,counter),S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
+                    
                     else:
-                        #print S_p[0]
-                        #print np.mean(S_p[0])
-                        hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p[0]*1.e30) 
-                    
-                    # save checkfile with
-                    # Z_p accumulated dirty map
-                    # M_p_pp    "     beam-pattern
-                    # counter number of minutes analysed
-                    # checkstart is the max endtime of the run - will be the new start of the next one
-                    # conds progressive conditions on M_p_pp 
-                    # map_in input map for the simulated data 
-                    
-                    np.savez('%s/checkfile.npz' % out_path,S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
-
-                    #if counter % (nproc) == 0:
-                    np.savez('%s/checkfile%s.npz' % (out_path,counter),S_p=S_p, Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
                         
+                        np.savez('%s/checkfile.npz' % out_path, Z_p=Z_p, M_p_pp=M_p_pp,counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
+                        np.savez('%s/checkfile%s.npz' % (out_path,counter), Z_p=Z_p, M_p_pp=M_p_pp, counter = counter, checkstart = endtime, conds = conds, map_in = map_in_save, avoided = avoided )
+
                     print 'saved dirty_map, clean_map and checkfile @ min', counter, 'with endtime', endtime, '; avoided ', avoided, ' mins.'
 
                     
