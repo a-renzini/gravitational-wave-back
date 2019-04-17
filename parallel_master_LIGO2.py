@@ -708,8 +708,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 print counter, 'mins analysed.'
                 print '+++'
 
-                print 'Inverting M...'
-                
                 #### SVD invert the beam-pattern
                 
                 ##checkpoint
@@ -717,6 +715,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 #np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out)
                 if nsegs == 1:
                     
+                    print 'Inverting M...'
                     Mpp_inv = np.linalg.pinv(np.swapaxes(M_p_pp,1,2).reshape(npol*npix_out,npol*npix_out),rcond=1.e-8)
                     print 'the matrix has been inverted!'
                 
@@ -734,6 +733,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                 
                 step = 1
                 
+                if nsegs != 1: step = np.int(np.ceil(nsegs/2.))
+                
                 if counter % (nproc*step) == 0 or checkpoint == True:    
                     
                     fits1 = 0.
@@ -748,9 +749,11 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # save a fits file for the clean map
                     # !!! NOTE !!! need to *1.e30 otherwise the numbers are too small (unsure why)
                     
-                    print 'swapping axes...'
+                    print 'saving chfiles ...'
+                    
                     if nsegs == 1: 
                         
+                        print 'swapping axes...'
                         S_p = np.swapaxes(S_p,0,1)
                 
                         if npol == 4:
