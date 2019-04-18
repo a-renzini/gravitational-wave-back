@@ -89,6 +89,11 @@ high_f = float(ConfigSectionMap("Freqs")['high_f'])
 alpha = np.float(ConfigSectionMap("Freqs")['alpha'])
 f0 = np.float(ConfigSectionMap("Freqs")['f0'])
 
+# dataset and times
+
+config_start =  int(ConfigSectionMap("Data")['start'])
+config_stop =  int(ConfigSectionMap("Data")['stop'])
+data_set = ConfigSectionMap("Data")['data_set']
 
 ###############                                                                                                               
 
@@ -209,7 +214,7 @@ if myid == 0:
 # args of class: nsides in/out; sampling frequency; freq cuts; declared detectors; the path of the checkfile; SNR level
 
 
-run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl = noise_lvl,alpha = alpha,f0 = f0, npol = npol, data_run = 'O2', segme = segme, nsegs = nsegs)
+run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl = noise_lvl,alpha = alpha,f0 = f0, npol = npol, data_run = data_set, segme = segme, nsegs = nsegs)
 
 ##############################################
 
@@ -247,14 +252,14 @@ map_in = comm.bcast(map_in, root=0)
 # if checkpoint = True make sure to start from end of checkpoint
 
 counter = 0         #counter = number of mins analysed
-start = 1164556817  #1126224017  #start = start time of O1 ...
+start = config_start #1164556817  #1126224017  #start = start time of O1 ...
 
 if checkpoint  == True:
     checkdata = np.load(checkfile_path)
     counter = checkdata['counter'] 
     start = np.int(checkdata['checkstart'])  # ... start = checkpointed endtime
         
-stop  = 1187733618 #1137254417  #O1 end GPS    interstep 1130254417# 
+stop  = config_stop #1187733618 #1137254417  #O1 end GPS    interstep 1130254417# 
 
 
 ##########################################################################
