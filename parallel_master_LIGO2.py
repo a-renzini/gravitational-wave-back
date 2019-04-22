@@ -54,6 +54,7 @@ this_path = out_path
 npol = int(ConfigSectionMap("Params")['npol'])
 ndet = int(ConfigSectionMap("Params")['ndet'])
 
+
 # poisson masked "flickering" map
 
 poi = False
@@ -129,6 +130,8 @@ else:
 if os.path.exists(data_path):
     if myid==0:
         print 'the data its in the ' , data_path
+else: 
+    if myid==0: print 'wheres the data?'
     # file exists                                                                                                             
 if os.path.exists(out_path):
     if myid==0:
