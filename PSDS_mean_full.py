@@ -190,8 +190,8 @@ high_f = 500.
 
 # spectral shape of the GWB
 
-alpha = 0. 
-f0 = 50.
+alpha = 3. 
+f0 = 100.
 
 # DETECTORS (should make this external input)
 
@@ -225,7 +225,7 @@ run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_pat
 
 counter = 0         #counter = number of mins analysed
 bads = 0
-start = 1176038130  #1164556817  #start = start time of O1 : 1126224017    1450000000  #1134035217 probs
+start = 1164556817  #start = start time of O1 : 1126224017    1450000000  #1134035217 probs
 stop  = 1187733618  #1127224017       #1137254417  #O1 end GPS     
 
 
@@ -371,7 +371,6 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             hf_nowin = np.fft.rfft(strain_in_nowin, n=Nt, norm = 'ortho') #####!HERE! 03/03/18 #####
             
             #print hf_nowin
-            
             # print 'lens', len(hf_halin), len(hf_nowin)
             # print 'means', np.mean(hf_halin), np.mean(hf_nowin)
             # print 'lens', len(hf_halin), len(hf_nowin)
@@ -405,7 +404,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
 
             try:
-                fit = curve_fit(PDX, frexcp, Pxcp)#, bounds = ([0.,0.,0.],[2.,2.,2.])) 
+                fit = curve_fit(PDX, frexcp, Pxcp) #, bounds = ([0.,0.,0.],[2.,2.,2.])) 
                 psd_params = fit[0]
 
             except RuntimeError:
@@ -435,7 +434,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             min = 0.1
             max = 1.9
 
-            mask2 = (freqs>80.) & (freqs < 300.)
+            mask2 = (freqs>70.) & (freqs < 250.)
 
             norm = np.mean(hf_psd_data[mask])/np.mean(hf_psd(freqs)[mask])#/np.mean(self.PDX(freqs,a,b,c))
             
@@ -455,7 +454,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             #print 'norm: ' , norm
 
-            #psd_params[0] = psd_params[0] 
+            psd_params[0] = psd_params[0]*np.sqrt(norm_s) 
     
             flag1 = False
     
@@ -464,13 +463,16 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             if c < 2*min or c > 12000*max: flag1 = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
             
             
-            if norm > 3000. : flag1 = True
+            #if norm > 3000. : flag1 = True
             if norm_s > 3000. : flag1 = True
 
             #if a < min or a > (max): flags[idx_str] = True
             #if c < 2*min or c > 2*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
 
-    
+            
+            a = psd_params[0]
+            
+            
             if flag1 == True: 
                 
                 print myid, 'bad segment!  params', a,b,c, 'ctime', ctime_idx[0]
@@ -496,9 +498,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
     
             if flag1 == False:
         
-                fr_psd_1 = hf_psd(frexx_cp)*norm #Pdx_nanner(frexx_cp,hf_psd(frexx_cp))
                 #fr_psd_1 = fr_psd_1[1]*norm
                 norm1 = norm_s
+                fr_psd_1 = hf_psd(frexx_cp)*norm1 #Pdx_nanner(frexx_cp,hf_psd(frexx_cp))
                 params1 = psd_params
                 
                 my_avoided = 0.
@@ -580,46 +582,53 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             norm_s = np.mean(hf_psd_data[mask2])/np.mean(hf_psd(freqs)[mask2])
             
-            psd_params[0] = psd_params[0]*np.sqrt(norm) 
+            #print 'L norms: ', norm, norm_s,  np.mean(hf_psd_data[mask2]), np.mean(hf_psd(freqs)[mask2])
+            
+            psd_params_cp = np.copy(psd_params)
+            
+            psd_params[0] = psd_params[0]*np.sqrt(norm_s) 
     
             flag2 = False
     
             if a < min or a > (max/2*1.5): flag2= True
-            if b < 2*min or b > 2*max: flag2 = True
-            if c < 2*min or c > 12000*max: flag2 = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
-    
-            if norm > 3000. : flag2 = True
-            if norm_s > 3000. : flag2 = True
 
-        
-    
+            if b < 2*min or b > 2*max: flag2= True
+
+            if c < 2*min or c > 12000*max: flag2= True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
+
+                
+            #if norm > 3000. : flag2 = True
+            if norm_s > 3000. : 
+                flag2 = True
+                #print myid, 'norms', norm_s
+                #print  np.mean(hf_psd_data[mask2]), np.mean(hf_psd(freqs)[mask2])
+            
+                #exit()
+            
+            
+            a = psd_params[0]
+            
+            
             if flag2 == True or flag1 == True:
                 if flag1 == True: print myid, 'there was a badseg in H' 
                 else: 
-                    print myid,'bad segment in L!  params', psd_params, 'ctime', ctime_idx[0]
+                    
+                    print myid,'bad segment in L!  params', psd_params_cp, 'norm', norm, 'ctime', ctime_idx[0]
+
+                                        
                     fr_psd_2 = 0.
                     norm2 = 0.
                     params2 = 0.
                     my_avoided=1.
                     
-                    # plt.figure()
-                    #
-                    # plt.loglog(freqs[mask], np.abs(hf_nowin[mask])**2, label = 'nowin PSD')
-                    # plt.loglog(freqs[mask], hf_psd(freqs[mask])*1., label = 'mlab PSD')
-                    #
-                    # plt.loglog(frexcp, Pxcp, label = 'notchy PSD')
-                    #
-                    # plt.loglog(frexx[masxx],PDX(frexx,a,b,c)[masxx], label = 'notched pdx fit')
-                    # plt.legend()
-                    # plt.savefig('badseg%s.png' % bads)
                     #bads+=1
                 
                 
             else:
-                    
-                fr_psd_2 = norm*hf_psd(frexx_cp)#Pdx_nanner(frexx_cp,hf_psd(frexx_cp))  
-                #fr_psd_2 = fr_psd_2[1]*norm          
                 norm2 = norm_s
+                fr_psd_2 = norm2*hf_psd(frexx_cp)#Pdx_nanner(frexx_cp,hf_psd(frexx_cp))  
+                #fr_psd_2 = fr_psd_2[1]*norm          
+                                
                 params2 = psd_params
             #print 'analysed:', minute, 'minutes'
             
@@ -673,6 +682,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     normsl_buff = comm.gather(norm2, root = 0)
                     paramsl_buff = comm.gather(params2, root = 0)
                     
+                    print norms_buff
+                    
                 if myid == 0:
                     
                     try: PSD1_mean = np.mean(PSD1_setbuf, axis = 0)                    
@@ -698,7 +709,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     endtime = np.max(endtimes_buff)
                     
                     
-                    if minute % (nproc*1) == 0: 
+                    if minute % (nproc*25) == 0: 
                         
                         if FULL_DESC == False:
                             
