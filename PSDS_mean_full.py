@@ -682,7 +682,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     normsl_buff = comm.gather(norm2, root = 0)
                     paramsl_buff = comm.gather(params2, root = 0)
                     
-                    print norms_buff
+                    #print norms_buff
                     
                 if myid == 0:
                     
