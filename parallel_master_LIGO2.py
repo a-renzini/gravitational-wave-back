@@ -85,7 +85,6 @@ nsegs = int(ConfigSectionMap("Freqs")['nsegs'])
 low_f = float(ConfigSectionMap("Freqs")['low_f'])
 high_f = float(ConfigSectionMap("Freqs")['high_f'])
 
-
 # spectral shape of the GWB
 
 alpha = np.float(ConfigSectionMap("Freqs")['alpha'])

@@ -248,6 +248,9 @@ class Dect(object):
         self.Fplus = self.Fplus(theta,phi)
         self.Fcross = self.Fcross(theta,phi)
         self.dott = self.dott(self._vec)
+
+        # print 'dect tens', dect_name
+        # print self.d_tens()
         # print 'fplus_int ', dect_name
         # print np.sum(self.Fplus)*4.*np.pi/self.npix
         # print 'fcross_int ', dect_name
@@ -259,10 +262,10 @@ class Dect(object):
         # print 'Fplus[0]'
         # print hp.map2alm(self.Fplus, lmax = lmax)[0]
         #
-        #hp.mollview(self.Fplus)
-        #plt.savefig('Fp.pdf')
-        
-        
+        # hp.mollview(self.Fplus)
+        # plt.savefig('Fp.pdf')
+        #
+
         if lmax>0:
         # cache 3j symbols
             self.threej_0 = np.zeros((2*lmax+1,2*lmax+1,2*lmax+1))
@@ -332,6 +335,7 @@ class Dect(object):
         
     def Fplus(self,theta,phi):            
         d_t = self.d_tens()
+        
         res=0
         i=0
         while i<3:
@@ -638,10 +642,6 @@ class Telescope(object):
         self.noise_lvl = noise_lvl
         self.beta = 1.
         
-        # plt.figure()
-        # hp.mollview(self.gammaI[0])
-        # plt.savefig('gammai.pdf' )
-            
         # plt.figure()
         # hp.mollview(-1.j*self.gammaV[0])
         # plt.savefig('gammav.pdf' )
@@ -1320,13 +1320,13 @@ class Telescope(object):
         i = 0
          
         hf_ones = np.ones_like(hf_nowin)
-         
+        
         while i < len(notch_fs):
             notch_pix = int(notch_fs[i]*samp_hz)
             hf_ones = hf_ones*(1.-self.gaussian(pixels,notch_pix,sigma_fs[i]*samp_hz))
             hf_nowin = hf_nowin*(1.-self.gaussian(pixels,notch_pix,sigma_fs[i]*samp_hz))
             i+=1           
-        
+
         # plt.figure()
         # plt.loglog(freqs[mask],np.abs(hf_nowin[mask])**2)
         # plt.savefig('hf_notchin2.png' )
@@ -1503,7 +1503,7 @@ class Telescope(object):
         lo_idx = self.low_f# -delf 
         
         for idx_seg in range(self.nsegs):
-            
+            #print lo_idx
             hi_idx = lo_idx + widf   #+ delf
 
             if hi_idx > self.high_f: hi_idx = self.high_f + delf
@@ -1512,7 +1512,7 @@ class Telescope(object):
             masks.append(mask_idx)
             
             lo_idx = lo_idx + widf
-            
+        
         ##############
         
         npol = self.npol
@@ -1549,9 +1549,10 @@ class Telescope(object):
         
         
         for idx_seg in range(nsegs):
-                        
+            
             mask = masks[idx_seg]
             freq_idx= freq[mask]
+                        
             window = np.ones_like(freq_idx)
             
             #print freq_idx[0]
@@ -1564,7 +1565,6 @@ class Telescope(object):
                 gamma_rot = self.rotation_gamma(idx_b,rot_m_array,sin4psi, cos4psi)
             
                 #hp.fitsfunc.write_map('gammaI_rot.fits', gammaI_rot) 
-            
             
                 gamma_rot_ud = np.transpose(hp.ud_grade(gamma_rot,nside_out = self._nside_out)) 
             
