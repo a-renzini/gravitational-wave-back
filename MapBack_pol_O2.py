@@ -1275,7 +1275,7 @@ class Telescope(object):
             sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,2.,2.,2.,1.]) 
             
         if self.data_run == 'O2':                         
-            sigma_fs = np.array([.02,.02,.02,.02,.02,.02,.02,0.1,.01,.2,.2,.2,.2,1.,1.,.2,.1,2.])            
+            sigma_fs = np.array([.02,.02,.02,.02,.02,.02,.02,0.1,.01,.2,.2,.2,.2,1.,1.,.2,.1,8.])            
                
             
         return sigma_fs
@@ -1329,9 +1329,10 @@ class Telescope(object):
 
         # plt.figure()
         # plt.loglog(freqs[mask],np.abs(hf_nowin[mask])**2)
-        # plt.savefig('hf_notchin2.png' )
+        # plt.savefig('hf_notchinO2H.png' )
         #
         # exit()
+        
         #BPING HF
         
         gauss_lo = self.halfgaussian(pixels,low_f*samp_hz,samp_hz)
