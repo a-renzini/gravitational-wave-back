@@ -19,7 +19,7 @@ import OverlapFunctsSrc as ofs
 from numpy import cos,sin
 from matplotlib import cm
 from scipy.linalg import block_diag
-
+import notches as notches
 # LIGO-specific readligo.py 
 import readligo as rl
 import ligo_filter as lf
@@ -649,7 +649,7 @@ class Telescope(object):
         if noise_lvl == 1: beta = 1.
         elif noise_lvl == 2: beta = 1.e-42
         elif noise_lvl == 3: beta = 1.e-43
-        elif noise_lvl == 4: beta = 2.e-44
+        elif noise_lvl == 4: beta = 0.
         
         
         self.beta = beta
@@ -1259,10 +1259,12 @@ class Telescope(object):
             notch_fs = np.array([14.0,34.70, 35.30, 35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.49, 510.02, 1009.99])
         
         if self.data_run == 'O1':#34.70, 35.30,  #LIVNGSTON: 33.7 34.7 35.3 
-            notch_fs = np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 499.0, 500.0, 510.02,  1009.99])
-
+            #notch_fs = np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 499.0, 500.0, 510.02,  1009.99])
+            notch_fs = notches.no_O1
+            
         if self.data_run == 'O2':             
-            notch_fs = np.array([30.25, 31.25,32.25,33.0,34.5,35.25,36.25,37.0,40.5,41.75,45.5,46.0,59.6,299.5,305.0,315.4,331.5,500.25])
+            #notch_fs = np.array([30.25, 31.25,32.25,33.0,34.5,35.25,36.25,37.0,40.5,41.75,45.5,46.0,59.6,299.5,305.0,315.4,331.5,500.25])
+            notch_fs = notches.no_O2
             
         return notch_fs
         
@@ -1272,10 +1274,10 @@ class Telescope(object):
             sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,5.,1.,1.])
         
         if self.data_run == 'O1':
-            sigma_fs = np.array([.5,.5,.5,.5,.5,.5,.5,1.,1.,1.,1.,2.,2.,2.,1.]) 
+            sigma_fs = notches.sig_O1
             
         if self.data_run == 'O2':                         
-            sigma_fs = np.array([.02,.02,.02,.02,.02,.02,.02,0.1,.01,.2,.2,.2,.2,1.,1.,.2,.1,8.])            
+            sigma_fs = notches.sig_O2            
                
             
         return sigma_fs
@@ -1321,17 +1323,18 @@ class Telescope(object):
          
         hf_ones = np.ones_like(hf_nowin)
         
+        # plt.figure()
+        # plt.loglog(freqs[mask],np.abs(hf_nowin)[mask])
+        # for line in notch_fs:
+        #     plt.axvline(x=line, color = 'r')
+        #
+        # plt.savefig('hf_nowinO1H.png' )
+        
         while i < len(notch_fs):
             notch_pix = int(notch_fs[i]*samp_hz)
             hf_ones = hf_ones*(1.-self.gaussian(pixels,notch_pix,sigma_fs[i]*samp_hz))
             hf_nowin = hf_nowin*(1.-self.gaussian(pixels,notch_pix,sigma_fs[i]*samp_hz))
             i+=1           
-
-        # plt.figure()
-        # plt.loglog(freqs[mask],np.abs(hf_nowin[mask])**2)
-        # plt.savefig('hf_notchinO2H.png' )
-        #
-        # exit()
         
         #BPING HF
         

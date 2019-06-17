@@ -481,6 +481,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             # HERE WE GO: at this stage, we use injector() to recover the psd params & flags (needed to discard poor-fit segs)
             
             psds, flags = run.injector(strains_copy,my_ctime,low_f,high_f,poi)
+            
             #
             # psds shape: [array([a1,b1,c1]), array([a2,b2,c2])]
             #
@@ -515,15 +516,28 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         
                         strains_f.append(run.filter(strains[i], low_f,high_f,psds[i])[mask])
                         
-                        
+                        mask2 = (freqs>low_f) & (freqs <40.)
                         
                         s = int(my_ctime[0])
 
+                    
+                    plt.figure()
+                    #plt.loglog(freqs[mask2],np.abs(strains_f[i])[:len(freqs[mask2])])
+                    plt.loglog(freqs[mask],np.abs(strains_f[1]))                        
+                    #plt.axvline(x = 191, color = 'r')
+                    plt.savefig('hf_notchinO1L.png' )
 
+                    exit()
                     
                     strains_f = [(strains_f[0]*np.conj(strains_f[1]))] # become correlated strains
                     
+                    plt.figure()
+                    plt.loglog(freqs[mask],np.abs(strains_f[0]))
+                    plt.savefig('hf_conj.png' )
+                    
+                    print 'saved fig'
 
+                    exit()
                     
                 for i in range(len(psds_f)):
                     psds_f[i] = psds_f[i][mask]
