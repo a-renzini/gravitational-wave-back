@@ -44,7 +44,7 @@ comb_O1 = []
 for i in range(30):
     comb_O1.append([16.0*(i+1),0.07])
     
-for j in range(500): #116
+for j in range(116):
     comb_O1.append([1.+.5*(j+20),0.02])    
 
 comb_O1 = np.array(comb_O1)
