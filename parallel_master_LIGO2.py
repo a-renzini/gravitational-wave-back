@@ -521,23 +521,23 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         s = int(my_ctime[0])
 
                     
-                    plt.figure()
-                    #plt.loglog(freqs[mask2],np.abs(strains_f[i])[:len(freqs[mask2])])
-                    plt.loglog(freqs[mask],np.abs(strains_f[1]))                        
-                    #plt.axvline(x = 191, color = 'r')
-                    plt.savefig('hf_notchinO1L.png' )
-
-                    exit()
-                    
+                    # plt.figure()
+                    # #plt.loglog(freqs[mask2],np.abs(strains_f[i])[:len(freqs[mask2])])
+                    # plt.loglog(freqs[mask],np.abs(strains_f[1]))
+                    # #plt.axvline(x = 191, color = 'r')
+                    # plt.savefig('hf_notchinO1L.png' )
+                    #
+                    # exit()
+                    #
                     strains_f = [(strains_f[0]*np.conj(strains_f[1]))] # become correlated strains
-                    
-                    plt.figure()
-                    plt.loglog(freqs[mask],np.abs(strains_f[0]))
-                    plt.savefig('hf_conj.png' )
-                    
-                    print 'saved fig'
-
-                    exit()
+                    #
+                    # plt.figure()
+                    # plt.loglog(freqs[mask],np.abs(strains_f[0]))
+                    # plt.savefig('hf_conj.png' )
+                    #
+                    # print 'saved fig'
+                    #
+                    # exit()
                     
                 for i in range(len(psds_f)):
                     psds_f[i] = psds_f[i][mask]
