@@ -1077,7 +1077,7 @@ class Telescope(object):
             
         return strains_noised
     
-    def injector_old(self,strains_in,ct_split,low_f,high_f,poi,sim = False):
+    def injector(self,strains_in,ct_split,low_f,high_f,poi,sim = False):
         fs=self.fs        
         dt=1./fs
         
@@ -1256,7 +1256,7 @@ class Telescope(object):
         ####
         
     
-    def injector(self,strains_in,ct_split,low_f,high_f,poi,sim = False):
+    def injector_new(self,strains_in,ct_split,low_f,high_f,poi,sim = False):
         fs=self.fs        
         dt=1./fs
         
