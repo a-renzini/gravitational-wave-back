@@ -1077,7 +1077,7 @@ class Telescope(object):
             
         return strains_noised
     
-    def injector(self,strains_in,ct_split,low_f,high_f,poi,sim = False):
+    def injector_old(self,strains_in,ct_split,low_f,high_f,poi,sim = False):
         fs=self.fs        
         dt=1./fs
         
@@ -1207,8 +1207,8 @@ class Telescope(object):
             a = a*np.sqrt(norm)      #ADD THE SQRT 2!!!!
             
             
-            # s = int(ct_split[0])
-            #
+            s = int(ct_split[0])
+
             # plt.figure()
             # plt.loglog(freqs[mask],hf_psd_data[mask], label = 'data')
             # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
@@ -1218,6 +1218,8 @@ class Telescope(object):
             # plt.xlim(20.,1000.)
             # plt.legend()
             # plt.savefig('norm%s.pdf' % s)
+            #
+            # exit()
             
             # if flags[idx_str] == True:
             #     s = int(ct_split[0])
@@ -1253,6 +1255,203 @@ class Telescope(object):
         
         ####
         
+    
+    def injector(self,strains_in,ct_split,low_f,high_f,poi,sim = False):
+        fs=self.fs        
+        dt=1./fs
+        
+        ndects = self.ndet
+        
+        Nt = len(strains_in[0])
+        Nt = lf.bestFFTlength(Nt)
+        freqs = np.fft.rfftfreq(Nt, dt)
+        
+        mask = (freqs>low_f) & (freqs < high_f)
+        mask2 = (freqs>80.) & (freqs < 300.)
+
+        #print '+sim+'
+    
+        psds = []
+        faketot = []
+        fakestreams = []
+        streams = []
+        
+        if sim == True:     #simulates bases for all detectors called when T.scope was initialised
+            
+            pix_bs = self.geometry(ct_split)[0]
+            q_ns = self.geometry(ct_split)[1]
+            
+            for i in range(self._nbase):
+                #a, b = self.combo_tuples[i]
+                pix_b = pix_bs[i]
+                q_x = q_ns[i]
+                fakestream_corr = self.simbase(freqs[mask],q_x,pix_b,i,poi) 
+                
+                fakestreams.append(fakestream_corr)
+            
+            streams = fakestreams
+        
+        # if sim == False:
+        #
+        #     for i in range(len(strains_in)):
+        #         streams.append(self.filter(strains_in[i], low_f,high_f))
+
+        #**** psd ******
+        flags = np.zeros(len(strains_in), dtype = bool)
+        
+        for (idx_str,strain_in) in enumerate(strains_in):
+        
+            '''WINDOWING & RFFTING.'''
+            
+            strain_in = strain_in[:Nt]
+            strain_in_nowin = np.copy(strain_in)
+            strain_in_nowin *= signal.tukey(Nt,alpha=0.05)
+            strain_in *= np.blackman(Nt)
+
+            hf = np.fft.rfft(strain_in, n=Nt, norm = 'ortho') 
+            hf_nowin = np.fft.rfft(strain_in_nowin, n=Nt, norm = 'ortho') 
+                
+            '''the PSD. '''
+            
+            fstar = fs
+            
+            # plt.figure()
+            # plt.loglog(freqs,np.abs(hf_nowin)**2)
+            # plt.savefig('hf_nowin_inj.png' )
+            #
+            # exit()
+            
+            #Pxx, frexx = mlab.psd(strain_in_nowin, Fs=fs, NFFT=2*fstar,noverlap=fstar/2,window=np.blackman(2*fstar),scale_by_freq=True)
+            #hf_psd = interp1d(frexx,Pxx)
+            Psd_data = abs(hf_nowin.copy()*np.conj(hf_nowin.copy())) 
+            
+            #*******************
+            
+            #masxx = (frexx>low_f) & (frexx < (high_f+100.))
+
+            if high_f < 300. or low_f<30.:
+                masxx = (freqs>30.) & (freqs < 300.)
+                                
+            else:        
+                masxx = (freqs>low_f) & (freqs < high_f)
+            
+            if int(high_f-low_f)<5: 
+                masxx = (freqs>30.) & (freqs < 500.)
+                
+            # frexx_cp = np.copy(frexx)
+            # Pxx_cp = np.copy(Pxx)
+            # frexx_cp = frexx_cp[masxx]
+            # Pxx_cp = Pxx_cp[masxx]
+                
+            freqs_cp = np.copy(freqs)
+            Psd_cp = np.copy(Psd_data)
+            freqs_cp = freqs_cp[masxx]
+            Psd_cp = Psd_cp[masxx]
+            
+            #*******************
+
+            #frexx_notch,Pxx_notch = self.Pdx_notcher(frexx_cp,Pxx_cp)
+            freqs_notch,Psd_notch = self.Pdx_notcher(freqs_cp,Psd_cp)
+            
+            try:
+                fit = curve_fit(self.PDX, freqs_notch, Psd_notch)#, bounds = ([0.,0.,0.],[2.,2.,2.])) 
+                psd_params = fit[0]
+                
+            except RuntimeError:
+                print("Error - curve_fit failed")
+                psd_params = [10.,10.,10.]
+            
+            a,b,c = psd_params
+            min = 0.1
+            max = 2.0
+            
+            # print psd_params
+            
+            # plt.loglog(freqs_notch,Psd_notch)
+            # plt.loglog(freqs_notch,self.PDX(freqs_notch,a,b,c))
+            # plt.savefig('trial.png')
+
+            
+            #print psd_params
+            
+            if a < (min*np.sqrt(2048.)) or a > (max*np.sqrt(2048.)/2*1.5): flags[idx_str] = True
+            if b < 2*min or b > 2*max: flags[idx_str] = True
+            if c < -100.*min or c > 12000*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
+            
+            # print flags
+            #
+            # exit()
+            
+            norm = np.mean(Psd_data[mask2])/np.mean(self.PDX(freqs,a,b,c)[mask2])#/np.mean(self.PDX(freqs,a,b,c))
+            
+            # print norm
+            # exit()
+                        
+            if norm > 4500. : flags[idx_str] = True
+            
+            #if a < min or a > (max): flags[idx_str] = True
+            #if c < 2*min or c > 2*max: flags[idx_str] = True  # not drammatic if fit returns very high knee freq, ala the offset is ~1
+
+            
+            if flags[idx_str] == True: print 'bad segment!  params', psd_params, 'ctime', ct_split[0]
+            #Norm
+            #
+            # print np.mean(np.sqrt(Psd_data[mask]))/(abs(np.mean(np.real(hf_nowin)))+abs(np.mean(np.imag(hf_nowin))))
+            #
+
+            
+            #psd_params[0] = psd_params[0]*np.sqrt(norm) 
+            #a = a*np.sqrt(norm)      #ADD THE SQRT 2!!!!
+            
+            
+            s = int(ct_split[0])
+
+            # plt.figure()
+            # plt.loglog(freqs[mask],Psd_data[mask], label = 'data')
+            # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
+            # plt.loglog(freqs[mask],self.PDX(freqs,np.sqrt(norm),1.,1.)[mask], label = 'theo pdx fit')
+            # plt.loglog(freqs[mask],self.PDX(freqs,a,b,c)[mask], label = 'notched pdx fit')
+            # #plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
+            # plt.xlim(20.,1000.)
+            # plt.legend()
+            # plt.savefig('norm%s.pdf' % s)
+            #
+            # exit()
+            
+            # if flags[idx_str] == True:
+            #     s = int(ct_split[0])
+            #
+            #     plt.figure()
+            #     plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
+            #     plt.loglog(freqs[mask],self.PDX(freqs,np.sqrt(norm),1.,1.)[mask], label = 'theo pdx fit')
+            #     plt.loglog(freqs[mask],self.PDX(freqs,a,b,c)[mask], label = 'notched pdx fit')
+            #     plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
+            #     plt.xlim(20.,1000.)
+            #     plt.legend()
+            #     plt.savefig('norm%s.pdf' % s)
+            #
+            # if flags[idx_str] == True: exit()
+            
+            psds.append(psd_params)
+            #print frexx, Pxx, len(Pxx)
+    
+            #Pxx, frexx = mlab.psd(strain_in_win[:Nt], Fs = fs, NFFT = 4*fs, window = mlab.window_none)
+            
+            # plt.figure()
+            # #plt.plot(freqs,) 
+            # plt.savefig('.png' )
+        
+        lenpsds = len(psds)             #to fill in gaps if we are simulating        
+        while ndects > lenpsds:
+            psds.append(psds[0])
+            lenpsds+=1
+        
+        if sim == False: return psds, flags
+        if sim == True: return fakestreams, psds, flags
+        
+        
+        ####
+
     def notches(self):
         
         if self.data_run == 'S6':
@@ -1260,7 +1459,7 @@ class Telescope(object):
         
         if self.data_run == 'O1':#34.70, 35.30,  #LIVNGSTON: 33.7 34.7 35.3 
             #notch_fs = np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 499.0, 500.0, 510.02,  1009.99])
-            notch_fs = notches.no_O1
+            notch_fs = notches.no_O1 
             
         if self.data_run == 'O2':             
             #notch_fs = np.array([30.25, 31.25,32.25,33.0,34.5,35.25,36.25,37.0,40.5,41.75,45.5,46.0,59.6,299.5,305.0,315.4,331.5,500.25])
@@ -1278,9 +1477,18 @@ class Telescope(object):
             
         if self.data_run == 'O2':                         
             sigma_fs = notches.sig_O2            
-               
+        
+        return sigma_fs    
+        
+    def combs(self):
+        
+        if self.data_run == 'O1':
+            comb_fs = notches.comb_O1
             
-        return sigma_fs
+        if self.data_run == 'O2':                         
+            comb_fs = notches.comb_O2
+            
+        return comb_fs
         #np.array([0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.5,0.3,0.2])
     
     def filter(self,strain_in,low_f,high_f,simulate = False):
@@ -1313,6 +1521,7 @@ class Telescope(object):
         
         notch_fs = self.notches()
         sigma_fs = self.sigmas()
+        comb_fs = self.combs()
         #np.array([0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.5,0.3,0.2])
         
         df = freqs[1]- freqs[0]
@@ -1335,6 +1544,13 @@ class Telescope(object):
             hf_ones = hf_ones*(1.-self.gaussian(pixels,notch_pix,sigma_fs[i]*samp_hz))
             hf_nowin = hf_nowin*(1.-self.gaussian(pixels,notch_pix,sigma_fs[i]*samp_hz))
             i+=1           
+        
+        # sig_comb = 0.02
+        #
+        # for com in comb_fs:
+        #     notch_pix = int(com*samp_hz)
+        #     hf_ones = hf_ones*(1.-self.gaussian(pixels,notch_pix,sig_comb*samp_hz))
+        #     hf_nowin = hf_nowin*(1.-self.gaussian(pixels,notch_pix,sig_comb*samp_hz))
         
         #BPING HF
         
