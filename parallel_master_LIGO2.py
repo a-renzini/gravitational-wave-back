@@ -526,18 +526,9 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     # plt.loglog(freqs[mask],np.abs(strains_f[1]))
                     # #plt.axvline(x = 191, color = 'r')
                     # plt.savefig('hf_notchinO1L.png' )
-                    #
-                    # exit()
-                    #
+
                     strains_f = [(strains_f[0]*np.conj(strains_f[1]))] # become correlated strains
-                    #
-                    # plt.figure()
-                    # plt.loglog(freqs[mask],np.abs(strains_f[0]))
-                    # plt.savefig('hf_conj.png' )
-                    #
-                    # print 'saved fig'
-                    #
-                    # exit()
+                    
                     
                 for i in range(len(psds_f)):
                     psds_f[i] = psds_f[i][mask]
@@ -554,7 +545,14 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                     strains_corr = run.injector(strains_in,my_ctime,low_f,high_f,poi, sim)[0]                    
                     strains_corr = run.noisy(strains_corr,psds_f,mask)
                     strains_f = strains_corr
-                    
+                
+                # plt.figure()
+                # plt.loglog(freqs[mask],np.abs(strains_f[0])**2)
+                # plt.loglog(freqs[mask],(psds_f[0]*psds_f[1]))
+                # plt.savefig('hf_conj_O2.png' )
+                #
+                # print 'saved fig'
+                                
                 if myid==0: 
                     
                     print 'filtering done'
@@ -785,8 +783,8 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         
                             #print S_IQU[0][0]
                         
-                            hp.fitsfunc.write_map('%s/S_IQU%s.fits' % (out_path,counter), S_IQU ) #*1.e30)                         
-                            hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
+                            #hp.fitsfunc.write_map('%s/S_IQU%s.fits' % (out_path,counter), S_IQU ) #*1.e30)                         
+                            #hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
 
                         elif npol == 2:
                         
@@ -795,13 +793,13 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         
                             #print S_IQU[0][0]
                         
-                            hp.fitsfunc.write_map('%s/S_I%s.fits' % (out_path,counter), S_I ) #*1.e30)                         
-                            hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
+                            #hp.fitsfunc.write_map('%s/S_I%s.fits' % (out_path,counter), S_I ) #*1.e30)                         
+                            #hp.fitsfunc.write_map('%s/S_V%s.fits' % (out_path,counter), S_V ) #*1.e30) 
                         
-                        else:
-                            #print S_p[0]
-                            #print np.mean(S_p[0])
-                            hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p[0]*1.e30) 
+
+                        #print S_p[0]
+                        #print np.mean(S_p[0])
+                        #hp.fitsfunc.write_map('%s/S_p%s.fits' % (out_path,counter), S_p[0]*1.e30) 
                     
                         # save checkfile with
                         # Z_p accumulated dirty map

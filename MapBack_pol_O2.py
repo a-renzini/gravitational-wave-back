@@ -1040,16 +1040,23 @@ class Telescope(object):
     def Pdx_notcher(self,freqx,Pdx):
         mask = np.ones_like(freqx, dtype = bool)
         
-        for (idx_f,f) in enumerate(freqx):
-            for i in range(len(self.notches())):
-                if f > (self.notches()[i]-15.*self.sigmas()[i]) and f < (self.notches()[i]+15.*self.sigmas()[i]):
+        # for i in range(13):
+        #     for (idx_f,f) in enumerate(freqx):
+        #         if f > (self.notches()[i]-2.*self.sigmas()[i]) and f < (self.notches()[i]+2.*self.sigmas()[i]):
+        #             #print (self.notches()[i]-2.*self.sigmas()[i]), f, (self.notches()[i]+2.*self.sigmas()[i])
+        #             mask[idx_f] = 0
+        #             print idx_f, self.notches()[i]
+        #         else: continue
+
+        for i in range(len(self.notches())):
+            for (idx_f,f) in enumerate(freqx):
+                if f > (self.notches()[i]-10.*self.sigmas()[i]) and f < (self.notches()[i]+10.*self.sigmas()[i]):
                     mask[idx_f] = 0
-                    
-        
+
         # plt.figure()
         # plt.loglog(freqx[mask],Pdx[mask])
         # plt.savefig('masked.pdf')
-        
+
         return freqx[mask],Pdx[mask]
     
     def noisy(self,strains_corr,psds_f,mask):
@@ -1091,7 +1098,7 @@ class Telescope(object):
         mask2 = (freqs>80.) & (freqs < 300.)
 
         #print '+sim+'
-    
+
         psds = []
         faketot = []
         fakestreams = []
@@ -1155,7 +1162,7 @@ class Telescope(object):
                                 
             else:        
                 masxx = (frexx>low_f) & (frexx < high_f)
-            
+                
             if int(high_f-low_f)<5: 
                 masxx = (frexx>30.) & (frexx < 500.)
                 
@@ -1167,7 +1174,7 @@ class Telescope(object):
             #*******************
 
             frexx_notch,Pxx_notch = self.Pdx_notcher(frexx_cp,Pxx_cp)
-
+            
             try:
                 fit = curve_fit(self.PDX, frexx_notch, Pxx_notch)#, bounds = ([0.,0.,0.],[2.,2.,2.])) 
                 psd_params = fit[0]
@@ -1209,16 +1216,19 @@ class Telescope(object):
             
             # s = int(ct_split[0])
             #
+            
+            print psd_params
+            
             # plt.figure()
-            # plt.loglog(freqs[mask],hf_psd_data[mask], label = 'data')
+            # #plt.loglog(freqs[mask],hf_psd_data[mask], label = 'data')
             # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
             # plt.loglog(freqs[mask],self.PDX(freqs,np.sqrt(norm),1.,1.)[mask], label = 'theo pdx fit')
             # plt.loglog(freqs[mask],self.PDX(freqs,a,b,c)[mask], label = 'notched pdx fit')
-            # #plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
+            # plt.loglog(frexx_notch, norm*Pxx_notch, label = 'fittings')
             # plt.xlim(20.,1000.)
             # plt.legend()
-            # plt.savefig('norm%s.pdf' % s)
-            
+            # plt.savefig('normO2_1.pdf')
+
             # if flags[idx_str] == True:
             #     s = int(ct_split[0])
             #
