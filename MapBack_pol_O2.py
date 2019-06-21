@@ -1217,8 +1217,6 @@ class Telescope(object):
             # s = int(ct_split[0])
             #
             
-            print psd_params
-            
             # plt.figure()
             # #plt.loglog(freqs[mask],hf_psd_data[mask], label = 'data')
             # #plt.loglog(freqs[mask],norm*hf_psd(freqs)[mask])
