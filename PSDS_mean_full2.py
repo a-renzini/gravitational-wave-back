@@ -10,7 +10,7 @@ import h5py
 import datetime as dt
 import pytz
 import pylab
-import qpoint as qp
+#import qpoint as qp
 import healpy as hp
 from camb.bispectrum import threej
 import quat_rotation as qr

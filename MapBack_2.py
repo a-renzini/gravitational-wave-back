@@ -10,7 +10,7 @@ import h5py
 import datetime as dt
 import pytz
 import pylab
-import qpoint as qp
+#import qpoint as qp
 import healpy as hp
 from camb.bispectrum import threej
 import quat_rotation as qr
@@ -139,7 +139,7 @@ class Dect(object):
         self.lmax = lmax
         self.name = dect_name
         
-        self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
+        #self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
         # Configuration: radians and metres, Earth-centered frame
         if dect_name =='H1':
@@ -520,7 +520,7 @@ class Telescope(object):
 
     def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, alpha=3., f0=1., data_run = 'O1'): #Dect list
     
-        self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
+        #self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
         self.this_path = this_path
         self.data_run = data_run
