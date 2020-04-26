@@ -34,7 +34,7 @@ import math
 
 import os
 import sys
-
+import notches as notch_file
 
 def PDX(frexx,a,b,c):
     #b = 1.
@@ -42,33 +42,45 @@ def PDX(frexx,a,b,c):
      
     return (a*1.e-22*((18.*b)/(0.1+frexx))**2)**2+(0.07*a*1.e-22)**2+((frexx/(2000.*c))*.4*a*1.e-22)**2
 
-def notches():
+
+def notches(run_name):
     
-    notch_fs = np.array([30.25, 31.25,32.25,33.0,34.5,35.25,36.25,37.0,40.5,41.75,45.5,46.0,59.6,305.0,315.4,331.5,500.25])
-                #np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 500.02,  1009.99])
+    if run_name == 'O1':#34.70, 35.30,  #LIVNGSTON: 33.7 34.7 35.3 
+        #notch_fs = np.array([ 34.70, 35.30,35.90, 36.70, 37.30, 40.95, 60.00, 120.00, 179.99, 304.99, 331.9, 499.0, 500.0, 510.02,  1009.99])
+        notch_fs = notch_file.no_O1 
+        
+    if run_name == 'O2':             
+        #notch_fs = np.array([30.25, 31.25,32.25,33.0,34.5,35.25,36.25,37.0,40.5,41.75,45.5,46.0,59.6,299.5,305.0,315.4,331.5,500.25])
+        notch_fs = notch_file.no_O2
+        
     return notch_fs
+    
+def sigmas(run_name):
 
-def sigmas():
-
-    sigma_fs = np.array([.02,.02,.02,.02,.02,.02,.02,0.1,.01,.2,.2,.2,.2,.5,.2,.1,.2])            
-    return sigma_fs
-
-def Pdx_notcher(freqx,Pdx):
+    if run_name == 'O1':
+        sigma_fs = notch_file.sig_O1
+        
+    if run_name == 'O2':                         
+        sigma_fs = notches.sig_O2            
+    
+    return sigma_fs    
+  
+def Pdx_notcher(freqx, Pdx, run_name):
     mask = np.ones_like(freqx, dtype = bool)
 
     for (idx_f,f) in enumerate(freqx):
-        for i in range(len(notches())):
-            if f > (notches()[i]-15.*sigmas()[i]) and f < (notches()[i]+15.*sigmas()[i]):
+        for i in range(len(notches(run_name))):
+            if f > (notches(run_name)[i]-15.*sigmas(run_name)[i]) and f < (notches(run_name)[i]+15.*sigmas(run_name)[i]):
                 mask[idx_f] = 0
                 
     return freqx[mask],Pdx[mask]
 
-def Pdx_nanner(freqx,Pdx):
+def Pdx_nanner(freqx,Pdx, run_name):
     mask = np.ones_like(freqx, dtype = bool)
 
     for (idx_f,f) in enumerate(freqx):
-        for i in range(len(notches())):
-            if f > (notches()[i]-2.5*sigmas()[i]) and f < (notches()[i]+2.5*sigmas()[i]):
+        for i in range(len(notches(run_name))):
+            if f > (notches(run_name)[i]-2.5*sigmas(run_name)[i]) and f < (notches(run_name)[i]+2.5*sigmas(run_name)[i]):
                 mask[idx_f] = 0.
                 
     return freqx*mask,Pdx*mask
@@ -99,12 +111,12 @@ poi = False
 # if declared from shell, load checkpoint file 
 
 try:
-    sys.argv[5]
+    sys.argv[3]
 except (NameError, IndexError):
     checkpoint = False
 else:
     checkpoint = True
-    checkfile_path = sys.argv[5]
+    checkfile_path = sys.argv[3]
 
     
 ###############                                                                                                               
@@ -225,9 +237,18 @@ run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_pat
 
 counter = 0         #counter = number of mins analysed
 bads = 0
-start = 1164556817  #start = start time of O1 : 1126224017    1450000000  #1134035217 probs
-stop  = 1187733618  #1127224017       #1137254417  #O1 end GPS     
 
+run_name = 'O1'
+
+if run_name == 'O1':
+    start = 1126224017#1164956817  #start = start time of O1 : 1126224017    1450000000  #1134035217 probs
+    stop  = 1137254417#1187733618  #1127224017       #1137254417  #O1 end GPS     
+
+elif run_name == 'O2':
+    start = 1164956817  #start = start time of O1 : 1126224017    1450000000  #1134035217 probs
+    stop  = 1187733618  #1127224017       #1137254417  #O1 end GPS     
+
+else: print 'run?'
 
 ##########################################################################
 
@@ -398,7 +419,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             Pxx_cp = np.copy(Pxx)
             frexx_cp = frexx_cp[masxx]
             Pxx_cp = Pxx_cp[masxx]
-            frexx_notch,Pxx_notch = Pdx_notcher(frexx_cp,Pxx_cp)
+            frexx_notch,Pxx_notch = Pdx_notcher(frexx_cp,Pxx_cp, run_name)
             frexcp = np.copy(frexx_notch)
             Pxcp = np.copy(Pxx_notch)
 
@@ -442,11 +463,18 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
             
             norm_s = np.mean(hf_psd_data[mask2])/np.mean(hf_psd(freqs)[mask2])
             
-            # plt.figure()
-            # plt.loglog(hf_psd_data[mask])
-            # plt.loglog(hf_psd(freqs)[mask])
-            # plt.savefig('compare_mean.pdf')
+            #plt.figure()
 
+            #plt.loglog(freqs[mask], np.abs(hf_nowin[mask])**2, label = 'nowin PSD')
+            #plt.loglog(freqs[mask], hf_psd(freqs[mask])*1., label = 'mlab PSD')
+
+            #plt.loglog(frexcp, Pxcp, label = 'notchy PSD')
+
+            #plt.loglog(frexx[masxx],PDX(frexx,a,b,c)[masxx], label = 'notched pdx fit')
+            #plt.legend()
+            #plt.savefig('seg.png')
+            #
+            #exit()
             
             #print psd_params
             #print 'norm: ' , norm, norm_s
@@ -560,7 +588,7 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
 
     
             Pxx_cp = Pxx_cp[masxx]
-            frexx_notch,Pxx_notch = Pdx_notcher(frexx_cp,Pxx_cp)
+            frexx_notch,Pxx_notch = Pdx_notcher(frexx_cp,Pxx_cp, run_name)
             frexcp = np.copy(frexx_notch)
             Pxcp = np.copy(Pxx_notch)
 
@@ -717,12 +745,12 @@ for sdx, (begin, end) in enumerate(zip(segs_begin,segs_end)):
                         if FULL_DESC == False:
                             
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned_O2%s.npz' % (out_path, cnt), PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime, avoided = avoided, minute=minute)
+                            np.savez('%s/PSDS_meaned_O1%s.npz' % (out_path, cnt), PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, ctime_end = endtime, avoided = avoided, minute=minute)
                             
                             
                         if FULL_DESC == True:
                             print 'analysed:', minute, 'minutes'
-                            np.savez('%s/PSDS_meaned_O2%s.npz' % (out_path, cnt), PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl, avoided = avoided, minute=minute)
+                            np.savez('%s/PSDS_meaned_O1%s.npz' % (out_path, cnt), PSD1_totset =PSD1_totset, PSD2_totset = PSD2_totset, endtimes = endtimes, params = params, norms = norms, normsl=normsl, paramsl= paramsl, avoided = avoided, minute=minute)
                             
                             
                         cnt+=1
