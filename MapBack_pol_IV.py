@@ -61,8 +61,9 @@ def map_in_gauss(nside_in, noise_lvl):
     
     #does synfast include the monopole?
     #realistic case: monopole should be larger then others, then dipole 1.e-2
-    
-    return (np.vstack(hp.synfast(cls, nside=nside, pol=True, new=True, verbose = False)).flatten())*beta
+    map1 = hp.synfast(cls, nside=nside, pol=True, new=True, verbose = False)
+    map2 = hp.synfast(cls, nside=nside, pol=True, new=True, verbose = False)
+    return np.vstack((map1, map2))*beta
 
 class Generator(object):
     
@@ -658,10 +659,10 @@ class Telescope(object):
             Iscale = 2.
             Vscale = 1.
             
-            Imap = Iscale * self.get_map_in(maptyp)
-            Vmap = Vscale * self.get_map_in(maptyp)
+            #Imap = Iscale * self.get_map_in(maptyp)
+            #Vmap = Vscale * self.get_map_in(maptyp)
 
-            input_map = np.array([Imap,Vmap])#.flatten()
+            input_map = self.get_map_in(maptyp) #np.array([Imap,Vmap])#.flatten()
             
         elif self.npol == 4:
             
@@ -750,8 +751,8 @@ class Telescope(object):
         elif maptyp == 'gauss':
             map_file = np.load('%s/map_in%s.npz' % (self.this_path,self.noise_lvl))
             map_in = map_file['map_in']
-            hp.mollview(map_in)
-            plt.savefig(self.this_path + 'map_in.png')
+            #hp.mollview(map_in)
+            #plt.savefig(self.this_path + 'map_in.png')
 
         elif maptyp == 'checkfile':
             checkdata = np.load(self.this_path + '/checkfile.npz')
