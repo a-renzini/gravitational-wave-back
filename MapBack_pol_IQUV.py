@@ -521,16 +521,16 @@ class Dect(object):
 
 class Telescope(object):
 
-    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, alpha=3., f0=1., data_run = 'O1',npol=1): #Dect list
+    def __init__(self, nside_in,nside_out,fs, low_f, high_f, dects, maptyp, this_path, noise_lvl=1, alpha=3., f0=1., tag = None, data_run = 'O1',npol=1): #Dect list
     
         self.Q = qp.QPoint(accuracy='low', fast_math=True, mean_aber=True)#, num_threads=1)
         
-        self.pol = True #make this obsolete
         self.npol = int(npol)
             
         self.this_path = this_path
         self.data_run = data_run
-        
+        self.tag = tag
+
         self.R_earth = 6378137
         self._nside_in = nside_in
         self._nside_out = nside_out
@@ -621,7 +621,7 @@ class Telescope(object):
             
             #self.gammaI.append((5./(8.*np.pi))*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fplus()+self.detectors[a].get_Fcross()*self.detectors[b].get_Fcross()))
                         
-            if self.pol == True:
+            if self.npol > 1:
             
                 self.gammaV.append(1.j*(self.detectors[a].get_Fplus()*self.detectors[b].get_Fcross()-self.detectors[a].get_Fcross()*self.detectors[b].get_Fplus())) #edit : according to seto-taruya, it's 1.j; used to be a -1.! possibly due to CMB-convention?
 
@@ -654,21 +654,7 @@ class Telescope(object):
         self.beta = beta
 
         #print 'beta is', self.beta
-        if self.npol ==1:
-            input_map = np.array([self.get_map_in(maptyp)])
-        
-        elif self.npol ==2:
-            Iscale = 2.
-            Vscale = 1.
-            
-            #Imap = Iscale * self.get_map_in(maptyp)
-            #Vmap = Vscale * self.get_map_in(maptyp)
-
-            input_map = self.get_map_in(maptyp) #np.array([Imap,Vmap])#.flatten()
-            
-        elif self.npol == 4:
-            
-            input_map = self.get_map_in(maptyp) #np.array([Imap,Vmap])#.flatten()
+        input_map = self.get_map_in(maptyp) #np.array([Imap,Vmap])#.flatten()
         
         #else: print 'npol doesnt match known pol modes'
          
@@ -744,8 +730,13 @@ class Telescope(object):
             #hp.mollview(map_in)
             #plt.savefig(self.this_path + 'map_in.png')
         elif maptyp == 'IVQU':
-            map_file = np.load('%s/map_in_IVQU.npz' % (self.this_path))
-            map_in = map_file['map_in'][:self.npol]
+            map_in = []
+            map_file = np.load('%s/map_in_%s.npz' % (self.this_path,self.tag))
+            map_in_hd = map_file['map_in']
+            for idx in range(len(map_in_hd)):
+                map_in.append(hp.ud_grade(map_in_hd[idx], nside_out = self._nside_in))
+                
+            map_in = np.array(map_in)
 
         elif maptyp == 'checkfile':
             checkdata = np.load(self.this_path + '/checkfile.npz')
@@ -956,16 +947,26 @@ class Telescope(object):
         
         # gamma_rot[pol][pix]
         
-        if self.pol == False: gamma_rot = [self.gammaI[nbase][rot_m_array]]
-        else:
+        if self.npol == 1: gamma_rot = [self.gammaI[nbase][rot_m_array]]
+        
+        if self.npol == 2: 
+            gamma_rot = 2*[np.zeros(npix_in)]
+            gamma_rot[0] = self.gammaI[nbase][rot_m_array]
+            gamma_rot[1] = self.gammaV[nbase][rot_m_array] #1.j*((-1.j*self.gammaV[nbase])[rot_m_array])
+
+        if self.npol == 3: 
+            gamma_rot = 3*[np.zeros(npix_in)]
+            gamma_rot[0] = self.gammaI[nbase][rot_m_array]
+            gamma_rot[1] = cos4psi*self.gammaQ[nbase][rot_m_array] - sin4psi*self.gammaU[nbase][rot_m_array]
+            gamma_rot[2] = cos4psi*self.gammaU[nbase][rot_m_array] + sin4psi*self.gammaQ[nbase][rot_m_array]
+        if self.npol == 4: 
             gamma_rot = 4*[np.zeros(npix_in)]
-            
             gamma_rot[0] = self.gammaI[nbase][rot_m_array]
             gamma_rot[1] = self.gammaV[nbase][rot_m_array] #1.j*((-1.j*self.gammaV[nbase])[rot_m_array])
             gamma_rot[2] = cos4psi*self.gammaQ[nbase][rot_m_array] - sin4psi*self.gammaU[nbase][rot_m_array]
             gamma_rot[3] = cos4psi*self.gammaU[nbase][rot_m_array] + sin4psi*self.gammaQ[nbase][rot_m_array]
             
-        return gamma_rot[0:self.npol]
+        return gamma_rot
 
 
     def simbase(self,freqs,q_n,pix_b,nbase,poi = False):

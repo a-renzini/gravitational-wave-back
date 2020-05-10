@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import time
 import math
-import MapBack_pol_IV as mb  #################
+import MapBack_pol_IQUV as mb  #################
 from matplotlib import cm
 from mpi4py import MPI
 ISMPI = True
@@ -26,11 +26,12 @@ import sys
 data_path = sys.argv[1]
 out_path =  sys.argv[2]
 maptyp = sys.argv[3]
-noise_lvl = sys.argv[4]
+tag = sys.argv[4]
+noise_lvl = sys.argv[5]
 noise_lvl = int(noise_lvl)
 this_path = out_path
-npol = int(sys.argv[5])
-ndet = int(sys.argv[6])
+npol = int(sys.argv[6])
+ndet = int(sys.argv[7])
 
 # poisson masked "flickering" map
 
@@ -41,12 +42,12 @@ if maptyp == 'planck_poi': poi = True
 # if declared from shell, load checkpoint file 
 
 try:
-    sys.argv[7]
+    sys.argv[8]
 except (NameError, IndexError):
     checkpoint = False
 else:
     checkpoint = True
-    checkfile_path = sys.argv[7]
+    checkfile_path = sys.argv[8]
 
     
 ###############                                                                                                               
@@ -172,7 +173,7 @@ if myid == 0:
         
         map_in = mb.map_in_gauss(nside_in,noise_lvl)
         np.savez('%s/map_in%s.npz' % (this_path,noise_lvl), map_in = map_in )
-        
+
         print '~~~~~~~~~~~~'
         print 'saved map_in_gauss in the out dir'
         print '~~~~~~~~~~~~'
@@ -188,7 +189,8 @@ if myid == 0:
 # args of class: nsides in/out; sampling frequency; freq cuts; declared detectors; the path of the checkfile; SNR level
 
 
-run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp,this_path,noise_lvl = noise_lvl,alpha = alpha,f0 = f0, npol = npol)
+run = mb.Telescope(nside_in,nside_out, fs, low_f, high_f, dects, maptyp, this_path, noise_lvl = noise_lvl, tag = tag, alpha = alpha,f0 = f0, npol = npol)
+
 
 ##############################################
 
