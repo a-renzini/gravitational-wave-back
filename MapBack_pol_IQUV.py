@@ -1511,7 +1511,10 @@ class Telescope(object):
             Ef = self.E_f(freq,alpha,f0)
             
             for idx in range(len(freq)):
-                Apbf = Ef[idx]*np.ravel((gamma_rot_ud[0]*np.exp(1j*freq[idx]*bdotp), gamma_rot_ud[1]*np.exp(1j*freq[idx]*bdotp),gamma_rot_ud[2]*np.exp(1j*freq[idx]*bdotp), gamma_rot_ud[3]*np.exp(1j*freq[idx]*bdotp)))
+                if self.npol == 1: Apbf = Ef[idx]*(gamma_rot_ud[0]*np.exp(1j*freq[idx]*bdotp))
+                if self.npol == 2: Apbf = Ef[idx]*np.ravel((gamma_rot_ud[0]*np.exp(1j*freq[idx]*bdotp), gamma_rot_ud[1]*np.exp(1j*freq[idx]*bdotp)))
+                if self.npol == 3: Apbf = Ef[idx]*np.ravel((gamma_rot_ud[0]*np.exp(1j*freq[idx]*bdotp), gamma_rot_ud[1]*np.exp(1j*freq[idx]*bdotp),gamma_rot_ud[2]*np.exp(1j*freq[idx]*bdotp)))
+                if self.npol == 4: Apbf = Ef[idx]*np.ravel((gamma_rot_ud[0]*np.exp(1j*freq[idx]*bdotp), gamma_rot_ud[1]*np.exp(1j*freq[idx]*bdotp),gamma_rot_ud[2]*np.exp(1j*freq[idx]*bdotp), gamma_rot_ud[3]*np.exp(1j*freq[idx]*bdotp)))
                 zp+= const * np.real(np.conj(Apbf)*df[idx]/pf[idx])
                 
                 Mpp+= const2 * np.real(np.einsum('i,j-> ij', Apbf/pf[idx], np.conj(Apbf)  )  )
